@@ -15,7 +15,12 @@ from colonoscopy_algo.extract.adenoma import get_adenoma_status, get_adenoma_his
 
 def process_text(text):
     specimens = [x.lower() for x in re.split(r'\W[A-Z]\)', text)]
-    tb, tbv, vl = get_adenoma_histology(specimens)
+    specimens_combined = defaultdict(list)
+    it = iter(['A'] + re.split(r'(?:^|\W)([A-Z])\)', text))
+    for x in it:
+        specimens_combined[x.lower()].append(next(it).lower())
+    specimens_combined = [' '.join(spec) for spec in specimens_combined.values()]
+    tb, tbv, vl = get_adenoma_histology(specimens_combined)
     return {
         'adenoma_status': get_adenoma_status(specimens),
         'tubular': tb,
@@ -24,7 +29,7 @@ def process_text(text):
     }
 
 
-def get_data(filetype, path, identifier, text, truth):
+def get_data(filetype, path, identifier, text, limit=None, truth=None):
     if os.path.isdir(path):
         for fn in os.listdir(path):
             get_data(filetype, os.path.join(path, fn), identifier, text, truth)
@@ -32,7 +37,11 @@ def get_data(filetype, path, identifier, text, truth):
         if filetype == 'csv':
             df = pd.read_csv(path, encoding='latin1')
             for row in df.itertuples():
-                yield getattr(row, identifier), getattr(row, text), {x: getattr(row, truth[x]) for x in truth}
+                name = getattr(row, identifier)
+                if limit and name not in limit:
+                    continue
+                yield (name, getattr(row, text),
+                       {x: getattr(row, truth[x]) for x in truth} if truth else None)
 
 
 def clean_truth(x):
@@ -54,7 +63,6 @@ def add_identifier(identifier, d, label, errors, value='fp'):
     :param errors:
     :return:
     """
-    print(errors, label, identifier, label in errors)
     try:
         if identifier in errors[label][value.lower()]:
             return 0
@@ -118,6 +126,7 @@ def process_config():
                     'path': {'type': 'string'},
                     'identifier': {'type': 'string'},
                     'text': {'type': 'string'},
+                    'limit': {'type': 'string'},
                 }
             },
             'truth': {

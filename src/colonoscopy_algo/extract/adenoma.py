@@ -56,12 +56,17 @@ def get_adenoma_histology(specimens):
     """
     tubular = re.compile(r'tubular', re.IGNORECASE)
     tubulovillous = re.compile(r'tubulovillous', re.IGNORECASE)
-    villous = re.compile(r'villous', re.IGNORECASE)
+    villous = re.compile(r'(?<!tubulo)villous', re.IGNORECASE)
+    exclusion = re.compile(r'^(\W*\w+){0,4}\W*(bowel|stomach|gastric|(duoden|rect|cec)(al|um))', re.IGNORECASE)
     tb, tbv, vl = 0, 0, 0
     for specimen in specimens:
+        # print('>> ', specimen)
+        if not find_in_specimen(re.compile('colon'), specimen) and find_in_specimen(exclusion, specimen):
+            continue
         tb_ = find_in_specimen(tubular, specimen)
         tbv_ = find_in_specimen(tubulovillous, specimen)
-        vl_ = find_in_specimen(villous, specimen)
+        vl_ = find_in_specimen(villous, specimen, prenegation={'no'})
+
         tb = tb or tb_
         vl = vl or vl_
         tbv = int(tbv or tbv_ or (tb_ and vl_))
