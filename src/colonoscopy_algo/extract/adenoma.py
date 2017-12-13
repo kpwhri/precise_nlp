@@ -12,12 +12,18 @@ def has_negation(index, text, window, negset):
 def inspect(patterns, specimens, prenegation=None, postnegation=None, window=5):
     for pat in patterns if isinstance(patterns, list) else [patterns]:
         for spec in specimens:
-            for m in pat.finditer(spec):
-                if prenegation and has_negation(m.start(), spec, -window, prenegation):
-                    continue
-                elif postnegation and has_negation(m.start(), spec, window, postnegation):
-                    continue
+            if find_in_specimen(pat, spec, prenegation, postnegation, window):
                 return 1
+    return 0
+
+
+def find_in_specimen(pattern, specimen, prenegation=None, postnegation=None, window=5):
+    for m in pattern.finditer(specimen):
+        if prenegation and has_negation(m.start(), specimen, -window, prenegation):
+            continue
+        elif postnegation and has_negation(m.start(), specimen, window, postnegation):
+            continue
+        return 1
     return 0
 
 
@@ -51,8 +57,12 @@ def get_adenoma_histology(specimens):
     tubular = re.compile(r'tubular', re.IGNORECASE)
     tubulovillous = re.compile(r'tubulovillous', re.IGNORECASE)
     villous = re.compile(r'villous', re.IGNORECASE)
-    tb = inspect(tubular, specimens)
-    tbv = inspect(tubulovillous, specimens)
-    vl = inspect(villous, specimens)
-
-    return tb, int(tbv or (tb and vl)), vl
+    tb, tbv, vl = 0, 0, 0
+    for specimen in specimens:
+        tb_ = find_in_specimen(tubular, specimen)
+        tbv_ = find_in_specimen(tubulovillous, specimen)
+        vl_ = find_in_specimen(villous, specimen)
+        tb = tb or tb_
+        vl = vl or vl_
+        tbv = int(tbv or tbv_ or (tb_ and vl_))
+    return tb, tbv, vl
