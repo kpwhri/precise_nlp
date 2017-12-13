@@ -9,11 +9,23 @@ def has_negation(index, text, window, negset):
     return s & negset
 
 
-def get_adenoma_status(text, window=5):
+def inspect(patterns, specimens, prenegation=None, postnegation=None, window=5):
+    for pat in patterns if isinstance(patterns, list) else [patterns]:
+        for spec in specimens:
+            for m in pat.finditer(spec):
+                if prenegation and has_negation(m.start(), spec, -window, prenegation):
+                    continue
+                elif postnegation and has_negation(m.start(), spec, window, postnegation):
+                    continue
+                return 1
+    return 0
+
+
+def get_adenoma_status(specimens, window=5):
     """
 
+    :param specimens:
     :param window:
-    :param text:
     :return: 1=adenoma, 2=no adenoma
     """
     tubular_adenoma = re.compile(r'tubular\s+adenoma', re.IGNORECASE)
@@ -22,11 +34,25 @@ def get_adenoma_status(text, window=5):
     tbv_adenoma = re.compile(r'tubulovillous\s+adenoma', re.IGNORECASE)
     adenomatoid = re.compile(r'adenomatoid', re.IGNORECASE)
     prenegation = {'no', 'hx', 'history', 'sessile'}
-    specimens = [x.lower() for x in re.split(r'\W[A-Z]\)', text)]
-    for pat in [tubular_adenoma, adenomatous, serrated_adenoma, tbv_adenoma, adenomatoid]:
-        for spec in specimens:
-            for m in pat.finditer(spec):
-                if has_negation(m.start(), spec, -window, prenegation):
-                    continue
-                return 1
-    return 0
+    return inspect(
+        [tubular_adenoma, adenomatous, serrated_adenoma, tbv_adenoma, adenomatoid],
+        specimens,
+        prenegation,
+        window=window
+    )
+
+
+def get_adenoma_histology(specimens):
+    """
+
+    :param specimens:
+    :return:
+    """
+    tubular = re.compile(r'tubular', re.IGNORECASE)
+    tubulovillous = re.compile(r'tubulovillous', re.IGNORECASE)
+    villous = re.compile(r'villous', re.IGNORECASE)
+    tb = inspect(tubular, specimens)
+    tbv = inspect(tubulovillous, specimens)
+    vl = inspect(villous, specimens)
+
+    return tb, int(tbv or (tb and vl)), vl
