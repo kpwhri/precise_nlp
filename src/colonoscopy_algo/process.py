@@ -13,6 +13,15 @@ from jsonschema import validate
 from colonoscopy_algo.extract.adenoma import get_adenoma_status, get_adenoma_histology
 
 
+ITEMS = [
+    'adenoma_status',
+    'tubulovillous',
+    'tubular',
+    'villous',
+    'any_villous'
+]
+
+
 def process_text(text):
     specimens = [x.lower() for x in re.split(r'\W[A-Z]\)', text)]
     specimens_combined = defaultdict(list)
@@ -25,23 +34,30 @@ def process_text(text):
         'adenoma_status': get_adenoma_status(specimens),
         'tubular': tb,
         'tubulovillous': tbv,
-        'villous': vl
+        'villous': vl,
+        'any_villous': tbv or vl
     }
 
 
 def get_data(filetype, path, identifier, text, limit=None, truth=None):
-    if os.path.isdir(path):
+    if path and os.path.isdir(path):
         for fn in os.listdir(path):
             get_data(filetype, os.path.join(path, fn), identifier, text, truth)
     else:
-        if filetype == 'csv':
+        if 'DataFrame' in str(type(filetype)):
+            df = filetype
+        elif filetype == 'csv':
             df = pd.read_csv(path, encoding='latin1')
-            for row in df.itertuples():
-                name = getattr(row, identifier)
-                if limit and name not in limit:
-                    continue
-                yield (name, getattr(row, text),
-                       {x: getattr(row, truth[x]) for x in truth} if truth else None)
+        elif filetype == 'sas':
+            df = pd.read_sas(path, encoding='latin1')
+        else:
+            raise ValueError(f'Unrecognized filetype: {filetype}')
+        for row in df.itertuples():
+            name = getattr(row, identifier)
+            if limit and name not in limit:
+                continue
+            yield (name, getattr(row, text),
+                   {x: getattr(row, truth[x]) for x in truth} if truth else None)
 
 
 def clean_truth(x):
@@ -67,6 +83,8 @@ def add_identifier(identifier, d, label, errors, value='fp'):
         if identifier in errors[label][value.lower()]:
             return 0
     except KeyError:
+        pass
+    except TypeError:
         pass
     print(f'{identifier}: {value.upper()}')
     d[label].append(identifier)
@@ -110,12 +128,6 @@ def calculate_score(num, denom):
 
 
 def process_config():
-    items = [
-        'adenoma_status',
-        'tubulovillous',
-        'tubular',
-        'villous',
-    ]
     schema = {
         'type': 'object',
         'properties': {
@@ -132,7 +144,7 @@ def process_config():
             'truth': {
                 'type': 'object',
                 'properties': {
-                    item: {'type': 'string'} for item in items
+                    item: {'type': 'string'} for item in ITEMS
                 }
             },
             'errors': {
@@ -144,7 +156,7 @@ def process_config():
                             'fp': {'type': 'array', 'items': {'type': 'string'}},
                             'fn': {'type': 'array', 'items': {'type': 'string'}},
                         }
-                    } for item in items
+                    } for item in ITEMS
                 }
             }
         }

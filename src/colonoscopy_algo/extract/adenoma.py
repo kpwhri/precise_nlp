@@ -57,7 +57,7 @@ def get_adenoma_histology(specimens):
     tubular = re.compile(r'tubular', re.IGNORECASE)
     tubulovillous = re.compile(r'tubulovillous', re.IGNORECASE)
     villous = re.compile(r'(?<!tubulo)villous', re.IGNORECASE)
-    exclusion = re.compile(r'^(\W*\w+){0,4}\W*(bowel|stomach|gastric|(duoden|rect|cec)(al|um))', re.IGNORECASE)
+    exclusion = re.compile(r'^(\W*\w+){0,4}\W*(bowel|stomach|gastric|(duoden|ile)(al|um))', re.IGNORECASE)
     tb, tbv, vl = 0, 0, 0
     for specimen in specimens:
         # print('>> ', specimen)
