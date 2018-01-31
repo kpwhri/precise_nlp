@@ -1,4 +1,6 @@
 import json
+import logging
+import logging.config
 import random
 import sys
 import pandas as pd
@@ -10,15 +12,23 @@ import yaml
 from collections import defaultdict
 from jsonschema import validate
 
-from colonoscopy_algo.extract.adenoma import get_adenoma_status, get_adenoma_histology
+from colonoscopy_algo.const import HIGHGRADE_DYSPLASIA, ANY_VILLOUS, VILLOUS, TUBULAR, TUBULOVILLOUS, ADENOMA_STATUS, \
+    ADENOMA_COUNT
+from colonoscopy_algo.extract.adenoma import get_adenoma_status, get_adenoma_histology, get_highgrade_dysplasia, \
+    get_adenoma_count
+from cronkd.util.logger import setup
+
+logging.config.dictConfig(setup())
 
 
 ITEMS = [
-    'adenoma_status',
-    'tubulovillous',
-    'tubular',
-    'villous',
-    'any_villous'
+    ADENOMA_STATUS,
+    TUBULOVILLOUS,
+    TUBULAR,
+    VILLOUS,
+    ANY_VILLOUS,
+    HIGHGRADE_DYSPLASIA,
+    ADENOMA_COUNT
 ]
 
 
@@ -31,11 +41,13 @@ def process_text(text):
     specimens_combined = [' '.join(spec) for spec in specimens_combined.values()]
     tb, tbv, vl = get_adenoma_histology(specimens_combined)
     return {
-        'adenoma_status': get_adenoma_status(specimens),
-        'tubular': tb,
-        'tubulovillous': tbv,
-        'villous': vl,
-        'any_villous': tbv or vl
+        ADENOMA_STATUS: get_adenoma_status(specimens),
+        TUBULAR: tb,
+        TUBULOVILLOUS: tbv,
+        VILLOUS: vl,
+        ANY_VILLOUS: tbv or vl,
+        HIGHGRADE_DYSPLASIA: get_highgrade_dysplasia(specimens),
+        ADENOMA_COUNT: get_adenoma_count(specimens)
     }
 
 
@@ -86,7 +98,7 @@ def add_identifier(identifier, d, label, errors, value='fp'):
         pass
     except TypeError:
         pass
-    print(f'{identifier}: {value.upper()}')
+    logging.info(f'{identifier}: {value.upper()}')
     d[label].append(identifier)
     return 1
 
