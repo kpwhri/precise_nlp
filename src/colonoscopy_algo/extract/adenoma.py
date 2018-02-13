@@ -143,3 +143,7 @@ def get_adenoma_count(specimens, bins=(3,), many=7):
         if count < cutoff:
             return i
     return len(bins)  # top bin
+
+
+def has_large_adenoma():
+    return False

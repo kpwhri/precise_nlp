@@ -13,9 +13,9 @@ from collections import defaultdict
 from jsonschema import validate
 
 from colonoscopy_algo.const import HIGHGRADE_DYSPLASIA, ANY_VILLOUS, VILLOUS, TUBULAR, TUBULOVILLOUS, ADENOMA_STATUS, \
-    ADENOMA_COUNT
+    ADENOMA_COUNT, LARGE_ADENOMA
 from colonoscopy_algo.extract.adenoma import get_adenoma_status, get_adenoma_histology, get_highgrade_dysplasia, \
-    get_adenoma_count
+    get_adenoma_count, has_large_adenoma
 from cronkd.util.logger import setup
 
 logging.config.dictConfig(setup())
@@ -47,7 +47,8 @@ def process_text(text):
         VILLOUS: vl,
         ANY_VILLOUS: tbv or vl,
         HIGHGRADE_DYSPLASIA: get_highgrade_dysplasia(specimens),
-        ADENOMA_COUNT: get_adenoma_count(specimens)
+        ADENOMA_COUNT: get_adenoma_count(specimens),
+        LARGE_ADENOMA: has_large_adenoma()
     }
 
 
@@ -103,7 +104,7 @@ def add_identifier(identifier, d, label, errors, value='fp'):
     return 1
 
 
-def process(data, truth, errors=None):
+def process(data, truth, errors=None, output=None):
     score = defaultdict(lambda: [0, 0, 0, 0])  # TP, FP, FN, TN
     fps = defaultdict(list)
     fns = defaultdict(list)
@@ -121,6 +122,11 @@ def process(data, truth, errors=None):
                 score[label][2] += add_identifier(identifier, fns, label, errors, 'fn')
             else:
                 score[label][1] += add_identifier(identifier, fps, label, errors, 'fp')
+
+    output_results(score, truth, fps, fns, **output if output else dict())
+
+
+def output_results(score, truth, fps, fns, max_false=5):
     for label in truth:
         print(f'Label: {label}')
         print('TP \tFP \tFN \t TN')
@@ -129,8 +135,9 @@ def process(data, truth, errors=None):
         print(f'Rec {calculate_score(score[label][0], score[label][2])}')
         print(f'Spc {calculate_score(score[label][3], score[label][1])}')
 
-        print(f'FPs: {random.sample(fps[label], min(5, len(fps[label])))}')
-        print(f'FNs: {random.sample(fns[label], min(5, len(fns[label])))}')
+        if max_false:
+            print(f'FPs: {random.sample(fps[label], min(max_false, len(fps[label])))}')
+            print(f'FNs: {random.sample(fns[label], min(max_false, len(fns[label])))}')
 
 
 def calculate_score(num, denom):
@@ -169,6 +176,12 @@ def process_config():
                             'fn': {'type': 'array', 'items': {'type': 'string'}},
                         }
                     } for item in ITEMS
+                }
+            },
+            'output': {
+                'type': 'object',
+                'properties': {
+                    'max_false': {'type': 'number'}
                 }
             }
         }
