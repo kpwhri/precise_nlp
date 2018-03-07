@@ -33,15 +33,24 @@ class PathManager:
             text
         ))
         for x in it:
+            comment = None
             x = x.lower()
             text = next(it).lower()
             if not text:  # first round 'A' might include empty string
                 continue
+            if 'comment:' in text:
+                idx = text.index('comment:')
+                text = text[:idx]
+                comment = text[idx:]
             if '-' in x or ',' in x or 'and' in x or '&' in x:
                 for spec in PathManager.parse_specimen_range(x):
                     specimens_dict[spec].append(text)
+                    if comment:
+                        specimens_dict[spec].append(comment)
             else:
                 specimens_dict[x].append(text)
+                if comment:
+                    specimens_dict[x].append(comment)
         specimens_combined = [' '.join(spec) for spec in specimens_dict.values()]
         return specimens, specimens_combined, specimens_dict
 
