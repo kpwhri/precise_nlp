@@ -1,4 +1,5 @@
 import re
+from colonoscopy_algo.extract.jar import PathManager
 
 
 def has_negation(index, text, window, negset):
@@ -96,7 +97,7 @@ def get_highgrade_dysplasia(specimens):
     :param specimens:
     :return:
     """
-    dysplasia = re.compile(r'(high(\s*|-)grade|severe)(\W*\w+)?\W+dysplas\w*', re.IGNORECASE)
+    dysplasia = re.compile(r'(high(\s*|-)?grade|severe)(\W*\w+)?\W+dysplas\w*', re.IGNORECASE)
     prenegation = {'no', 'without'}
     return inspect([dysplasia], specimens, prenegation=prenegation,
                    terminate_on_negation=True)
@@ -143,6 +144,18 @@ def get_adenoma_count(specimens, bins=(3,), many=7):
         if count < cutoff:
             return i
     return len(bins)  # top bin
+
+
+def get_adenoma_count_advanced(text, greater_than=3):
+    """
+    Defaulting to bin for >3
+    :param text:
+    :return:
+    """
+    pm = PathManager(text)
+    count = pm.get_adenoma_count()
+    print(count)
+    return 1 if count.gt(greater_than) == 1 else 0
 
 
 def has_large_adenoma():

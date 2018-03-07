@@ -13,10 +13,13 @@ from collections import defaultdict
 from jsonschema import validate
 
 from colonoscopy_algo.const import HIGHGRADE_DYSPLASIA, ANY_VILLOUS, VILLOUS, TUBULAR, TUBULOVILLOUS, ADENOMA_STATUS, \
-    ADENOMA_COUNT, LARGE_ADENOMA
+    ADENOMA_COUNT, LARGE_ADENOMA, ADENOMA_COUNT_ADV
 from colonoscopy_algo.extract.adenoma import get_adenoma_status, get_adenoma_histology, get_highgrade_dysplasia, \
-    get_adenoma_count, has_large_adenoma
+    get_adenoma_count, has_large_adenoma, get_adenoma_count_advanced
+from colonoscopy_algo.extract.jar import PathManager
 from cronkd.util.logger import setup
+
+from colonoscopy_algo.extract.jar import PathManager
 
 logging.config.dictConfig(setup())
 
@@ -28,27 +31,24 @@ ITEMS = [
     VILLOUS,
     ANY_VILLOUS,
     HIGHGRADE_DYSPLASIA,
-    ADENOMA_COUNT
+    ADENOMA_COUNT,
+    ADENOMA_COUNT_ADV,
 ]
 
 
 def process_text(text):
-    specimens = [x.lower() for x in re.split(r'\W[A-Z]\)', text)]
-    specimens_combined = defaultdict(list)
-    it = iter(['A'] + re.split(r'(?:^|\W)([A-Z])\)', text))
-    for x in it:
-        specimens_combined[x.lower()].append(next(it).lower())
-    specimens_combined = [' '.join(spec) for spec in specimens_combined.values()]
-    tb, tbv, vl = get_adenoma_histology(specimens_combined)
+    specs, specs_combined, specs_dict = PathManager.parse_jars(text)
+    tb, tbv, vl = get_adenoma_histology(specs_combined)
     return {
-        ADENOMA_STATUS: get_adenoma_status(specimens),
+        ADENOMA_STATUS: get_adenoma_status(specs),
         TUBULAR: tb,
         TUBULOVILLOUS: tbv,
         VILLOUS: vl,
         ANY_VILLOUS: tbv or vl,
-        HIGHGRADE_DYSPLASIA: get_highgrade_dysplasia(specimens),
-        ADENOMA_COUNT: get_adenoma_count(specimens),
-        LARGE_ADENOMA: has_large_adenoma()
+        HIGHGRADE_DYSPLASIA: get_highgrade_dysplasia(specs),
+        ADENOMA_COUNT: get_adenoma_count(specs),
+        LARGE_ADENOMA: has_large_adenoma(),
+        ADENOMA_COUNT_ADV: get_adenoma_count_advanced(text)
     }
 
 
@@ -109,6 +109,10 @@ def process(data, truth, errors=None, output=None):
     fps = defaultdict(list)
     fns = defaultdict(list)
     for identifier, text, truth_values in get_data(**data, truth=truth):
+        if pd.isnull(text):
+            ve = ValueError('Text cannot be missing/none')
+            print(ve)
+            continue
         res = process_text(text)
         for label in truth_values:
             truth_item = clean_truth(truth_values[label])

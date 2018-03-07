@@ -18,5 +18,6 @@ ANY_VILLOUS = 'any_villous'
 HIGHGRADE_DYSPLASIA = 'highgrade_dysplasia'
 # number of adenomas found
 ADENOMA_COUNT = 'adenoma_count'
+ADENOMA_COUNT_ADV = 'adenoma_count_adv'
 # has adenoma >= X size
 LARGE_ADENOMA = 'large_adenoma'
