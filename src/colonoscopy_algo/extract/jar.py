@@ -106,7 +106,8 @@ class JarManager:
 
     LOCATIONS = ['ascending', 'descending',
                  'transverse', 'sigmoid']
-    PLURALS = ['polyps', 'biopsies']
+    POLYPS = ['polyps', 'biopsies', 'polyp']
+    POLYP = ['polyp']
     ADENOMAS = ['adenomas']
     ADENOMA = ['adenoma', 'adenomatoid', 'adenomatous',
                'adenomat',
@@ -135,16 +136,24 @@ class JarManager:
     def cursory_diagnosis_examination(self, section):
         jar = Jar()
         section = PathSection(section)
+        found_polyp = False
         for word in section:
             if word.isin(self.LOCATIONS):
                 jar.locations.append(word)
-            elif word.isin(self.PLURALS):
+            elif not found_polyp and word.isin(self.POLYPS):  # polyps/biopsies
                 if section.has_before(self.ADENOMA_NEGATION):
                     continue
-                jar.polyp_count.greater_than = True
+                num = section.has_after(self.NUMBER, window=2)
+                if not num or section.has_after(self.FRAGMENTS, window=4):
+                    num = section.has_before(self.NUMBER, window=3)
+                if num and not section.has_before(self.FRAGMENTS, window=2):
+                    jar.polyp_count.set(self.NUMBER_CONVERT[str(num)])
+                elif not word.isin(self.POLYP):
+                    jar.polyp_count.greater_than = True
+                found_polyp = True
             elif (
                 word.isin(self.ADENOMAS) or
-                (word.isin(self.ADENOMA) and section.has_after(self.PLURALS, window=1))
+                (word.isin(self.ADENOMA) and section.has_after(self.POLYPS, window=1))
             ):
                 if section.has_before(self.ADENOMA_NEGATION):
                     print('NEGATED!')
@@ -152,7 +161,7 @@ class JarManager:
                 num = section.has_after(self.NUMBER, window=2)
                 has_frags = section.has_before(self.FRAGMENTS, window=4)
                 if num and not num.spl.startswith(')'):
-                    if section.has_after(self.FRAGMENTS, window=3):
+                    if section.has_after(self.FRAGMENTS, window=4):
                         num = False
                 if not num:
                     num = section.has_before(self.NUMBER, window=5)
@@ -233,7 +242,7 @@ class PathSection:
         return False
 
     def has_after(self, terms, window=5, allow_stop=True):
-        for word in self.section[self.curr + 1:max(self.curr + window + 1, len(self.section))]:
+        for word in self.section[self.curr + 1:min(self.curr + window + 1, len(self.section))]:
             if word.isin(terms):
                 return word
             if allow_stop and word.stop():  # punctuation after word
@@ -304,6 +313,11 @@ class MaybeCounter:
             self.at_least = al
             self.count = count
 
+    def set(self, count=0, greater_than=False, at_least=False):
+        self.count = count
+        self.greater_than = greater_than
+        self.at_least = at_least
+
     def __add__(self, other):
         try:
             return MaybeCounter(self.count + int(other),
@@ -318,8 +332,6 @@ class MaybeCounter:
             count += 2
         elif self.greater_than or other.greater_than:
             count += 1
-        elif self.at_least and other.at_least:
-            count -= 1
         return MaybeCounter(count, at_least=at_least, greater_than=greater_than)
 
     def __sub__(self, other):

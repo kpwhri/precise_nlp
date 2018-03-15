@@ -146,7 +146,7 @@ def get_adenoma_count(specimens, bins=(3,), many=7):
     return len(bins)  # top bin
 
 
-def get_adenoma_count_advanced(text, greater_than=3):
+def get_adenoma_count_advanced(text, greater_than=2):
     """
     Defaulting to bin for >3
     :param text:
