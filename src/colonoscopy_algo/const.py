@@ -6,6 +6,7 @@ Otherwise, yes=1, no=0
 """
 # adenoma detected
 ADENOMA_STATUS = 'adenoma_status'
+ADENOMA_STATUS_ADV = 'adenoma_status_adv'
 # tubulovillous adenoma detected
 TUBULOVILLOUS = 'tubulovillous'
 # tubular adenoma detected

@@ -1,3 +1,4 @@
+import csv
 import json
 import logging
 import logging.config
@@ -13,7 +14,7 @@ from collections import defaultdict
 from jsonschema import validate
 
 from colonoscopy_algo.const import HIGHGRADE_DYSPLASIA, ANY_VILLOUS, VILLOUS, TUBULAR, TUBULOVILLOUS, ADENOMA_STATUS, \
-    ADENOMA_COUNT, LARGE_ADENOMA, ADENOMA_COUNT_ADV
+    ADENOMA_COUNT, LARGE_ADENOMA, ADENOMA_COUNT_ADV, ADENOMA_STATUS_ADV
 from colonoscopy_algo.extract.adenoma import get_adenoma_status, get_adenoma_histology, get_highgrade_dysplasia, \
     get_adenoma_count, has_large_adenoma, get_adenoma_count_advanced
 from colonoscopy_algo.extract.jar import PathManager
@@ -33,12 +34,14 @@ ITEMS = [
     HIGHGRADE_DYSPLASIA,
     ADENOMA_COUNT,
     ADENOMA_COUNT_ADV,
+    ADENOMA_STATUS_ADV,
 ]
 
 
 def process_text(text):
     specs, specs_combined, specs_dict = PathManager.parse_jars(text)
     tb, tbv, vl = get_adenoma_histology(specs_combined)
+    adenoma_count, adenoma_status = get_adenoma_count_advanced(text)
     return {
         ADENOMA_STATUS: get_adenoma_status(specs),
         TUBULAR: tb,
@@ -48,7 +51,8 @@ def process_text(text):
         HIGHGRADE_DYSPLASIA: get_highgrade_dysplasia(specs),
         ADENOMA_COUNT: get_adenoma_count(specs),
         LARGE_ADENOMA: has_large_adenoma(),
-        ADENOMA_COUNT_ADV: get_adenoma_count_advanced(text)
+        ADENOMA_COUNT_ADV: adenoma_count,
+        ADENOMA_STATUS_ADV: adenoma_status
     }
 
 
@@ -104,30 +108,45 @@ def add_identifier(identifier, d, label, errors, value='fp'):
     return 1
 
 
-def process(data, truth, errors=None, output=None):
+def process(data, truth, errors=None, output=None, outfile=None):
     score = defaultdict(lambda: [0, 0, 0, 0])  # TP, FP, FN, TN
     fps = defaultdict(list)
     fns = defaultdict(list)
-    for identifier, text, truth_values in get_data(**data, truth=truth):
+    if outfile:
+        fh = open(outfile, 'w', newline='')
+        outfile = csv.writer(fh)
+    for i, (identifier, text, truth_values) in enumerate(get_data(**data, truth=truth)):
         if pd.isnull(text):
             ve = ValueError('Text cannot be missing/none')
             print(ve)
             continue
+        if outfile and i == 0:
+            row = ['row', 'identifier']  # header
+            for label in truth_values:
+                row.append(f'{label}_true')
+                row.append(f'{label}_pred')
+            outfile.writerow(row)
         res = process_text(text)
+        row = [i, identifier]
         for label in truth_values:
             truth_item = clean_truth(truth_values[label])
+            row.append(res[label])
+            row.append(truth_item)
             if res[label] == truth_item == 0:
-                print(f'{identifier}: TN')
+                logging.info(f'{identifier}: TN')
                 score[label][3] += 1
             elif res[label] == truth_item:
-                print(f'{identifier}: TP')
+                logging.info(f'{identifier}: TP')
                 score[label][0] += 1
             elif truth_item == 1:
                 score[label][2] += add_identifier(identifier, fns, label, errors, 'fn')
             else:
                 score[label][1] += add_identifier(identifier, fps, label, errors, 'fp')
-
+        if outfile:
+            outfile.writerow(row)
     output_results(score, truth, fps, fns, **output if output else dict())
+    if outfile:
+        fh.close()
 
 
 def output_results(score, truth, fps, fns, max_false=5):
@@ -187,7 +206,10 @@ def process_config():
                 'properties': {
                     'max_false': {'type': 'number'}
                 }
-            }
+            },
+            'outfile': {
+                'type': 'string'
+            },
         }
     }
     conf_fp = sys.argv[1]

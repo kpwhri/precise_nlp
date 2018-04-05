@@ -1,5 +1,5 @@
 import re
-from colonoscopy_algo.extract.jar import PathManager
+from colonoscopy_algo.extract.jar import PathManager, AdenomaCountMethod
 
 
 def has_negation(index, text, window, negset):
@@ -153,9 +153,12 @@ def get_adenoma_count_advanced(text, greater_than=2):
     :return:
     """
     pm = PathManager(text)
-    count = pm.get_adenoma_count()
-    print(count)
-    return 1 if count.gt(greater_than) == 1 else 0
+    min_count = pm.get_adenoma_count(AdenomaCountMethod.ONE_PER_JAR)
+    max_count = pm.get_adenoma_count(AdenomaCountMethod.COUNT_IN_JAR)
+    return (
+        1 if max_count.gt(greater_than) == 1 else 0,
+        0 if max_count.eq(0) == 1 else 1
+    )
 
 
 def has_large_adenoma():

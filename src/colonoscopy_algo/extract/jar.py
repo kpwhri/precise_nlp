@@ -1,7 +1,12 @@
 import re
 
 from collections import defaultdict
+from enum import Enum
 
+
+class AdenomaCountMethod(Enum):
+    COUNT_IN_JAR = 1
+    ONE_PER_JAR = 2
 
 class PathManager:
 
@@ -19,17 +24,18 @@ class PathManager:
             others = sections[1:]
         self._jars_read = True
 
-    def get_adenoma_count(self):
+    def get_adenoma_count(self, method=AdenomaCountMethod.COUNT_IN_JAR):
         if not self._jars_read:
             self._read_jars()
-        return self.manager.get_adenoma_count()
+        return self.manager.get_adenoma_count(method)
 
     @staticmethod
     def parse_jars(text):
-        specimens = [x.lower() for x in re.split(r'\W[A-Z]\)', text)]
+        specimens = [x.lower() for x in re.split(r'(?<!\()\W[A-Z]\)', text)]
         specimens_dict = defaultdict(list)
         it = iter(['A'] + re.split(
-            r'(?:^|\W)([A-Z](?:\D?(?:and|-|,|&)\D?[A-Z])*)(?:\d(?:-\d)?)?\)',
+            r'(?:^|[^a-zA-Z0-9_\(])'
+            r'([A-Z](?:\D?(?:and|-|,|&)\D?[A-Z])*)(?:\d(?:-\d)?)?\)',
             text
         ))
         for x in it:
@@ -105,12 +111,16 @@ class Jar:
 class JarManager:
 
     LOCATIONS = ['ascending', 'descending',
-                 'transverse', 'sigmoid']
+                 'transverse', 'sigmoid',
+                 'hepatic', 'splenic',
+                 'duodenum'
+                 ]
     POLYPS = ['polyps', 'biopsies', 'polyp']
     POLYP = ['polyp']
     ADENOMAS = ['adenomas']
     ADENOMA = ['adenoma', 'adenomatoid', 'adenomatous',
                'adenomat',
+               'adenom'  # abbreviation in early path reports
                ]
     COLON = ['colon', 'rectum', 'rectal', 'cecal',
              'cecum', 'colonic'
@@ -132,6 +142,13 @@ class JarManager:
 
     def __init__(self):
         self.jars = []
+
+    def _adenoma_negated(self, section):
+        if section.has_before(self.ADENOMA_NEGATION) and not section.has_before(self.HISTOLOGY, window=4):
+            return True
+        elif section.has_before('or', window=3) and section.has_before(self.ADENOMA_NEGATION, window=7):
+            return True
+        return False
 
     def cursory_diagnosis_examination(self, section):
         jar = Jar()
@@ -155,7 +172,7 @@ class JarManager:
                 word.isin(self.ADENOMAS) or
                 (word.isin(self.ADENOMA) and section.has_after(self.POLYPS, window=1))
             ):
-                if section.has_before(self.ADENOMA_NEGATION):
+                if self._adenoma_negated(section):
                     print('NEGATED!')
                     continue
                 num = section.has_after(self.NUMBER, window=2)
@@ -179,7 +196,7 @@ class JarManager:
                     print('Adding 1', jar.adenoma_count)
 
             elif word.isin(self.ADENOMA):
-                if not section.has_before(self.ADENOMA_NEGATION):
+                if not self._adenoma_negated(section):
                     if section.has_before(self.FRAGMENTS, window=4):
                         jar.adenoma_count.add(1, at_least=True)
                     else:
@@ -198,15 +215,17 @@ class JarManager:
         self.jars.append(jar)
         return self
 
-    def get_adenoma_count(self):
+    def get_adenoma_count(self, method=AdenomaCountMethod.COUNT_IN_JAR):
         """
 
         :return: MaybeCounter
         """
         count = MaybeCounter(0)
         for jar in self.jars:
-            print(jar.pprint())
-            count += jar.adenoma_count
+            if method == AdenomaCountMethod.COUNT_IN_JAR:
+                count += jar.adenoma_count
+            elif method == AdenomaCountMethod.ONE_PER_JAR:
+                count += 1 if jar.adenoma_count else 0
         return count
 
 
@@ -234,7 +253,7 @@ class PathSection:
             yield section
 
     def has_before(self, terms, window=5, allow_stop=True):
-        for word in reversed(self.section[min(self.curr - window, 0): self.curr]):
+        for word in reversed(self.section[max(self.curr - window, 0): self.curr]):
             if allow_stop and word.stop():
                 return False
             if word.isin(terms):
@@ -371,6 +390,11 @@ class MaybeCounter:
         return -1
 
     def eq(self, other: int):
+        """
+
+        :param other:
+        :return: 1=exactly true; 0=maybe/possibly true
+        """
         if self.count == other:
             if self.greater_than:
                 return -1
