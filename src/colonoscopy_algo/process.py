@@ -14,7 +14,7 @@ from collections import defaultdict
 from jsonschema import validate
 
 from colonoscopy_algo.const import HIGHGRADE_DYSPLASIA, ANY_VILLOUS, VILLOUS, TUBULAR, TUBULOVILLOUS, ADENOMA_STATUS, \
-    ADENOMA_COUNT, LARGE_ADENOMA, ADENOMA_COUNT_ADV, ADENOMA_STATUS_ADV, ADENOMA_DISTAL
+    ADENOMA_COUNT, LARGE_ADENOMA, ADENOMA_COUNT_ADV, ADENOMA_STATUS_ADV, ADENOMA_DISTAL, ADENOMA_DISTAL_COUNT
 from colonoscopy_algo.extract.adenoma import get_adenoma_status, get_adenoma_histology, get_highgrade_dysplasia, \
     get_adenoma_count, has_large_adenoma, get_adenoma_count_advanced, get_adenoma_distal
 from colonoscopy_algo.extract.jar import PathManager
@@ -35,7 +35,8 @@ ITEMS = [
     ADENOMA_COUNT,
     ADENOMA_COUNT_ADV,
     ADENOMA_STATUS_ADV,
-    ADENOMA_DISTAL
+    ADENOMA_DISTAL,
+    ADENOMA_DISTAL_COUNT
 ]
 
 
@@ -44,6 +45,7 @@ def process_text(text):
     specs, specs_combined, specs_dict = PathManager.parse_jars(text)
     tb, tbv, vl = get_adenoma_histology(specs_combined)
     adenoma_count, adenoma_status = get_adenoma_count_advanced(pm)
+    aden_dist_count, aden_dist_status = get_adenoma_distal(pm)
     return {
         ADENOMA_STATUS: get_adenoma_status(specs),
         TUBULAR: tb,
@@ -55,7 +57,8 @@ def process_text(text):
         LARGE_ADENOMA: has_large_adenoma(),
         ADENOMA_COUNT_ADV: adenoma_count,
         ADENOMA_STATUS_ADV: adenoma_status,
-        ADENOMA_DISTAL: get_adenoma_distal(pm)
+        ADENOMA_DISTAL: aden_dist_status,
+        ADENOMA_DISTAL_COUNT: aden_dist_count,
     }
 
 

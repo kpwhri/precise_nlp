@@ -9,6 +9,7 @@ class AdenomaCountMethod(Enum):
     COUNT_IN_JAR = 1
     ONE_PER_JAR = 2
 
+
 class PathManager:
 
     def __init__(self, text):
@@ -63,6 +64,11 @@ class PathManager:
                 specimens_dict[x].append(text)
                 if comment:
                     specimens_dict[x].append(comment)
+        # special cases
+        if 'b' in specimens_dict and len(specimens_dict['a']) > len(specimens_dict['b']):
+            # contains intro text
+            specimens_dict['a'] = specimens_dict['a'][1:]
+
         specimens_combined = [' '.join(spec) for spec in specimens_dict.values()]
         return specimens, specimens_combined, specimens_dict
 
@@ -121,10 +127,13 @@ class JarManager:
     LOCATIONS = ['ascending', 'descending',
                  'transverse', 'sigmoid',
                  'hepatic', 'splenic',
-                 'duodenum', 'distal',
-                 'rectal', 'rectum'
+                 'duodenum', 'duodenal',
+                 'rectal', 'rectum',
+                 'proximal', 'distal',
+                 'cecum', 'cecal'
                  ]
     DISTAL_LOCATIONS = ['descending', 'sigmoid', 'distal', 'rectal', 'rectum']
+    PROXIMAL_LOCATIONS = ['proximal', 'ascending', 'transverse', 'cecum', 'cecal']
     POLYPS = ['polyps', 'biopsies', 'polyp']
     POLYP = ['polyp']
     ADENOMAS = ['adenomas']
@@ -173,12 +182,18 @@ class JarManager:
         :param jar:
         :return:
         """
-        return bool(set(jar.locations) & set(self.DISTAL_LOCATIONS)) or bool(jar.depth and jar.depth < 82)
+        return bool(set(jar.locations) & set(self.DISTAL_LOCATIONS) and
+                    not set(jar.locations) | set(self.DISTAL_LOCATIONS)) or bool(jar.depth and jar.depth < 82)
+
+    def maybe_distal(self, jar):
+        return bool(set(jar.locations) & set(self.DISTAL_LOCATIONS))
 
     def add_count_to_jar(self, jar, count=1, greater_than=False, at_least=False):
         jar.adenoma_count.add(count, greater_than, at_least)
         if self.is_distal(jar):
             jar.adenoma_distal_count.add(count, greater_than, at_least)
+        elif self.maybe_distal(jar):  # be conservative
+            jar.adenoma_distal_count.add(0, greater_than=True)
 
     def cursory_diagnosis_examination(self, section):
         jar = Jar()
@@ -186,6 +201,8 @@ class JarManager:
         found_polyp = False
         for word in section:
             if word.isin(self.LOCATIONS):
+                if word.isin(['distal', 'proximal']) and section.has_after(self.LOCATIONS, window=3):
+                    continue
                 jar.locations.append(word)
             elif word.matches(self.DEPTH_PATTERN) or word.matches(self.NUMBER_PATTERN) \
                     and section.has_after(['cm'], window=1):

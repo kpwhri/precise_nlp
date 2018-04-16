@@ -8,6 +8,7 @@ Otherwise, yes=1, no=0
 ADENOMA_STATUS = 'adenoma_status'
 ADENOMA_STATUS_ADV = 'adenoma_status_adv'
 ADENOMA_DISTAL = 'adenoma_distal'
+ADENOMA_DISTAL_COUNT = 'adenoma_distal_count'
 # tubulovillous adenoma detected
 TUBULOVILLOUS = 'tubulovillous'
 # tubular adenoma detected
