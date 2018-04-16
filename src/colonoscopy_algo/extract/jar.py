@@ -105,6 +105,7 @@ class Jar:
         self.locations = []
         self.histology = []
         self.dysplasia = False
+        self.depth = None
 
     def pprint(self):
         return '''Kinds: {}
@@ -149,6 +150,9 @@ class JarManager:
     DYSPLASIA = {'dysplasia'}
     HIGHGRADE_DYS = {'highgrade', 'grade', 'severe'}
 
+    DEPTH_PATTERN = re.compile(r'(\d{1,3})cm', re.IGNORECASE)
+    NUMBER_PATTERN = re.compile(r'(\d{1,3})', re.IGNORECASE)
+
     def __init__(self):
         self.jars = []
 
@@ -162,11 +166,12 @@ class JarManager:
     def is_distal(self, jar):
         """
         Distal if location includes a distal_location keyword
-        Cite: https://www.cancer.gov/publications/dictionaries/cancer-terms/def/distal-colon
+        Cite for locations: https://www.cancer.gov/publications/dictionaries/cancer-terms/def/distal-colon
+        Cite for distance: https://training.seer.cancer.gov/colorectal/anatomy/figure/figure1.html
         :param jar:
         :return:
         """
-        return bool(set(jar.locations) & set(self.DISTAL_LOCATIONS))
+        return bool(set(jar.locations) & set(self.DISTAL_LOCATIONS)) or bool(jar.depth and jar.depth < 82)
 
     def add_count_to_jar(self, jar, count=1, greater_than=False, at_least=False):
         jar.adenoma_count.add(count, greater_than, at_least)
@@ -180,6 +185,10 @@ class JarManager:
         for word in section:
             if word.isin(self.LOCATIONS):
                 jar.locations.append(word)
+            elif word.matches(self.DEPTH_PATTERN) or word.matches(self.NUMBER_PATTERN) \
+                    and section.has_after(['cm'], window=1):
+                # 15 cm, etc.
+                jar.depth = float(word.match(self.NUMBER_PATTERN))
             elif not found_polyp and word.isin(self.POLYPS):  # polyps/biopsies
                 if section.has_before(self.ADENOMA_NEGATION):
                     continue
@@ -309,6 +318,12 @@ class PathWord:
 
     def isin(self, lst):
         return self.word in lst
+
+    def matches(self, pattern):
+        return pattern.match(self.word)
+
+    def match(self, pattern):
+        return pattern.match(self.word).group(1)
 
     def stop(self):
         return PathSection.STOP.match(self.spl)
