@@ -120,8 +120,9 @@ class JarManager:
     LOCATIONS = ['ascending', 'descending',
                  'transverse', 'sigmoid',
                  'hepatic', 'splenic',
-                 'duodenum'
+                 'duodenum', 'distal'
                  ]
+    DISTAL_LOCATIONS = ['descending', 'sigmoid', 'distal']
     POLYPS = ['polyps', 'biopsies', 'polyp']
     POLYP = ['polyp']
     ADENOMAS = ['adenomas']
@@ -157,6 +158,20 @@ class JarManager:
             return True
         return False
 
+    def is_distal(self, jar):
+        """
+        Distal if location includes a distal_location keyword
+        Cite: https://www.cancer.gov/publications/dictionaries/cancer-terms/def/distal-colon
+        :param jar:
+        :return:
+        """
+        return bool(set(jar.locations) & set(self.DISTAL_LOCATIONS))
+
+    def add_count_to_jar(self, jar, count=1, greater_than=False, at_least=False):
+        jar.adenoma_count.add(count, greater_than, at_least)
+        if self.is_distal(jar):
+            jar.adenoma_distal_count.add(count, greater_than, at_least)
+
     def cursory_diagnosis_examination(self, section):
         jar = Jar()
         section = PathSection(section)
@@ -189,20 +204,20 @@ class JarManager:
                 if not num:
                     num = section.has_before(self.NUMBER, window=5)
                 if section.has_before(self.FRAGMENT, window=4):
-                    jar.adenoma_count.add(1)
+                    self.add_count_to_jar(jar, 1)
                 if num and has_frags:
-                    jar.adenoma_count.add(1, at_least=True)
+                    self.add_count_to_jar(jar, 1, at_least=True)
                 elif num:  # identified number
-                    jar.adenoma_count.add(self.NUMBER_CONVERT[str(num)])
+                    self.add_count_to_jar(jar, self.NUMBER_CONVERT[str(num)])
                 else:  # default case
-                    jar.adenoma_count.add(1, greater_than=True)
+                    self.add_count_to_jar(jar, 1, greater_than=True)
 
             elif word.isin(self.ADENOMA):
                 if not self._adenoma_negated(section):
                     if section.has_before(self.FRAGMENTS, window=4):
-                        jar.adenoma_count.add(1, at_least=True)
+                        self.add_count_to_jar(jar, 1, at_least=True)
                     else:
-                        jar.adenoma_count.add(1)
+                        self.add_count_to_jar(jar, 1)
                 else:
                     logging.debug('NEGATED!')
             elif word.isin(self.COLON):
@@ -249,7 +264,7 @@ class PathSection:
 
     WORD_SPLIT_PATTERN = re.compile(r'([a-z]+|[0-9]+(?:\.[0-9]+)?)')
     STOP = re.compile('.*(:|\.).*')
-    
+
     def __init__(self, section):
         pword = None
         pindex = 0
@@ -262,7 +277,7 @@ class PathSection:
         if pword:
             self.section.append(PathWord(pword, section[pindex:]))
         self.curr = None
-        
+
     def __iter__(self):
         for i, section in enumerate(self.section):
             self.curr = i
@@ -283,14 +298,14 @@ class PathSection:
             if allow_stop and word.stop():  # punctuation after word
                 return False
         return False
-        
-    
+
+
 class PathWord:
-    
+
     def __init__(self, word, spl=''):
         self.word = word
-        self.spl = spl
-        
+        self.spl = spl  # not part of object itself
+
     def isin(self, lst):
         return self.word in lst
 
@@ -298,6 +313,7 @@ class PathWord:
         return PathSection.STOP.match(self.spl)
 
     def __eq__(self, other):
+        """Does not rely on punctuation"""
         if isinstance(other, PathWord):
             return self.word == other.word
         return self.word == other
@@ -310,6 +326,10 @@ class PathWord:
 
     def __bool__(self):
         return True
+
+    def __hash__(self):
+        """Does not rely on punctuation"""
+        return hash(self.word)
 
 
 class Polyp:
