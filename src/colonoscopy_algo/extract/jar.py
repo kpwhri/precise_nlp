@@ -120,9 +120,10 @@ class JarManager:
     LOCATIONS = ['ascending', 'descending',
                  'transverse', 'sigmoid',
                  'hepatic', 'splenic',
-                 'duodenum', 'distal'
+                 'duodenum', 'distal',
+                 'rectal', 'rectum'
                  ]
-    DISTAL_LOCATIONS = ['descending', 'sigmoid', 'distal']
+    DISTAL_LOCATIONS = ['descending', 'sigmoid', 'distal', 'rectal', 'rectum']
     POLYPS = ['polyps', 'biopsies', 'polyp']
     POLYP = ['polyp']
     ADENOMAS = ['adenomas']
