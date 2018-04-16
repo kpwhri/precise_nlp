@@ -166,7 +166,9 @@ class JarManager:
     def is_distal(self, jar):
         """
         Distal if location includes a distal_location keyword
-        Cite for locations: https://www.cancer.gov/publications/dictionaries/cancer-terms/def/distal-colon
+        Cite for locations:
+            - https://www.cancer.gov/publications/dictionaries/cancer-terms/def/distal-colon
+            - http://cebp.aacrjournals.org/content/17/5/1144
         Cite for distance: https://training.seer.cancer.gov/colorectal/anatomy/figure/figure1.html
         :param jar:
         :return:
