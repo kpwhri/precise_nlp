@@ -146,19 +146,27 @@ def get_adenoma_count(specimens, bins=(3,), many=7):
     return len(bins)  # top bin
 
 
-def get_adenoma_count_advanced(text, greater_than=2):
+def get_adenoma_count_advanced(pm: PathManager, greater_than=2):
     """
     Defaulting to bin for >3
-    :param text:
+    :param pm: PathManager instance
     :return:
     """
-    pm = PathManager(text)
     min_count = pm.get_adenoma_count(AdenomaCountMethod.ONE_PER_JAR)
     max_count = pm.get_adenoma_count(AdenomaCountMethod.COUNT_IN_JAR)
     return (
         1 if max_count.gt(greater_than) == 1 else 0,
         0 if max_count.eq(0) == 1 else 1
     )
+
+
+def get_adenoma_distal(pm: PathManager):
+    """
+
+    :param pm:
+    :return:
+    """
+    return 1 if pm.get_adenoma_distal_count(AdenomaCountMethod.COUNT_IN_JAR).gt(0) == 1 else 0
 
 
 def has_large_adenoma():

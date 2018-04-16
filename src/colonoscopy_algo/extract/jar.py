@@ -1,3 +1,4 @@
+import logging
 import re
 
 from collections import defaultdict
@@ -28,6 +29,11 @@ class PathManager:
         if not self._jars_read:
             self._read_jars()
         return self.manager.get_adenoma_count(method)
+
+    def get_adenoma_distal_count(self, method=AdenomaCountMethod.COUNT_IN_JAR):
+        if not self._jars_read:
+            self._read_jars()
+        return self.manager.get_adenoma_distal_count(method)
 
     @staticmethod
     def parse_jars(text):
@@ -95,6 +101,7 @@ class Jar:
         self.polyps = []
         self.polyp_count = MaybeCounter(1)
         self.adenoma_count = MaybeCounter(0)
+        self.adenoma_distal_count = MaybeCounter(0)
         self.locations = []
         self.histology = []
         self.dysplasia = False
@@ -173,7 +180,6 @@ class JarManager:
                 (word.isin(self.ADENOMA) and section.has_after(self.POLYPS, window=1))
             ):
                 if self._adenoma_negated(section):
-                    print('NEGATED!')
                     continue
                 num = section.has_after(self.NUMBER, window=2)
                 has_frags = section.has_before(self.FRAGMENTS, window=4)
@@ -187,13 +193,9 @@ class JarManager:
                 if num and has_frags:
                     jar.adenoma_count.add(1, at_least=True)
                 elif num:  # identified number
-                    print('Adding', num)
                     jar.adenoma_count.add(self.NUMBER_CONVERT[str(num)])
-                    print('Adding', num, jar.adenoma_count)
                 else:  # default case
                     jar.adenoma_count.add(1, greater_than=True)
-                    # jar.adenoma_count.add(2, at_least=True)  # identical to above
-                    print('Adding 1', jar.adenoma_count)
 
             elif word.isin(self.ADENOMA):
                 if not self._adenoma_negated(section):
@@ -201,9 +203,8 @@ class JarManager:
                         jar.adenoma_count.add(1, at_least=True)
                     else:
                         jar.adenoma_count.add(1)
-                    print('Adding 1', jar.adenoma_count)
                 else:
-                    print('NEGATED!')
+                    logging.debug('NEGATED!')
             elif word.isin(self.COLON):
                 jar.kinds.append('colon')
             elif word.isin(self.HISTOLOGY):
@@ -211,13 +212,14 @@ class JarManager:
             elif word.isin(self.DYSPLASIA):
                 if section.has_before(self.HIGHGRADE_DYS, 1):
                     jar.dysplasia = True
-        print('Adenoma Count for Jar:', jar.adenoma_count)
+        logging.info('Adenoma Count for Jar: {}'.format(jar.adenoma_count))
         self.jars.append(jar)
         return self
 
     def get_adenoma_count(self, method=AdenomaCountMethod.COUNT_IN_JAR):
         """
 
+        :param method: AdenomaCountMethod - per jar or total number
         :return: MaybeCounter
         """
         count = MaybeCounter(0)
@@ -226,6 +228,20 @@ class JarManager:
                 count += jar.adenoma_count
             elif method == AdenomaCountMethod.ONE_PER_JAR:
                 count += 1 if jar.adenoma_count else 0
+        return count
+
+    def get_adenoma_distal_count(self, method=AdenomaCountMethod.COUNT_IN_JAR):
+        """
+
+        :param method: AdenomaCountMethod - per jar or total number
+        :return:
+        """
+        count = MaybeCounter(0)
+        for jar in self.jars:
+            if method == AdenomaCountMethod.COUNT_IN_JAR:
+                count += jar.adenoma_distal_count
+            elif method == AdenomaCountMethod.ONE_PER_JAR:
+                count += 1 if jar.adenoma_distal_count else 0
         return count
 
 
@@ -276,8 +292,6 @@ class PathWord:
         self.spl = spl
         
     def isin(self, lst):
-        if 'adenomas' in self.word or 'adenoma' in self.word:
-            print(self.word, lst, self.word in lst)
         return self.word in lst
 
     def stop(self):
