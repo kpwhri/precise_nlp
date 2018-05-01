@@ -30,6 +30,7 @@ class Finding:
         'descending', 'sigmoid', 'rectum', 'anorectum'
     ]
     DEPTH_PATTERN = re.compile(r'(\d{1,3})\W*[cm]m', re.IGNORECASE)
+    SIZE_PATTERN = re.compile(r'(?<!at)\W*(\d{1,3})\W*[cm]m', re.IGNORECASE)
 
     def __init__(self, location=None, count=0, removal=None, size=None):
         """
@@ -64,7 +65,7 @@ class Finding:
         f.count = max(NumberConvert.contains(value, ['polyp'], 2, split_on_non_word=True) + [0])
         f.removal = 'remove' in value
         # size
-        m = Finding.DEPTH_PATTERN.search(value)
+        m = Finding.SIZE_PATTERN.search(value)
         if m:
             f.size = float(m.group(1))
             if m.group().strip()[-2] == 'c':
@@ -73,7 +74,7 @@ class Finding:
 
 
 class CspyManager:
-    TITLE_PATTERN = re.compile(r'([A-Z][a-z]+\W?(?:[A-Z][a-z]+\W?|and\s)*:)')
+    TITLE_PATTERN = re.compile(r'([A-Z][a-z]+\W?(?:[A-Z][a-z]+\W?|and\s|of\s)*:)')
     ENUMERATE_PATTERN = re.compile(r'\d[\)\.]')
     FINDINGS = 'FINDINGS'
     LABELS = {
@@ -134,6 +135,9 @@ class CspyManager:
             # split on list marker, skip first
             return re.compile(r'\W' + sect[0]).split(sect[1:])
             # return sect[1:].split(sect[0])
+        elif sect[0] in ['1'] and sect[1] in ')-.':
+            pat = r'\W\d' + re.escape(sect[1])
+            return re.compile(pat).split(sect[2:])
         if len(sect) > 100:
             logging.warning(f'Did not find list marker to separate: "{sect[:50]}..."')
             return []
