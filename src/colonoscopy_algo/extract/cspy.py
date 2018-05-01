@@ -1,27 +1,8 @@
 import logging
 import re
 
-
-class NumberConvert:
-    VALUES = {
-        'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
-        'six': 6, 'seven': 7, 'eight': 8, 'nine': 9,
-    }
-    VALUES.update({str(i): i for i in range(10)})
-
-    @staticmethod
-    def contains(text, followed_by=None, distance=0, split_on_non_word=False):
-        results = []
-        if split_on_non_word:
-            text = re.split('\W+', text)
-        else:
-            text = text.split()
-        dtext = {x: i for i, x in enumerate(text)}
-        for val in set(dtext) & set(NumberConvert.VALUES):
-            start = dtext[val] + 1
-            if not followed_by or set(followed_by) & set(text[start:start + distance]):
-                results.append(NumberConvert.VALUES[val])
-        return results
+from colonoscopy_algo.extract import patterns
+from colonoscopy_algo.extract.parser import NumberConvert, depth_to_location
 
 
 class Finding:
@@ -29,8 +10,6 @@ class Finding:
         'ileum', 'cecum', 'ascending', 'transverse',
         'descending', 'sigmoid', 'rectum', 'anorectum'
     ]
-    DEPTH_PATTERN = re.compile(r'(\d{1,3})\W*[cm]m', re.IGNORECASE)
-    SIZE_PATTERN = re.compile(r'(?<!at)\W*(\d{1,3})\W*[cm]m', re.IGNORECASE)
 
     def __init__(self, location=None, count=0, removal=None, size=None):
         """
@@ -40,7 +19,10 @@ class Finding:
         :param removal:
         :param size: in mm
         """
-        self.location = location
+        if location:
+            self.locations = [location]
+        else:
+            self.locations = []
         self.count = count
         self.removal = removal
         self.size = size
@@ -57,15 +39,21 @@ class Finding:
         f = Finding()
         for location in Finding.LOCATIONS:
             if key and location in key:
-                f.location = location
+                f.locations.append(location)
             elif not key and location in value:
                 logging.warning(f'Possible unrecognized finding separator in "{s}"')
-                f.location = location
+                f.locations.append(location)
+        # look for location as an "at 10cm" expression
+        for m in patterns.AT_DEPTH_PATTERN.finditer(value):
+            f.locations += depth_to_location(float(m.group(1)))
+        # without at, require 2 digits and "CM"
+        for m in patterns.CM_DEPTH_PATTERN.finditer(value):
+            f.locations += depth_to_location(float(m.group(1)))
         # there should only be one
         f.count = max(NumberConvert.contains(value, ['polyp'], 2, split_on_non_word=True) + [0])
         f.removal = 'remove' in value
         # size
-        m = Finding.SIZE_PATTERN.search(value)
+        m = patterns.SIZE_PATTERN.search(value)
         if m:
             f.size = float(m.group(1))
             if m.group().strip()[-2] == 'c':

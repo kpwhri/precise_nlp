@@ -185,7 +185,10 @@ def has_large_adenoma(pm: PathManager, cm: CspyManager, min_size=10):
     :return:
     """
     s = set(pm.get_locations_with_adenoma())
-    s2 = set(x.location for x in cm.get_findings_of_size(min_size))
+    s2 = set(loc for f in cm.get_findings_of_size(min_size) for loc in f.locations)
+    print(f'Adenoma locations: {s}')
+    print(f'Large polyp locations: {s2}')
     return 1 if (s & s2  # both contain same location
                  or s2 and None in s  # unknown adenoma location and large polyp in cspy
+                 or s and None in s2  # unknown large polyp location (cspy)
                  ) else 0

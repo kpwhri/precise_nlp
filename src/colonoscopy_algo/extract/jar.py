@@ -4,6 +4,9 @@ import re
 from collections import defaultdict
 from enum import Enum
 
+from colonoscopy_algo.extract import patterns
+from colonoscopy_algo.extract.parser import depth_to_location
+
 
 class AdenomaCountMethod(Enum):
     COUNT_IN_JAR = 1
@@ -141,24 +144,7 @@ class Jar:
         :param depth:
         :return:
         """
-        if depth <= 4:
-            self.locations.append('anal')
-        if 4 <= depth <= 17:
-            self.locations.append('rectum')
-        if 15 <= depth <= 57:
-            self.locations.append('sigmoid')
-        if 57 <= depth <= 82:
-            self.locations.append('descending')
-        if 80 <= depth <= 84:  # I made this up
-            self.locations.append('hepatic')
-        if 82 <= depth <= 132:
-            self.locations.append('transverse')
-        if 130 <= depth <= 134:
-            self.locations.append('splenic')
-        if 132 <= depth <= 147:
-            self.locations.append('ascending')
-        if 147 <= depth:
-            self.locations.append('cecum')
+        self.locations += depth_to_location(depth)
 
 
 class JarManager:
@@ -199,9 +185,6 @@ class JarManager:
 
     DYSPLASIA = {'dysplasia'}
     HIGHGRADE_DYS = {'highgrade', 'grade', 'severe'}
-
-    DEPTH_PATTERN = re.compile(r'(\d{1,3})cm', re.IGNORECASE)
-    NUMBER_PATTERN = re.compile(r'(\d{1,3})', re.IGNORECASE)
 
     def __init__(self):
         self.jars = []
@@ -245,10 +228,16 @@ class JarManager:
                 if word.isin(['distal', 'proximal']) and section.has_after(self.LOCATIONS, window=3):
                     continue  # distal is descriptive of another location (e.g., distal transverse)
                 jar.locations.append(word)
-            elif word.matches(self.DEPTH_PATTERN) or word.matches(self.NUMBER_PATTERN) \
+            elif word.matches(patterns.DEPTH_PATTERN) and 'cm' in word.word \
+                    or word.matches(patterns.NUMBER_PATTERN) \
                     and section.has_after(['cm'], window=1):
                 # 15 cm, etc.
-                jar.set_depth(float(word.match(self.NUMBER_PATTERN)))
+                jar.set_depth(float(word.match(patterns.NUMBER_PATTERN)))
+            elif word.matches(patterns.DEPTH_PATTERN) and 'mm' in word.word \
+                    or word.matches(patterns.NUMBER_PATTERN) \
+                    and section.has_after(['mm'], window=1):
+                # 15 cm, etc.
+                jar.set_depth(float(word.match(patterns.NUMBER_PATTERN)) / 10)
             elif not found_polyp and word.isin(self.POLYPS):  # polyps/biopsies
                 if section.has_before(self.ADENOMA_NEGATION):
                     continue
