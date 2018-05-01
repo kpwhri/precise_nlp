@@ -135,6 +135,31 @@ class Jar:
             self.polyp_count, self.adenoma_count
         )
 
+    def set_depth(self, depth: float):
+        """
+        Based off: https://training.seer.cancer.gov/colorectal/anatomy/figure/figure1.html
+        :param depth:
+        :return:
+        """
+        if depth <= 4:
+            self.locations.append('anal')
+        if 4 <= depth <= 17:
+            self.locations.append('rectum')
+        if 15 <= depth <= 57:
+            self.locations.append('sigmoid')
+        if 57 <= depth <= 82:
+            self.locations.append('descending')
+        if 80 <= depth <= 84:  # I made this up
+            self.locations.append('hepatic')
+        if 82 <= depth <= 132:
+            self.locations.append('transverse')
+        if 130 <= depth <= 134:
+            self.locations.append('splenic')
+        if 132 <= depth <= 147:
+            self.locations.append('ascending')
+        if 147 <= depth:
+            self.locations.append('cecum')
+
 
 class JarManager:
 
@@ -144,10 +169,12 @@ class JarManager:
                  'duodenum', 'duodenal',
                  'rectal', 'rectum',
                  'proximal', 'distal',
-                 'cecum', 'cecal'
+                 'cecum', 'cecal',
+                 'ileocecal', 'ileocecum',
+                 'duodenal', 'duodenum',  # small intestine
                  ]
-    DISTAL_LOCATIONS = ['descending', 'sigmoid', 'distal', 'rectal', 'rectum']
-    PROXIMAL_LOCATIONS = ['proximal', 'ascending', 'transverse', 'cecum', 'cecal']
+    DISTAL_LOCATIONS = ['descending', 'sigmoid', 'distal', 'rectal', 'rectum', 'hepatic', 'right']
+    PROXIMAL_LOCATIONS = ['proximal', 'ascending', 'transverse', 'cecum', 'cecal', 'splenic', 'left']
     POLYPS = ['polyps', 'biopsies', 'polyp']
     POLYP = ['polyp']
     ADENOMAS = ['adenomas']
@@ -216,12 +243,12 @@ class JarManager:
         for word in section:
             if word.isin(self.LOCATIONS):
                 if word.isin(['distal', 'proximal']) and section.has_after(self.LOCATIONS, window=3):
-                    continue
+                    continue  # distal is descriptive of another location (e.g., distal transverse)
                 jar.locations.append(word)
             elif word.matches(self.DEPTH_PATTERN) or word.matches(self.NUMBER_PATTERN) \
                     and section.has_after(['cm'], window=1):
                 # 15 cm, etc.
-                jar.depth = float(word.match(self.NUMBER_PATTERN))
+                jar.set_depth(float(word.match(self.NUMBER_PATTERN)))
             elif not found_polyp and word.isin(self.POLYPS):  # polyps/biopsies
                 if section.has_before(self.ADENOMA_NEGATION):
                     continue
@@ -309,7 +336,7 @@ class JarManager:
                 if len(jar.locations) > 0:
                     locations += jar.locations
                 else:
-                    raise ValueError(f'No locations for adenoma: {jar}')
+                    locations.append(None)
         return locations
 
 

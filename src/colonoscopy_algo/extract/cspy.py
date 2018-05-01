@@ -1,3 +1,4 @@
+import logging
 import re
 
 
@@ -46,15 +47,21 @@ class Finding:
     @staticmethod
     def parse_finding(s):
         if '-' in s:
-            key, value = s.lower().split('-')
+            key, value = s.lower().split('-', maxsplit=1)
+        elif ':' in s:
+            key, value = s.lower().split(':', maxsplit=1)
         else:
-            raise ValueError(f'Unrecognized finding separator in "{s}"')
+            key = None
+            value = s.lower()
         f = Finding()
         for location in Finding.LOCATIONS:
-            if location in key:
+            if key and location in key:
+                f.location = location
+            elif not key and location in value:
+                logging.warning(f'Possible unrecognized finding separator in "{s}"')
                 f.location = location
         # there should only be one
-        f.count = max(NumberConvert.contains(key, ['polyp'], 2, split_on_non_word=True))
+        f.count = max(NumberConvert.contains(value, ['polyp'], 2, split_on_non_word=True) + [0])
         f.removal = 'remove' in value
         # size
         m = Finding.DEPTH_PATTERN.search(value)
@@ -66,11 +73,11 @@ class Finding:
 
 
 class CspyManager:
-    TITLE_PATTERN = re.compile(r'([A-Z][a-z]+\W?(?:[A-Z][a-z]+\W?|and\s)+:)')
+    TITLE_PATTERN = re.compile(r'([A-Z][a-z]+\W?(?:[A-Z][a-z]+\W?|and\s)*:)')
     ENUMERATE_PATTERN = re.compile(r'\d[\)\.]')
     FINDINGS = 'FINDINGS'
     LABELS = {
-        FINDINGS: ['Findings']
+        FINDINGS: ['Findings', 'Impression']
     }
 
     def __init__(self, text):
@@ -113,6 +120,8 @@ class CspyManager:
         for label in self.LABELS[self.FINDINGS]:
             if label in self.sections:
                 sect = self.sections[label]
+                if not sect:  # empty string
+                    continue
                 sects = self._deenumerate(sect)
                 for s in sects:
                     findings.append(Finding.parse_finding(s))
@@ -123,8 +132,12 @@ class CspyManager:
         sect = sect.strip()
         if sect[0] in ['·', '•', '-', '*']:
             # split on list marker, skip first
-            return sect[1:].split(sect[0])
-        raise ValueError(f'Did not find list marker to separate: "{sect[:50]}..."')
+            return re.compile(r'\W' + sect[0]).split(sect[1:])
+            # return sect[1:].split(sect[0])
+        if len(sect) > 100:
+            logging.warning(f'Did not find list marker to separate: "{sect[:50]}..."')
+            return []
+        return [sect]
 
     def get_findings_of_size(self, min_size=10):
         """
@@ -134,6 +147,6 @@ class CspyManager:
         """
         res = []
         for f in self.findings:
-            if f.size >= min_size:
+            if f.size and f.size >= min_size:
                 res.append(f)
         return res

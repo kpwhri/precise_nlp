@@ -162,6 +162,7 @@ def process(data, truth, errors=None, output=None, outfile=None):
                 row.append(f'{label}_true')
                 row.append(f'{label}_pred')
             outfile.writerow(row)
+        print(f'Starting: {identifier}')
         res = process_text(path_text, cspy_text)
         row = [i, identifier]
         for label in truth_values:
