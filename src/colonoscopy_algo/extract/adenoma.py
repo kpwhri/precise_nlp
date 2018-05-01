@@ -1,4 +1,6 @@
 import re
+
+from colonoscopy_algo.extract.cspy import CspyManager
 from colonoscopy_algo.extract.jar import PathManager, AdenomaCountMethod
 
 
@@ -174,5 +176,14 @@ def get_adenoma_distal(pm: PathManager, greater_than=2):
     )
 
 
-def has_large_adenoma():
-    return False
+def has_large_adenoma(pm: PathManager, cm: CspyManager, min_size=10):
+    """
+    Location has large polyp and an adenoma
+    :param pm:
+    :param cm:
+    :param min_size:
+    :return:
+    """
+    s = set(pm.get_locations_with_adenoma())
+    s2 = set(x[0] for x in cm.get_findings_of_size(min_size))
+    return s & s2 or None in s

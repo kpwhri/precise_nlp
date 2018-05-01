@@ -4,6 +4,8 @@ import logging
 import logging.config
 import random
 import sys
+import warnings
+
 import pandas as pd
 
 import os
@@ -17,6 +19,7 @@ from colonoscopy_algo.const import HIGHGRADE_DYSPLASIA, ANY_VILLOUS, VILLOUS, TU
     ADENOMA_COUNT, LARGE_ADENOMA, ADENOMA_COUNT_ADV, ADENOMA_STATUS_ADV, ADENOMA_DISTAL, ADENOMA_DISTAL_COUNT
 from colonoscopy_algo.extract.adenoma import get_adenoma_status, get_adenoma_histology, get_highgrade_dysplasia, \
     get_adenoma_count, has_large_adenoma, get_adenoma_count_advanced, get_adenoma_distal
+from colonoscopy_algo.extract.cspy import CspyManager
 from colonoscopy_algo.extract.jar import PathManager
 from cronkd.util.logger import setup
 
@@ -40,9 +43,10 @@ ITEMS = [
 ]
 
 
-def process_text(text):
-    pm = PathManager(text)
-    specs, specs_combined, specs_dict = PathManager.parse_jars(text)
+def process_text(path_text, cspy_text=''):
+    pm = PathManager(path_text)
+    cm = CspyManager(cspy_text)
+    specs, specs_combined, specs_dict = PathManager.parse_jars(path_text)
     tb, tbv, vl = get_adenoma_histology(specs_combined)
     adenoma_count, adenoma_status = get_adenoma_count_advanced(pm)
     aden_dist_count, aden_dist_status = get_adenoma_distal(pm)
@@ -54,7 +58,7 @@ def process_text(text):
         ANY_VILLOUS: tbv or vl,
         HIGHGRADE_DYSPLASIA: get_highgrade_dysplasia(specs),
         ADENOMA_COUNT: get_adenoma_count(specs),
-        LARGE_ADENOMA: has_large_adenoma(),
+        LARGE_ADENOMA: has_large_adenoma(pm, cm),
         ADENOMA_COUNT_ADV: adenoma_count,
         ADENOMA_STATUS_ADV: adenoma_status,
         ADENOMA_DISTAL: aden_dist_status,
@@ -62,10 +66,28 @@ def process_text(text):
     }
 
 
-def get_data(filetype, path, identifier, text, limit=None, truth=None):
+def get_data(filetype, path, identifier, path_text=None, cspy_text=None, limit=None, truth=None, text=None):
+    """
+
+    :param filetype:
+    :param path:
+    :param identifier:
+    :param path_text:
+    :param cspy_text:
+    :param limit:
+    :param truth:
+    :param text: deprecated
+    :return:
+    """
+    if text:
+        warnings.warn('Use `path_text` rather than `text`.',
+                      DeprecationWarning
+                      )
+        path_text = text
+
     if path and os.path.isdir(path):
         for fn in os.listdir(path):
-            get_data(filetype, os.path.join(path, fn), identifier, text, truth)
+            get_data(filetype, os.path.join(path, fn), identifier, path_text, cspy_text, truth)
     else:
         if 'DataFrame' in str(type(filetype)):
             df = filetype
@@ -73,13 +95,21 @@ def get_data(filetype, path, identifier, text, limit=None, truth=None):
             df = pd.read_csv(path, encoding='latin1')
         elif filetype == 'sas':
             df = pd.read_sas(path, encoding='latin1')
+        elif filetype == 'h5':
+            df = pd.read_hdf(path, 'data')
         else:
             raise ValueError(f'Unrecognized filetype: {filetype}')
+        # ensure no nan
+        if cspy_text:
+            df[cspy_text].fillna('', inplace=True)
+        df[path_text].fillna('', inplace=True)
         for row in df.itertuples():
             name = getattr(row, identifier)
             if limit and name not in limit:
                 continue
-            yield (name, getattr(row, text),
+            yield (name,
+                   getattr(row, path_text),
+                   getattr(row, cspy_text) if cspy_text else '',
                    {x: getattr(row, truth[x]) for x in truth} if truth else None)
 
 
@@ -121,8 +151,8 @@ def process(data, truth, errors=None, output=None, outfile=None):
     if outfile:
         fh = open(outfile, 'w', newline='')
         outfile = csv.writer(fh)
-    for i, (identifier, text, truth_values) in enumerate(get_data(**data, truth=truth)):
-        if pd.isnull(text):
+    for i, (identifier, path_text, cspy_text, truth_values) in enumerate(get_data(**data, truth=truth)):
+        if pd.isnull(path_text):
             ve = ValueError('Text cannot be missing/none')
             print(ve)
             continue
@@ -132,7 +162,7 @@ def process(data, truth, errors=None, output=None, outfile=None):
                 row.append(f'{label}_true')
                 row.append(f'{label}_pred')
             outfile.writerow(row)
-        res = process_text(text)
+        res = process_text(path_text, cspy_text)
         row = [i, identifier]
         for label in truth_values:
             truth_item = clean_truth(truth_values[label])
@@ -185,7 +215,9 @@ def process_config():
                     'filetype': {'type': 'string'},
                     'path': {'type': 'string'},
                     'identifier': {'type': 'string'},
-                    'text': {'type': 'string'},
+                    'cspy_text': {'type': 'string'},
+                    'path_text': {'type': 'string'},
+                    'text': {'type': 'string'},  # assumed to be path_text
                     'limit': {'type': 'string'},
                 }
             },

@@ -10,6 +10,14 @@ class AdenomaCountMethod(Enum):
     ONE_PER_JAR = 2
 
 
+def jarreader(f):
+    def wrapper(self, *args, **kwargs):
+        if not self._jars_read:
+            self._read_jars(**kwargs)
+        return f(self, *args, **kwargs)
+    return wrapper
+
+
 class PathManager:
 
     def __init__(self, text):
@@ -18,7 +26,7 @@ class PathManager:
         self.manager = JarManager()
         self._jars_read = False
 
-    def _read_jars(self):
+    def _read_jars(self, **kwargs):
         for name, sections in self.specs_dict.items():
             # first section is diagnosis
             self.manager.cursory_diagnosis_examination(sections[0])
@@ -26,14 +34,16 @@ class PathManager:
             others = sections[1:]
         self._jars_read = True
 
+    @jarreader
     def get_adenoma_count(self, method=AdenomaCountMethod.COUNT_IN_JAR):
-        if not self._jars_read:
-            self._read_jars()
+        # if not self._jars_read:
+        #     self._read_jars()
         return self.manager.get_adenoma_count(method)
 
+    @jarreader
     def get_adenoma_distal_count(self, method=AdenomaCountMethod.COUNT_IN_JAR):
-        if not self._jars_read:
-            self._read_jars()
+        # if not self._jars_read:
+        #     self._read_jars()
         return self.manager.get_adenoma_distal_count(method)
 
     @staticmethod
@@ -98,6 +108,10 @@ class PathManager:
                     pchar = char
             i += 1
         return chars
+
+    @jarreader
+    def get_locations_with_adenoma(self):
+        return self.manager.get_locations_with_adenoma()
 
 
 class Jar:
@@ -287,6 +301,16 @@ class JarManager:
             elif method == AdenomaCountMethod.ONE_PER_JAR:
                 count += 1 if jar.adenoma_distal_count else 0
         return count
+
+    def get_locations_with_adenoma(self):
+        locations = []
+        for jar in self.jars:
+            if jar.adenoma_count.gt(0) == 1:
+                if len(jar.locations) > 0:
+                    locations += jar.locations
+                else:
+                    raise ValueError(f'No locations for adenoma: {jar}')
+        return locations
 
 
 class PathSection:
