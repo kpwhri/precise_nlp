@@ -124,7 +124,11 @@ class CspyManager:
     def _deenumerate(self, sect):
         # find first list marker
         sect = sect.strip()
-        if sect[0] in ['·', '•', '-', '*']:
+        if not sect:  # empty string
+            return []
+        if sect[:2] == '--':
+            return re.compile(r'\W' + sect[:2]).split(sect[2:])
+        elif sect[0] in ['·', '•', '-', '*']:
             # split on list marker, skip first
             return re.compile(r'\W' + sect[0]).split(sect[1:])
             # return sect[1:].split(sect[0])
@@ -132,6 +136,14 @@ class CspyManager:
             pat = r'\W\d' + re.escape(sect[1])
             return re.compile(pat).split(sect[2:])
         if len(sect) > 100:
+            # look for sentence splitting
+            if ':' in sect:
+                s = sect.split(':')[-1]
+                res = self._deenumerate(s)
+                if res:
+                    return res
+            else:  # sentence split
+                return sect.split('.')
             logging.warning(f'Did not find list marker to separate: "{sect[:50]}..."')
             return []
         return [sect]
