@@ -29,11 +29,13 @@ class Finding:
 
     @staticmethod
     def parse_finding(s):
+        key = None
+        value = None
         if '-' in s:
             key, value = s.lower().split('-', maxsplit=1)
         elif ':' in s:
             key, value = s.lower().split(':', maxsplit=1)
-        else:
+        if not key or len(key) > 40:
             key = None
             value = s.lower()
         f = Finding()
