@@ -58,7 +58,11 @@ class Finding:
             patterns.AT_DEPTH_PATTERN.sub(' ', value)
         )
         if m:
-            f.size = float(m.group(1))
+            num = m.group(1)
+            if num[0] == '<':
+                f.size = float(num[1:]) - 0.1
+            else:
+                f.size = float(num)
             if m.group().strip()[-2] == 'c':  # mm
                 f.size *= 10  # convert to mm
             if f.size > 100:
