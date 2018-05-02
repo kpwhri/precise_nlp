@@ -53,7 +53,9 @@ class Finding:
         f.count = max(NumberConvert.contains(value, ['polyp'], 2, split_on_non_word=True) + [0])
         f.removal = 'remove' in value
         # size
-        m = patterns.SIZE_PATTERN.search(value)
+        m = patterns.SIZE_PATTERN.search(
+            patterns.AT_DEPTH_PATTERN.sub(' ', value)
+        )
         if m:
             f.size = float(m.group(1))
             if m.group().strip()[-2] == 'c':
