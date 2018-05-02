@@ -10,7 +10,7 @@ def depth_to_location(depth: float):
     """
     locations = []
     if depth <= 4:
-        locations.append('anal')
+        locations.append('anus')
     if 4 <= depth <= 17:
         locations.append('rectum')
     if 15 <= depth <= 57:
@@ -28,6 +28,36 @@ def depth_to_location(depth: float):
     if 147 <= depth:
         locations.append('cecum')
     return locations
+
+
+def standardize_locations(lst):
+    lookup = {
+        'anus': 'anus',
+        'anal': 'anus',
+        'rectum': 'rectum',
+        'rectal': 'rectum',
+        'sigmoid': 'sigmoid',
+        'descending': 'descending',
+        'ascending': 'ascending',
+        'hepatic': 'hepatic',
+        'transverse': 'transverse',
+        'splenic': 'splenic',
+        'cecum': 'cecum',
+        'cecal': 'cecum',
+        'duodenum': 'duodenum',
+        'duodenal': 'duodenum',
+        'proximal': 'proximal',
+        'distal': 'distal',
+        'ileocecal': 'ileocecum',
+        'ileocecum': 'ileocecum',
+        'ic': 'ileocecum',
+    }
+    res = []
+    for el in lst:
+        if el not in lookup:
+            raise ValueError(f'Unknown location: {el}')
+        res.append(lookup[el])
+    return res
 
 
 class NumberConvert:

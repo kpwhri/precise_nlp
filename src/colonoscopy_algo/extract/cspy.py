@@ -2,7 +2,7 @@ import logging
 import re
 
 from colonoscopy_algo.extract import patterns
-from colonoscopy_algo.extract.parser import NumberConvert, depth_to_location
+from colonoscopy_algo.extract.parser import NumberConvert, depth_to_location, standardize_locations
 
 
 class Finding:
@@ -49,6 +49,7 @@ class Finding:
         # without at, require 2 digits and "CM"
         for m in patterns.CM_DEPTH_PATTERN.finditer(value):
             f.locations += depth_to_location(float(m.group(1)))
+        f.locations = standardize_locations(f.locations)
         # there should only be one
         f.count = max(NumberConvert.contains(value, ['polyp'], 2, split_on_non_word=True) + [0])
         f.removal = 'remove' in value
@@ -58,8 +59,10 @@ class Finding:
         )
         if m:
             f.size = float(m.group(1))
-            if m.group().strip()[-2] == 'c':
+            if m.group().strip()[-2] == 'm':  # mm
                 f.size *= 10
+            if f.size > 10:
+                f.size = None
         return f
 
 

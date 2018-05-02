@@ -5,7 +5,7 @@ from collections import defaultdict
 from enum import Enum
 
 from colonoscopy_algo.extract import patterns
-from colonoscopy_algo.extract.parser import depth_to_location
+from colonoscopy_algo.extract.parser import depth_to_location, standardize_locations
 
 
 class AdenomaCountMethod(Enum):
@@ -144,7 +144,13 @@ class Jar:
         :param depth:
         :return:
         """
-        self.locations += depth_to_location(depth)
+        self.add_locations(depth_to_location(depth))
+
+    def add_locations(self, locations):
+        self.locations += standardize_locations(locations)
+
+    def add_location(self, location):
+        self.add_locations([location])
 
 
 class JarManager:
@@ -227,7 +233,7 @@ class JarManager:
             if word.isin(self.LOCATIONS):
                 if word.isin(['distal', 'proximal']) and section.has_after(self.LOCATIONS, window=3):
                     continue  # distal is descriptive of another location (e.g., distal transverse)
-                jar.locations.append(word)
+                jar.add_location(word)
             elif word.matches(patterns.DEPTH_PATTERN) and 'cm' in word.word \
                     or word.matches(patterns.NUMBER_PATTERN) \
                     and section.has_after(['cm'], window=1):
@@ -392,6 +398,9 @@ class PathWord:
         if isinstance(other, PathWord):
             return self.word == other.word
         return self.word == other
+
+    def __hash__(self):
+        return hash(self.word)
 
     def __contains__(self, other):
         return other in self.word
