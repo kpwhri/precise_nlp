@@ -1,6 +1,10 @@
 import re
 
 
+def append_str(lst, el):
+    lst.extend([el] if isinstance(el, str) else el)
+
+
 def depth_to_location(depth: float):
     """
     Convert depth (of polyp) to location in colon
@@ -44,19 +48,26 @@ def standardize_locations(lst):
         'splenic': 'splenic',
         'cecum': 'cecum',
         'cecal': 'cecum',
-        'duodenum': 'duodenum',
-        'duodenal': 'duodenum',
         'proximal': 'proximal',
         'distal': 'distal',
         'ileocecal': 'ileocecum',
         'ileocecum': 'ileocecum',
         'ic': 'ileocecum',
+        'anorectum': ['anus', 'rectum'],
+        'anorectal': ['anus', 'rectum'],
+        # small intestine
+        'duodenum': 'duodenum',
+        'duodenal': 'duodenum',
+        'jejunum': 'jejunum',
+        'jejunal': 'jejunum',
+        'ileum': 'ileum',
+        'ileal': 'ileum',
     }
     res = []
     for el in lst:
         if el not in lookup:
             raise ValueError(f'Unknown location: {el}')
-        res.append(lookup[el])
+        append_str(res, lookup[el])
     return res
 
 

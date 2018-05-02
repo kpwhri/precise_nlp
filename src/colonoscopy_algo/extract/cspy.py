@@ -59,9 +59,9 @@ class Finding:
         )
         if m:
             f.size = float(m.group(1))
-            if m.group().strip()[-2] == 'm':  # mm
-                f.size *= 10
-            if f.size > 10:
+            if m.group().strip()[-2] == 'c':  # mm
+                f.size *= 10  # convert to mm
+            if f.size > 100:
                 f.size = None
         return f
 
