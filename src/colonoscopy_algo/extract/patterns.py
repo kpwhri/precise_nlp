@@ -8,3 +8,4 @@ SIZE_PATTERN = re.compile(r'(<?\d{1,3}(?:\.\d)?)(?:\W*x\W*(?:\d{1,3}(?:\.\d)?))?
 AT_DEPTH_PATTERN = re.compile(r'(?:at|@|to)\W*(\d{1,3}(?:\.\d)?)\W*[cm]m', re.IGNORECASE)
 CM_DEPTH_PATTERN = re.compile(r'(\d{2,3})\W*cm', re.IGNORECASE)
 SSPLIT = re.compile(r'\.(?=\s)')
+NO_PERIOD_SENT = re.compile(r'\n\W*[A-Z0-9]')  # no ignorecase!

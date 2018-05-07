@@ -153,7 +153,12 @@ class CspyManager:
                 if res:
                     return res
             else:  # sentence split
-                return patterns.SSPLIT.split(sect)
+                # determine method of splitting based on larger results
+                period_split = patterns.SSPLIT.split(sect)
+                newline_split = patterns.NO_PERIOD_SENT.split(sect)
+                if len(period_split) > len(newline_split):
+                    return period_split
+                return newline_split
             logging.warning(f'Did not find list marker to separate: "{sect[:50]}..."')
             return []
         return [sect]
