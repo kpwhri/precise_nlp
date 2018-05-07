@@ -8,7 +8,8 @@ from colonoscopy_algo.extract.parser import NumberConvert, depth_to_location, st
 class Finding:
     LOCATIONS = [
         'ileum', 'cecum', 'ascending', 'transverse',
-        'descending', 'sigmoid', 'rectum', 'anorectum'
+        'descending', 'sigmoid', 'rectum', 'anorectum',
+        'tc', 'ac', 'sc',
     ]
 
     def __init__(self, location=None, count=0, removal=None, size=None):
