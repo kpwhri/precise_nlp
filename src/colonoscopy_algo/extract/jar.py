@@ -399,9 +399,6 @@ class PathWord:
             return self.word == other.word
         return self.word == other
 
-    def __hash__(self):
-        return hash(self.word)
-
     def __contains__(self, other):
         return other in self.word
 
