@@ -35,13 +35,14 @@ def depth_to_location(depth: float):
 
 
 class Location:
-    LOOKUP = {
+    LOCATIONS = {
         'anus': 'anus',
         'anal': 'anus',
         'rectum': 'rectum',
         'rectal': 'rectum',
         'sigmoid': 'sigmoid',
         'sc': 'sigmoid',
+        'dc': 'descending',
         'descending': 'descending',
         'ascending': 'ascending',
         'ac': 'ascending',
@@ -51,7 +52,9 @@ class Location:
         'splenic': 'splenic',
         'cecum': 'cecum',
         'cecal': 'cecum',
+        'right': 'proximal',
         'proximal': 'proximal',
+        'left': 'distal',
         'distal': 'distal',
         'ileocecal': 'ileocecum',
         'ileocecum': 'ileocecum',
@@ -92,11 +95,11 @@ class Location:
         res = []
         for el in lst:
             try:
-                loc = cls.LOOKUP[el]
+                loc = cls.LOCATIONS[el]
             except KeyError:
                 raise ValueError(f'Unknown location: {el}')
             if not colon_only or loc in cls.COLON:
-                append_str(res, cls.LOOKUP[el])
+                append_str(res, cls.LOCATIONS[el])
         return res
 
     @classmethod
