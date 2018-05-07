@@ -6,11 +6,6 @@ from colonoscopy_algo.extract.parser import NumberConvert, depth_to_location, Lo
 
 
 class Finding:
-    LOCATIONS = [
-        'ileum', 'cecum', 'ascending', 'transverse',
-        'descending', 'sigmoid', 'rectum', 'anorectum',
-        'tc', 'ac', 'sc',
-    ]
 
     def __init__(self, location=None, count=0, removal=None, size=None):
         """
@@ -40,7 +35,7 @@ class Finding:
             key = None
             value = s.lower()
         f = Finding()
-        for location in Finding.LOCATIONS:
+        for location in Location.LOCATIONS:
             loc_pat = re.compile(f'\\b{location}\\b', re.IGNORECASE)
             if key and loc_pat.search(key):
                 f.locations.append(location)
