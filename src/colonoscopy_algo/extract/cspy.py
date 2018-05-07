@@ -40,9 +40,10 @@ class Finding:
             value = s.lower()
         f = Finding()
         for location in Finding.LOCATIONS:
-            if key and location in key:
+            loc_pat = re.compile(f'\\b{location}\\b', re.IGNORECASE)
+            if key and loc_pat.search(key):
                 f.locations.append(location)
-            elif not key and location in value:
+            elif not key and loc_pat.search(value):
                 logging.warning(f'Possible unrecognized finding separator in "{s}"')
                 f.locations.append(location)
         # look for location as an "at 10cm" expression
