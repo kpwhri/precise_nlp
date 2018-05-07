@@ -58,7 +58,7 @@ class Location:
         'distal': 'distal',
         'ileocecal': 'cecum',
         'ileocecum': 'cecum',
-        'ic': 'ileocecum',
+        'ic': 'cecum',
         'anorectum': ['anus', 'rectum'],
         'anorectal': ['anus', 'rectum'],
         # small intestine
