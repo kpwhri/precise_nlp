@@ -56,19 +56,20 @@ class Finding:
         f.count = max(NumberConvert.contains(value, ['polyp'], 2, split_on_non_word=True) + [0])
         f.removal = 'remove' in value
         # size
-        m = patterns.SIZE_PATTERN.search(
-            patterns.AT_DEPTH_PATTERN.sub(' ', value)
-        )
-        if m:
+        for m in patterns.SIZE_PATTERN.finditer(
+                patterns.AT_DEPTH_PATTERN.sub(' ', value)
+        ):
             num = m.group(1)
             if num[0] == '<':
-                f.size = float(num[1:]) - 0.1
+                size = float(num[1:]) - 0.1
             else:
-                f.size = float(num)
+                size = float(num)
             if m.group().strip()[-2] == 'c':  # mm
-                f.size *= 10  # convert to mm
-            if f.size > 100:
-                f.size = None
+                size *= 10  # convert to mm
+            if size > 100:
+                continue
+            if not f.size or size > f.size:  # get largest size only
+                f.size = size
         return f
 
 
