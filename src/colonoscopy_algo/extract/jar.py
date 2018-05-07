@@ -78,8 +78,10 @@ class PathManager:
                 if comment:
                     specimens_dict[x].append(comment)
         # special cases
-        if 'b' in specimens_dict and len(specimens_dict['a']) > len(specimens_dict['b']):
-            # contains intro text
+        if 'b' in specimens_dict \
+                and len(specimens_dict['a']) > len(specimens_dict['b']) \
+                and len(specimens_dict['a']) > 100:
+            # contains intro text: don't recall example, but assuming it's long
             specimens_dict['a'] = specimens_dict['a'][1:]
 
         specimens_combined = [' '.join(spec) for spec in specimens_dict.values()]
