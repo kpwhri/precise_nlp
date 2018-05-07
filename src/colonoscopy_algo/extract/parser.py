@@ -34,8 +34,8 @@ def depth_to_location(depth: float):
     return locations
 
 
-def standardize_locations(lst):
-    lookup = {
+class Location:
+    LOOKUP = {
         'anus': 'anus',
         'anal': 'anus',
         'rectum': 'rectum',
@@ -65,13 +65,43 @@ def standardize_locations(lst):
         'jejunal': 'jejunum',
         'ileum': 'ileum',
         'ileal': 'ileum',
+        # stomach
+        'gastric': 'stomach',
+        'stomach': 'stomach',
+        # random
+        'random': 'random'
     }
-    res = []
-    for el in lst:
-        if el not in lookup:
-            raise ValueError(f'Unknown location: {el}')
-        append_str(res, lookup[el])
-    return res
+
+    COLON = {
+        'anus',
+        'rectum',
+        'sigmoid',
+        'descending',
+        'ascending',
+        'hepatic',
+        'transverse',
+        'splenic',
+        'cecum',
+        'proximal',
+        'distal',
+        'ileocecum',
+    }
+
+    @classmethod
+    def standardize_locations(cls, lst, colon_only=False):
+        res = []
+        for el in lst:
+            try:
+                loc = cls.LOOKUP[el]
+            except KeyError:
+                raise ValueError(f'Unknown location: {el}')
+            if not colon_only or loc in cls.COLON:
+                append_str(res, cls.LOOKUP[el])
+        return res
+
+    @classmethod
+    def filter_colon(cls, lst):
+        return cls.standardize_locations(lst, colon_only=True)
 
 
 class NumberConvert:

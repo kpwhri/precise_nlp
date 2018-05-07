@@ -5,7 +5,7 @@ from collections import defaultdict
 from enum import Enum
 
 from colonoscopy_algo.extract import patterns
-from colonoscopy_algo.extract.parser import depth_to_location, standardize_locations
+from colonoscopy_algo.extract.parser import depth_to_location, Location
 
 
 class AdenomaCountMethod(Enum):
@@ -147,7 +147,7 @@ class Jar:
         self.add_locations(depth_to_location(depth))
 
     def add_locations(self, locations):
-        self.locations += standardize_locations(locations)
+        self.locations += Location.standardize_locations(locations)
 
     def add_location(self, location):
         self.add_locations([location])
@@ -164,6 +164,7 @@ class JarManager:
                  'cecum', 'cecal',
                  'ileocecal', 'ileocecum',
                  'duodenal', 'duodenum',  # small intestine
+                 'gastric', 'random',
                  ]
     DISTAL_LOCATIONS = ['descending', 'sigmoid', 'distal', 'rectal', 'rectum', 'hepatic', 'right']
     PROXIMAL_LOCATIONS = ['proximal', 'ascending', 'transverse', 'cecum', 'cecal', 'splenic', 'left']
@@ -329,7 +330,7 @@ class JarManager:
         for jar in self.jars:
             if jar.adenoma_count.gt(0) == 1:
                 if len(jar.locations) > 0:
-                    locations += jar.locations
+                    locations += Location.filter_colon(jar.locations)
                 else:
                     locations.append(None)
         return locations
