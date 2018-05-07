@@ -66,7 +66,8 @@ def process_text(path_text, cspy_text=''):
     }
 
 
-def get_data(filetype, path, identifier, path_text=None, cspy_text=None, limit=None, truth=None, text=None):
+def get_data(filetype, path, identifier, path_text=None, cspy_text=None,
+             limit=None, truth=None, text=None, requires_cspy_text=False):
     """
 
     :param filetype:
@@ -107,6 +108,8 @@ def get_data(filetype, path, identifier, path_text=None, cspy_text=None, limit=N
             name = getattr(row, identifier)
             if limit and name not in limit:
                 continue
+            if cspy_text and requires_cspy_text and not getattr(row, cspy_text):
+                continue  # skip missing records
             yield (name,
                    getattr(row, path_text),
                    getattr(row, cspy_text) if cspy_text else '',
@@ -217,6 +220,7 @@ def process_config():
                     'path': {'type': 'string'},
                     'identifier': {'type': 'string'},
                     'cspy_text': {'type': 'string'},
+                    'requires_cspy_text': {'type': 'boolean'},
                     'path_text': {'type': 'string'},
                     'text': {'type': 'string'},  # assumed to be path_text
                     'limit': {'type': 'string'},
