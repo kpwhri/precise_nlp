@@ -24,7 +24,7 @@ class Finding:
         self.size = size
 
     @staticmethod
-    def parse_finding(s):
+    def parse_finding(s, prev_locations=None):
         key = None
         value = None
         if '-' in s:
@@ -48,7 +48,10 @@ class Finding:
         # without at, require 2 digits and "CM"
         for m in patterns.CM_DEPTH_PATTERN.finditer(value):
             f.locations += depth_to_location(float(m.group(1)))
-        f.locations = Location.standardize_locations(f.locations)
+        if prev_locations and not f.locations:
+            f.locations = prev_locations
+        else:
+            f.locations = Location.standardize_locations(f.locations)
         # there should only be one
         f.count = max(NumberConvert.contains(value, ['polyp'], 2, split_on_non_word=True) + [0])
         f.removal = 'remove' in value
@@ -121,8 +124,11 @@ class CspyManager:
                 if not sect:  # empty string
                     continue
                 sects = self._deenumerate(sect)
+                prev_locations = None
                 for s in sects:
-                    findings.append(Finding.parse_finding(s))
+                    f = Finding.parse_finding(s, prev_locations=prev_locations)
+                    prev_locations = f.locations
+                    findings.append(f)
         return findings
 
     def _deenumerate(self, sect):
