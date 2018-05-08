@@ -185,7 +185,7 @@ def has_large_adenoma(pm: PathManager, cm: CspyManager, min_size=10):
     :return:
     """
     s = set(pm.get_locations_with_adenoma())
-    s2 = set()
+    s2 = set(pm.get_locations_with_size(min_size))
     for f in cm.get_findings_of_size(min_size):
         if not f.locations:
             s2.add(None)

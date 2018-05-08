@@ -18,6 +18,7 @@ def jarreader(f):
         if not self._jars_read:
             self._read_jars(**kwargs)
         return f(self, *args, **kwargs)
+
     return wrapper
 
 
@@ -30,11 +31,13 @@ class PathManager:
         self._jars_read = False
 
     def _read_jars(self, **kwargs):
-        for name, sections in self.specs_dict.items():
+        for i, (name, sections) in enumerate(self.specs_dict.items()):
             # first section is diagnosis
             self.manager.cursory_diagnosis_examination(sections[0])
             # remaining sections are treated as a unit
             others = sections[1:]
+            # extract polyp sizes
+            self.manager.extract_sizes(others, i)
         self._jars_read = True
 
     @jarreader
@@ -118,6 +121,81 @@ class PathManager:
     def get_locations_with_adenoma(self):
         return self.manager.get_locations_with_adenoma()
 
+    @jarreader
+    def get_locations_with_size(self, min_size):
+        return self.manager.get_locations_with_size(min_size)
+
+
+class PolypSize:
+    """
+    Captures and parses the size
+
+    Exposes a PATTERN that can be used to iterate through found items
+    """
+
+    _COUNT = r'a|an|one|two|three|four|five|six|seven|eight|nine|\d'
+    _TYPE = r'(cm|mm)?'
+    _MEASURE = r'\d{1,2}\.?\d{,2}'
+    PATTERN = re.compile(f'(?P<count>{_COUNT})?\W*'  # number
+                         f'(?P<min1>{_MEASURE})\W*{_TYPE}'  # min size (or only size)
+                         f'(?:\W*x\W*(?P<min2>{_MEASURE})\W*(cm|mm)?'
+                         f'(?:\W*x\W*(?P<min3>{_MEASURE})\W*(cm|mm)?)?)?'
+                         f'(?:(?:up\W*to|to)\W*'
+                         f'(?P<max1>{_MEASURE})\W*(cm|mm)?'  # max size if exists
+                         f'(?:\W*x\W*(?P<max2>{_MEASURE})\W*(cm|mm)?'
+                         f'(?:\W*x\W*(?P<max3>{_MEASURE})\W*(cm|mm)?)?)?)?')
+
+    def __init__(self, text=''):
+        self.count = 1
+        self.min_size = None
+        self.max_size = None
+        self.max_dim = None
+        if text:
+            self._parse_text(text)
+
+    def _parse_text(self, text):
+        m = self.PATTERN.match(text)
+        if not m:
+            raise ValueError('Text does not match pattern!')
+        cm = False
+        if 'cm' in m.groups():
+            cm = True
+        self.min_size = self._parse_groups(m)
+        mx = self._parse_groups(m, gname='max', cm=cm)
+        self.max_size = mx if mx else self.min_size
+        if self.min_size[0] >= 100.0:
+            raise ValueError('Too big!')
+        if self.max_size[0] >= 100.0:
+            raise ValueError('Too big!')
+
+    def _parse_groups(self, m, cm=False, gname='min'):
+        lst = filter(None, [
+            m.group(f'{gname}1'),
+            m.group(f'{gname}2'),
+            m.group(f'{gname}3')
+        ])
+        return sorted([float(m) * 10 if cm else float(m) for m in lst], reverse=True)
+
+    def get_max_dim(self):
+        return self.max_size[0]
+
+    def __lt__(self, other):
+        if not isinstance(other, PolypSize):
+            raise ValueError('PolypSize object not sortable with {}'.format(type(other)))
+        return self.get_max_dim() < other.get_max_dim()
+
+    @classmethod
+    def set(cls, *args):
+        """Set size in millimeters"""
+        c = cls()
+        args = sorted(args)
+        if len(args) > 3:
+            c.max_size = tuple(args[:3])
+            c.min_size = tuple(args[3:6])
+        else:
+            c.max_size = c.min_size = tuple(args)
+        return c
+
 
 class Jar:
 
@@ -129,6 +207,7 @@ class Jar:
         self.adenoma_distal_count = MaybeCounter(0)
         self.locations = []
         self.histology = []
+        self.polyp_size = []
         self.dysplasia = False
         self.depth = None
 
@@ -148,6 +227,17 @@ class Jar:
         """
         self.add_locations(depth_to_location(depth))
 
+    def set_polyp_size(self, size: float, cm=False):
+        """
+
+        :param size:
+        :param cm: if size in centimeters (default: millimeters)
+        :return:
+        """
+        if cm:
+            size *= 10
+        self.polyp_size.append(PolypSize.set(size))
+
     def add_locations(self, locations):
         self.locations += Location.standardize_locations(locations)
 
@@ -156,7 +246,6 @@ class Jar:
 
 
 class JarManager:
-
     DISTAL_LOCATIONS = ['descending', 'sigmoid', 'distal', 'rectal', 'rectum', 'hepatic', 'right']
     PROXIMAL_LOCATIONS = ['proximal', 'ascending', 'transverse', 'cecum', 'cecal', 'splenic', 'left']
     POLYPS = ['polyps', 'biopsies', 'polyp']
@@ -230,7 +319,12 @@ class JarManager:
                     or word.matches(patterns.NUMBER_PATTERN) \
                     and section.has_after(['cm'], window=1):
                 # 15 cm, etc.
-                jar.set_depth(float(word.match(patterns.NUMBER_PATTERN)))
+                num = float(word.match(patterns.NUMBER_PATTERN))
+                if num < 10 and section.has_after(['dimension', 'maximal', 'maximum'], window=4):
+                    # mdight be polyp dimensions
+                    jar.set_polyp_size(num, cm=True)
+                else:
+                    jar.set_depth(num)
             elif word.matches(patterns.DEPTH_PATTERN) and 'mm' in word.word \
                     or word.matches(patterns.NUMBER_PATTERN) \
                     and section.has_after(['mm'], window=1):
@@ -248,8 +342,8 @@ class JarManager:
                     jar.polyp_count.greater_than = True
                 found_polyp = True
             elif (
-                word.isin(self.ADENOMAS) or
-                (word.isin(self.ADENOMA) and section.has_after(self.POLYPS, window=1))
+                    word.isin(self.ADENOMAS) or
+                    (word.isin(self.ADENOMA) and section.has_after(self.POLYPS, window=1))
             ):
                 if self._adenoma_negated(section):
                     continue
@@ -326,9 +420,32 @@ class JarManager:
                     locations.append(None)
         return locations
 
+    def get_locations_with_size(self, min_size):
+        locations = []
+        for jar in self.jars:
+            if jar.polyp_size and sorted(jar.polyp_size, reverse=True)[0].get_max_dim() >= min_size:
+                if len(jar.locations) > 0:
+                    locations += Location.filter_colon(jar.locations)
+                else:
+                    locations.append(None)
+        return locations
+
+    def extract_sizes(self, sections, jar_index):
+        for section in sections:
+            if len(self.jars) <= jar_index:
+                jar = Jar()
+                self.jars.append(jar)
+            else:  # jar already parsed
+                jar = self.jars[jar_index]
+            for m in PolypSize.PATTERN.finditer(section):
+                try:
+                    jar.polyp_size.append(PolypSize(m.group()))
+                except ValueError as e:
+                    if 'big' not in str(e):
+                        raise e
+
 
 class PathSection:
-
     WORD_SPLIT_PATTERN = re.compile(r'([a-z]+|[0-9]+(?:\.[0-9]+)?)')
     STOP = re.compile('.*(:|\.).*')
 
@@ -491,9 +608,9 @@ class MaybeCounter:
             else:
                 return -1
         elif self.GREATER_THAN_LIMIT and self.greater_than and self.count + self.GREATER_THAN_LIMIT >= other:
-                return 0
+            return 0
         elif self.GREATER_THAN_LIMIT and self.at_least and self.count + self.GREATER_THAN_LIMIT - 1 >= other:
-                return 0
+            return 0
         return -1
 
     def eq(self, other: int):
