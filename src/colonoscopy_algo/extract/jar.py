@@ -37,7 +37,7 @@ class PathManager:
             # remaining sections are treated as a unit
             others = sections[1:]
             # extract polyp sizes
-            self.manager.extract_sizes(others, i)
+            self.manager.extract_sizes(sections, i)
         self._jars_read = True
 
     @jarreader
@@ -140,7 +140,7 @@ class PolypSize:
                          f'(?:(?P<min1>{_MEASURE})\W*{_TYPE}'  # min size (or only size)
                          f'(?:\W*x\W*(?P<min2>{_MEASURE})\W*{_TYPE}'
                          f'(?:\W*x\W*(?P<min3>{_MEASURE})\W*{_TYPE})?)?)'
-                         f'(?:(?:up\W*to|to|-)\W*'
+                         f'(?:(?:up\W*to|to|-|and)\W*'
                          f'(?P<max1>{_MEASURE})\W*{_TYPE}'  # max size if exists
                          f'(?:\W*x\W*(?P<max2>{_MEASURE})\W*{_TYPE}'
                          f'(?:\W*x\W*(?P<max3>{_MEASURE})\W*{_TYPE})?)?)?')
@@ -157,7 +157,8 @@ class PolypSize:
         m = self.PATTERN.match(text)
         if not m:
             raise ValueError('Text does not match pattern!')
-        if 'x' not in m.group() and '-' not in m.group() and 'to' not in m.group():
+        if 'x' not in m.group() and '-' not in m.group() \
+                and 'to' not in m.group() and 'and' not in m.group():
             raise ValueError('Only one-dimensional value: {}'.format(m.group()))
         cm = False
         if 'cm' in m.groups():
