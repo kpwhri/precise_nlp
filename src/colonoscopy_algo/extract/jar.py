@@ -137,13 +137,13 @@ class PolypSize:
     _TYPE = r'(cm|mm)?'
     _MEASURE = r'\d{1,2}\.?\d{,2}'
     PATTERN = re.compile(f'(?P<count>{_COUNT})?\W*'  # number
-                         f'(?P<min1>{_MEASURE})\W*{_TYPE}'  # min size (or only size)
-                         f'(?:\W*x\W*(?P<min2>{_MEASURE})\W*(cm|mm)?'
-                         f'(?:\W*x\W*(?P<min3>{_MEASURE})\W*(cm|mm)?)?)?'
-                         f'(?:(?:up\W*to|to)\W*'
-                         f'(?P<max1>{_MEASURE})\W*(cm|mm)?'  # max size if exists
-                         f'(?:\W*x\W*(?P<max2>{_MEASURE})\W*(cm|mm)?'
-                         f'(?:\W*x\W*(?P<max3>{_MEASURE})\W*(cm|mm)?)?)?)?')
+                         f'(?:(?P<min1>{_MEASURE})\W*{_TYPE}'  # min size (or only size)
+                         f'(?:\W*x\W*(?P<min2>{_MEASURE})\W*{_TYPE}'
+                         f'(?:\W*x\W*(?P<min3>{_MEASURE})\W*{_TYPE})?)?)'
+                         f'(?:(?:up\W*to|to|-)\W*'
+                         f'(?P<max1>{_MEASURE})\W*{_TYPE}'  # max size if exists
+                         f'(?:\W*x\W*(?P<max2>{_MEASURE})\W*{_TYPE}'
+                         f'(?:\W*x\W*(?P<max3>{_MEASURE})\W*{_TYPE})?)?)?')
 
     def __init__(self, text=''):
         self.count = 1
@@ -157,16 +157,20 @@ class PolypSize:
         m = self.PATTERN.match(text)
         if not m:
             raise ValueError('Text does not match pattern!')
+        if 'x' not in m.group() and '-' not in m.group() and 'to' not in m.group():
+            raise ValueError('Only one-dimensional value: {}'.format(m.group()))
         cm = False
         if 'cm' in m.groups():
             cm = True
-        self.min_size = self._parse_groups(m)
+        self.min_size = self._parse_groups(m, cm=cm)
         mx = self._parse_groups(m, gname='max', cm=cm)
         self.max_size = mx if mx else self.min_size
         if self.min_size[0] >= 100.0:
             raise ValueError('Too big!')
         if self.max_size[0] >= 100.0:
             raise ValueError('Too big!')
+        if len(self.min_size) + len(mx) <= 1:
+            raise ValueError('Only one-dimensional value: {}'.format(m.group()))
 
     def _parse_groups(self, m, cm=False, gname='min'):
         lst = filter(None, [
@@ -441,7 +445,7 @@ class JarManager:
                 try:
                     jar.polyp_size.append(PolypSize(m.group()))
                 except ValueError as e:
-                    if 'big' not in str(e):
+                    if 'big' not in str(e) and 'one' not in str(e):
                         raise e
 
 
