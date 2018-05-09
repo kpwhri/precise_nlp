@@ -40,6 +40,7 @@ class Location:
         'anal': 'anus',
         'rectum': 'rectum',
         'rectal': 'rectum',
+        'rectosigmoid': ['rectum', 'sigmoid'],
         'sigmoid': 'sigmoid',
         'sc': 'sigmoid',
         'dc': 'descending',
