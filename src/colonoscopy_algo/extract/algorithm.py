@@ -1,7 +1,7 @@
 import re
 
 from colonoscopy_algo.extract.cspy import CspyManager
-from colonoscopy_algo.extract.jar import PathManager, AdenomaCountMethod
+from colonoscopy_algo.extract.path import PathManager, AdenomaCountMethod
 
 
 def has_negation(index, text, window, negset):

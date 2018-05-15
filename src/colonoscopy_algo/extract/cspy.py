@@ -1,8 +1,8 @@
 import logging
 import re
 
-from colonoscopy_algo.extract import patterns
-from colonoscopy_algo.extract.parser import NumberConvert, depth_to_location, Location
+from colonoscopy_algo.const import patterns
+from colonoscopy_algo.extract.utils import NumberConvert, depth_to_location, Location
 
 
 class Finding:

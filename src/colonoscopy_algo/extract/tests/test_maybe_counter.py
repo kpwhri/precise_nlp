@@ -1,6 +1,6 @@
 import pytest
 
-from colonoscopy_algo.extract.jar import MaybeCounter
+from colonoscopy_algo.extract.path import MaybeCounter
 
 
 def test_create_maybe():

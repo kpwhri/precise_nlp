@@ -17,13 +17,13 @@ from jsonschema import validate
 
 from colonoscopy_algo.const import HIGHGRADE_DYSPLASIA, ANY_VILLOUS, VILLOUS, TUBULAR, TUBULOVILLOUS, ADENOMA_STATUS, \
     ADENOMA_COUNT, LARGE_ADENOMA, ADENOMA_COUNT_ADV, ADENOMA_STATUS_ADV, ADENOMA_DISTAL, ADENOMA_DISTAL_COUNT
-from colonoscopy_algo.extract.adenoma import get_adenoma_status, get_adenoma_histology, get_highgrade_dysplasia, \
+from colonoscopy_algo.extract.algorithm import get_adenoma_status, get_adenoma_histology, get_highgrade_dysplasia, \
     get_adenoma_count, has_large_adenoma, get_adenoma_count_advanced, get_adenoma_distal
 from colonoscopy_algo.extract.cspy import CspyManager
-from colonoscopy_algo.extract.jar import PathManager
+from colonoscopy_algo.extract.path import PathManager
 from cronkd.util.logger import setup
 
-from colonoscopy_algo.extract.jar import PathManager
+from colonoscopy_algo.extract.path import PathManager
 
 logging.config.dictConfig(setup())
 

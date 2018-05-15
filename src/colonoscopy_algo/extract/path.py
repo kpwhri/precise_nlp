@@ -4,8 +4,8 @@ import re
 from collections import defaultdict
 from enum import Enum
 
-from colonoscopy_algo.extract import patterns
-from colonoscopy_algo.extract.parser import depth_to_location, Location
+from colonoscopy_algo.const import patterns
+from colonoscopy_algo.extract.utils import depth_to_location, Location
 
 
 class AdenomaCountMethod(Enum):

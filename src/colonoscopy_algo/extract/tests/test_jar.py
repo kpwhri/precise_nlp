@@ -1,3 +1,3 @@
 import pytest
 
-from colonoscopy_algo.extract.jar import Jar
+from colonoscopy_algo.extract.path import Jar
