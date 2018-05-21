@@ -495,6 +495,7 @@ class PathSection:
     PREPROCESS = {re.escape(k): v for k, v in {
         'tubularadenoma': 'tubular adenoma',
         'tubularadenomas': 'tubular adenomas',
+        'multipletubular': 'multiple tubular',
     }.items()}
     PREPROCESS_RX = re.compile("|".join(PREPROCESS.keys()))
 
