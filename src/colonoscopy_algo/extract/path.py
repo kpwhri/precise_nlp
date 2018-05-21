@@ -540,12 +540,14 @@ class JarManager:
 class PathSection:
     WORD_SPLIT_PATTERN = re.compile(r'([a-z]+|[0-9]+(?:\.[0-9]+)?)')
     STOP = re.compile('.*(:|\.).*')
-    PREPROCESS = {re.escape(k): v for k, v in {
-        'tubularadenoma': 'tubular adenoma',
-        'tubularadenomas': 'tubular adenomas',
-        'multipletubular': 'multiple tubular',
-        'noevidence': 'no evidence',
-    }.items()}
+    PREPROCESS = {re.escape(k) if esc else k: v for k, v, esc in (
+        # 1 to use regex escape, 0 if you want to use a regex
+        ('tubularadenoma', 'tubular adenoma', 1),
+        ('tubularadenomas', 'tubular adenomas', 1),
+        ('multipletubular', 'multiple tubular', 1),
+        ('noevidence', 'no evidence', 1),
+        ('polyppathologist', 'polyp pathologist', 1),
+    )}
     PREPROCESS_RX = re.compile("|".join(PREPROCESS.keys()))
 
     def __init__(self, section):
