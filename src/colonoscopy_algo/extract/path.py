@@ -36,6 +36,9 @@ class PathManager:
             self.manager.cursory_diagnosis_examination(sections[0])
             # remaining sections are treated as a unit
             others = sections[1:]
+            # sometimes locations appear in immediately subsequent section after dx
+            if others:
+                self.manager.find_locations(sections[1])
             # extract polyp sizes
             self.manager.extract_sizes(sections, i)
         # postprocessing all jars
@@ -298,6 +301,7 @@ class JarManager:
 
     def __init__(self):
         self.jars = []
+        self.curr_jar = None
 
     def _adenoma_negated(self, section):
         if section.has_before(self.ADENOMA_NEGATION) and not section.has_before(self.HISTOLOGY, window=4):
@@ -417,7 +421,13 @@ class JarManager:
                     jar.dysplasia = True
         logging.info('Adenoma Count for Jar: {}'.format(jar.adenoma_count))
         self.jars.append(jar)
+        self.curr_jar = len(self.jars) - 1
         return self
+
+    def get_current_jar(self):
+        if self.curr_jar is not None:
+            return self.jars[self.curr_jar]
+        raise ValueError('No current jar')
 
     def postprocess(self):
         """
@@ -511,6 +521,15 @@ class JarManager:
                 except ValueError as e:
                     if 'big' not in str(e) and 'one' not in str(e):
                         raise e
+
+    def find_locations(self, section):
+        jar = self.get_current_jar()
+        section = PathSection(section)
+        for word in section:
+            if word.isin(Location.LOCATIONS):
+                if word.isin(['distal', 'proximal']) and section.has_after(Location.LOCATIONS, window=3):
+                    continue  # distal is descriptive of another location (e.g., distal transverse)
+                jar.add_location(word)
 
 
 class PathSection:
