@@ -101,8 +101,13 @@ class PathManager:
         # accounts for preview text, like 'DIAGNOSIS: A) Colon...'
         elif 'b' in specimens_dict \
                 and len(specimens_dict['a']) == len(specimens_dict['b']) + 1 \
-                and len(specimens_dict['a'][0]) < 20:
-            specimens_dict['a'] = [' '.join(specimens_dict['a'][:2])] + specimens_dict['a'][2:]
+                and len(specimens_dict['a'][0]) < 30:
+            if 'received' in specimens_dict['a'][0].lower() or 'diagnosis' in specimens_dict['a'][0].lower():
+                # skip intro section
+                specimens_dict['a'] = specimens_dict['a'][1:]
+            else:
+                # retain intro section
+                specimens_dict['a'] = [' '.join(specimens_dict['a'][:2])] + specimens_dict['a'][2:]
 
         specimens_combined = [' '.join(spec) for spec in specimens_dict.values()]
         return specimens, specimens_combined, specimens_dict
