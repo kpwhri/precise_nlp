@@ -317,7 +317,7 @@ class JarManager:
 
     def is_distal(self, jar):
         """
-        Distal if location includes a distal_location keyword
+        Distal if location includes a distal_location keyword and no other locations
         Cite for locations:
             - https://www.cancer.gov/publications/dictionaries/cancer-terms/def/distal-colon
             - http://cebp.aacrjournals.org/content/17/5/1144
@@ -329,11 +329,21 @@ class JarManager:
                     not set(jar.locations) | set(self.DISTAL_LOCATIONS)) or bool(jar.depth and jar.depth < 82)
 
     def maybe_distal(self, jar):
+        """
+        Maybe distal if location includes a distal_location keyword but also has non-distal in same jar
+        Cite for locations:
+            - https://www.cancer.gov/publications/dictionaries/cancer-terms/def/distal-colon
+            - http://cebp.aacrjournals.org/content/17/5/1144
+        Cite for distance: https://training.seer.cancer.gov/colorectal/anatomy/figure/figure1.html
+        Proximal defn: https://www.ncbi.nlm.nih.gov/pubmedhealth/PMHT0022241/
+        :param jar:
+        :return:
+        """
         return bool(set(jar.locations) & set(self.DISTAL_LOCATIONS))
 
     def is_proximal(self, jar):
         """
-        Proximal if location includes a proximal_location keyword
+        Proximal if location includes a proximal_location keyword and no other locations
         Cite for locations:
             - https://www.cancer.gov/publications/dictionaries/cancer-terms/def/distal-colon
             - http://cebp.aacrjournals.org/content/17/5/1144
@@ -343,9 +353,19 @@ class JarManager:
         :return:
         """
         return bool(set(jar.locations) & set(self.PROXIMAL_LOCATIONS) and
-                    not set(jar.locations) | set(self.PROXIMAL_LOCATIONS)) or bool(jar.depth and jar.depth >= 82)
+                    not set(jar.locations) | set(self.PROXIMAL_LOCATIONS)) or bool(jar.depth and jar.depth > 82)
 
     def maybe_proximal(self, jar):
+        """
+        Maybe proximal if location includes a proximal_location keyword but also has non-proximal in the same jar
+        Cite for locations:
+            - https://www.cancer.gov/publications/dictionaries/cancer-terms/def/distal-colon
+            - http://cebp.aacrjournals.org/content/17/5/1144
+        Cite for distance: https://training.seer.cancer.gov/colorectal/anatomy/figure/figure1.html
+        Proximal defn: https://www.ncbi.nlm.nih.gov/pubmedhealth/PMHT0022241/
+        :param jar:
+        :return:
+        """
         return bool(set(jar.locations) & set(self.PROXIMAL_LOCATIONS))
 
     def add_count_to_jar(self, jar, count=1, greater_than=False, at_least=False):
