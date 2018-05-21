@@ -268,9 +268,9 @@ class Jar:
 class JarManager:
     # https://www.cancer.gov/publications/dictionaries/cancer-terms/def/distal-colon
     # technically, does not include rectum, though I've included it
-    DISTAL_LOCATIONS = ['descending', 'sigmoid', 'distal', 'rectum', 'hepatic', 'right']
+    DISTAL_LOCATIONS = ['descending', 'sigmoid', 'distal', 'rectum', 'splenic', 'left']
     # https://www.ncbi.nlm.nih.gov/pubmedhealth/PMHT0022241/
-    PROXIMAL_LOCATIONS = ['proximal', 'ascending', 'transverse', 'cecum', 'splenic', 'left']
+    PROXIMAL_LOCATIONS = ['proximal', 'ascending', 'transverse', 'cecum', 'hepatic', 'right']
     POLYPS = ['polyps', 'biopsies', 'polyp']
     POLYP = ['polyp']
     ADENOMAS = ['adenomas']
