@@ -320,7 +320,7 @@ class JarManager:
         :return:
         """
         return bool(set(jar.locations) & set(self.PROXIMAL_LOCATIONS) and
-                    not set(jar.locations) | set(self.PROXIMAL_LOCATIONS)) or bool(jar.depth and jar.depth > 82)
+                    not set(jar.locations) | set(self.PROXIMAL_LOCATIONS)) or bool(jar.depth and jar.depth >= 82)
 
     def maybe_proximal(self, jar):
         return bool(set(jar.locations) & set(self.PROXIMAL_LOCATIONS))
