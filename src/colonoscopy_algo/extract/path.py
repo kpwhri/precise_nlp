@@ -65,7 +65,7 @@ class PathManager:
             comment = None
             x = x.lower()
             text = next(it).lower()
-            if not text:  # first round 'A' might include empty string
+            if not text.strip():  # first round 'A' might include empty string
                 continue
             if 'comment:' in text:
                 idx = text.index('comment:')
@@ -83,9 +83,14 @@ class PathManager:
         # special cases
         if 'b' in specimens_dict \
                 and len(specimens_dict['a']) > len(specimens_dict['b']) \
-                and len(specimens_dict['a']) > 100:
+                and len(specimens_dict['a'][0]) > 100:
             # contains intro text: don't recall example, but assuming it's long
             specimens_dict['a'] = specimens_dict['a'][1:]
+        # accounts for preview text, like 'DIAGNOSIS: A) Colon...'
+        elif 'b' in specimens_dict \
+                and len(specimens_dict['a']) == len(specimens_dict['b']) + 1 \
+                and len(specimens_dict['a'][0]) < 20:
+            specimens_dict['a'] = [' '.join(specimens_dict['a'][:2])] + specimens_dict['a'][2:]
 
         specimens_combined = [' '.join(spec) for spec in specimens_dict.values()]
         return specimens, specimens_combined, specimens_dict
