@@ -38,7 +38,16 @@ class PathManager:
             others = sections[1:]
             # extract polyp sizes
             self.manager.extract_sizes(sections, i)
+        # postprocessing all jars
+        self._read_jars_postprocess()
         self._jars_read = True
+
+    def _read_jars_postprocess(self):
+        """
+        Do cleanup logic to populate locations, etc.
+        :return:
+        """
+        self.manager.postprocess()
 
     @jarreader
     def get_adenoma_count(self, method=AdenomaCountMethod.COUNT_IN_JAR):
@@ -332,14 +341,6 @@ class JarManager:
 
     def add_count_to_jar(self, jar, count=1, greater_than=False, at_least=False):
         jar.adenoma_count.add(count, greater_than, at_least)
-        if self.is_distal(jar):
-            jar.adenoma_distal_count.add(count, greater_than, at_least)
-        elif self.maybe_distal(jar):  # be conservative
-            jar.adenoma_distal_count.add(0, greater_than=True)
-        if self.is_proximal(jar):
-            jar.adenoma_proximal_count.add(count, greater_than, at_least)
-        elif self.maybe_proximal(jar):  # be conservative
-            jar.adenoma_proximal_count.add(0, greater_than=True)
 
     def cursory_diagnosis_examination(self, section):
         jar = Jar()
@@ -355,10 +356,11 @@ class JarManager:
                     and section.has_after(['cm'], window=1):
                 # 15 cm, etc.
                 num = float(word.match(patterns.NUMBER_PATTERN))
-                if num < 10 and section.has_after(['dimension', 'maximal', 'maximum'], window=4):
-                    # mdight be polyp dimensions
-                    jar.set_polyp_size(num, cm=True)
-                else:
+                if num < 10:
+                    if section.has_after(['dimension', 'maximal', 'maximum'], window=4):
+                        # might be polyp dimensions
+                        jar.set_polyp_size(num, cm=True)
+                else:  # must be >= 10cm
                     jar.set_depth(num)
             elif word.matches(patterns.DEPTH_PATTERN) and 'mm' in word.word \
                     or word.matches(patterns.NUMBER_PATTERN) \
@@ -416,6 +418,23 @@ class JarManager:
         logging.info('Adenoma Count for Jar: {}'.format(jar.adenoma_count))
         self.jars.append(jar)
         return self
+
+    def postprocess(self):
+        """
+        Post-processing steps to assign locations to various components, etc.
+        :return:
+        """
+        for jar in self.jars:
+            if self.is_distal(jar):
+                jar.adenoma_distal_count = jar.adenoma_count
+            elif self.maybe_distal(jar):  # be conservative
+                if jar.adenoma_count:
+                    jar.adenoma_distal_count.add(0, greater_than=True)
+            if self.is_proximal(jar):
+                jar.adenoma_proximal_count = jar.adenoma_count
+            elif self.maybe_proximal(jar):  # be conservative
+                if jar.adenoma_count:
+                    jar.adenoma_proximal_count.add(0, greater_than=True)
 
     def get_adenoma_count(self, method=AdenomaCountMethod.COUNT_IN_JAR):
         """
@@ -501,6 +520,7 @@ class PathSection:
         'tubularadenoma': 'tubular adenoma',
         'tubularadenomas': 'tubular adenomas',
         'multipletubular': 'multiple tubular',
+        'noevidence': 'no evidence',
     }.items()}
     PREPROCESS_RX = re.compile("|".join(PREPROCESS.keys()))
 
@@ -655,6 +675,9 @@ class MaybeCounter:
             if self.at_least:
                 at_least = False
         return MaybeCounter(count, at_least=at_least, greater_than=greater_than)
+
+    def __bool__(self):
+        return self.count > 0 or self.greater_than
 
     def gt(self, other: int):
         if self.count > other:
