@@ -1,7 +1,8 @@
 import re
 
 from colonoscopy_algo.extract.cspy import CspyManager
-from colonoscopy_algo.extract.path import PathManager, AdenomaCountMethod
+from colonoscopy_algo.extract.path import PathManager
+from colonoscopy_algo.const.enums import AdenomaCountMethod, Histology
 
 
 def has_negation(index, text, window, negset):
@@ -68,9 +69,22 @@ def get_adenoma_status(specimens, window=5):
     )
 
 
-def get_adenoma_histology(specimens):
+def get_adenoma_histology(pm: PathManager):
     """
+    Uses JarManager to identify histology
+    :param pm: PathManager
+    :return:
+    """
+    tub = pm.get_histology(Histology.TUBULAR)
+    tbv = pm.get_histology(Histology.TUBULOVILLOUS)
+    vil = pm.get_histology(Histology.VILLOUS)
+    return tub[0], tbv[0], vil[0]
 
+
+
+def get_adenoma_histology_simple(specimens):
+    """
+    Uses a simple set of negation and terms to identify tubular, tubulovillous, and villous histology for colons.
     :param specimens:
     :return:
     """

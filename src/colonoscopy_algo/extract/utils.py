@@ -1,5 +1,7 @@
 import re
 
+from colonoscopy_algo.const.enums import Histology
+
 
 def append_str(lst, el):
     lst.extend([el] if isinstance(el, str) else el)
@@ -34,7 +36,7 @@ def depth_to_location(depth: float):
     return locations
 
 
-class Location:
+class StandardTerminology:
     LOCATIONS = {
         'anus': 'anus',
         'anal': 'anus',
@@ -92,6 +94,12 @@ class Location:
         'ileocecum',
     }
 
+    HISTOLOGY = {
+        'tubular': Histology.TUBULAR,
+        'tubulovillous': Histology.TUBULOVILLOUS,
+        'villous': Histology.VILLOUS
+    }
+
     @classmethod
     def standardize_locations(cls, lst, colon_only=False):
         res = []
@@ -103,6 +111,13 @@ class Location:
             if not colon_only or loc in cls.COLON:
                 append_str(res, cls.LOCATIONS[el])
         return res
+
+    @classmethod
+    def histology(cls, item):
+        try:
+            return cls.HISTOLOGY[item]
+        except KeyError:
+            raise ValueError(f'Unknown histology: {item}')
 
     @classmethod
     def filter_colon(cls, lst):

@@ -2,15 +2,10 @@ import logging
 import re
 
 from collections import defaultdict
-from enum import Enum
 
 from colonoscopy_algo.const import patterns
-from colonoscopy_algo.extract.utils import depth_to_location, Location
-
-
-class AdenomaCountMethod(Enum):
-    COUNT_IN_JAR = 1
-    ONE_PER_JAR = 2
+from colonoscopy_algo.const.enums import AdenomaCountMethod, Histology
+from colonoscopy_algo.extract.utils import depth_to_location, StandardTerminology
 
 
 def jarreader(f):
@@ -147,6 +142,15 @@ class PathManager:
     def get_locations_with_size(self, min_size):
         return self.manager.get_locations_with_size(min_size)
 
+    @jarreader
+    def get_histology(self, category):
+        """
+
+        :param category:
+        :return: counts for category as tuple(total, proximal, distal, rectal)
+        """
+        return self.manager.get_histology(category)
+
 
 class PolypSize:
     """
@@ -234,7 +238,7 @@ class Jar:
         self.adenoma_distal_count = MaybeCounter(0)
         self.adenoma_proximal_count = MaybeCounter(0)
         self.locations = []
-        self.histology = []
+        self.histologies = []
         self.polyp_size = []
         self.dysplasia = False
         self.depth = None
@@ -267,15 +271,20 @@ class Jar:
         self.polyp_size.append(PolypSize.set(size))
 
     def add_locations(self, locations):
-        self.locations += Location.standardize_locations(locations)
+        self.locations += StandardTerminology.standardize_locations(locations)
 
     def add_location(self, location):
         self.add_locations([location])
+        
+    def add_histology(self, histology):
+        self.histologies.append(StandardTerminology.histology(histology))
 
 
 class JarManager:
     # https://www.cancer.gov/publications/dictionaries/cancer-terms/def/distal-colon
     # technically, does not include rectum, though I've included it
+    RECTAL_LOCATIONS = ['rectum']
+    # TODO: remove 'rectum' from DISTAL_LOCATIONS
     DISTAL_LOCATIONS = ['descending', 'sigmoid', 'distal', 'rectum', 'splenic', 'left']
     # https://www.ncbi.nlm.nih.gov/pubmedhealth/PMHT0022241/
     PROXIMAL_LOCATIONS = ['proximal', 'ascending', 'transverse', 'cecum', 'hepatic', 'right']
@@ -368,6 +377,25 @@ class JarManager:
         """
         return bool(set(jar.locations) & set(self.PROXIMAL_LOCATIONS))
 
+    def is_rectal(self, jar):
+        """
+        Rectal if location only has rectum
+        Cite for distance: https://training.seer.cancer.gov/colorectal/anatomy/figure/figure1.html
+            * < 17cm since 17cm is also sigmoid (being conservative)
+        :param jar:
+        :return:
+        """
+        return bool(set(jar.locations) & set(self.RECTAL_LOCATIONS) and
+                    not set(jar.locations) | set(self.RECTAL_LOCATIONS)) or bool(jar.depth and jar.depth < 17)
+
+    def maybe_rectal(self, jar):
+        """
+        Maybe rectal if location includes a 'rectum' along with other location keywords
+        :param jar:
+        :return:
+        """
+        return bool(set(jar.locations) & set(self.RECTAL_LOCATIONS))
+
     def add_count_to_jar(self, jar, count=1, greater_than=False, at_least=False):
         jar.adenoma_count.add(count, greater_than, at_least)
 
@@ -376,8 +404,8 @@ class JarManager:
         section = PathSection(section)
         found_polyp = False
         for word in section:
-            if word.isin(Location.LOCATIONS):
-                if word.isin(['distal', 'proximal']) and section.has_after(Location.LOCATIONS, window=3):
+            if word.isin(StandardTerminology.LOCATIONS):
+                if word.isin(['distal', 'proximal']) and section.has_after(StandardTerminology.LOCATIONS, window=3):
                     continue  # distal is descriptive of another location (e.g., distal transverse)
                 jar.add_location(word)
             elif word.matches(patterns.DEPTH_PATTERN) and 'cm' in word.word \
@@ -440,7 +468,7 @@ class JarManager:
             elif word.isin(self.COLON):
                 jar.kinds.append('colon')
             elif word.isin(self.HISTOLOGY):
-                jar.histology.append(word)
+                jar.add_histology(word)
             elif word.isin(self.DYSPLASIA):
                 if section.has_before(self.HIGHGRADE_DYS, 1):
                     jar.dysplasia = True
@@ -518,7 +546,7 @@ class JarManager:
         for jar in self.jars:
             if jar.adenoma_count.gt(0) == 1:
                 if len(jar.locations) > 0:
-                    locations += Location.filter_colon(jar.locations)
+                    locations += StandardTerminology.filter_colon(jar.locations)
                 else:
                     locations.append(None)
         return locations
@@ -528,7 +556,7 @@ class JarManager:
         for jar in self.jars:
             if jar.polyp_size and sorted(jar.polyp_size, reverse=True)[0].get_max_dim() >= min_size:
                 if len(jar.locations) > 0:
-                    locations += Location.filter_colon(jar.locations)
+                    locations += StandardTerminology.filter_colon(jar.locations)
                 else:
                     locations.append(None)
         return locations
@@ -551,10 +579,37 @@ class JarManager:
         jar = self.get_current_jar()
         section = PathSection(section)
         for word in section:
-            if word.isin(Location.LOCATIONS):
-                if word.isin(['distal', 'proximal']) and section.has_after(Location.LOCATIONS, window=3):
+            if word.isin(StandardTerminology.LOCATIONS):
+                if word.isin(['distal', 'proximal']) and section.has_after(StandardTerminology.LOCATIONS, window=3):
                     continue  # distal is descriptive of another location (e.g., distal transverse)
                 jar.add_location(word)
+
+    def get_histology(self, category: Histology):
+        """
+
+        :param category:
+        :return: counts for category as tuple(total, proximal, distal, rectal)
+        """
+        total = 0
+        distal = 0 
+        proximal = 0
+        rectal = 0
+        for jar in self.jars:
+            if category in jar.histologies:
+                total += 1
+                if self.is_proximal(jar):
+                    proximal += 1
+                elif self.maybe_proximal(jar):
+                    proximal += 1
+                if self.is_distal(jar):
+                    distal += 1
+                elif self.maybe_distal(jar):
+                    distal += 1
+                if self.is_rectal(jar):
+                    rectal += 1
+                elif self.maybe_rectal(jar):
+                    rectal += 1
+        return total, proximal, distal, rectal
 
 
 class PathSection:

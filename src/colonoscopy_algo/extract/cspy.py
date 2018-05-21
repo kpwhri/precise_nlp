@@ -2,7 +2,7 @@ import logging
 import re
 
 from colonoscopy_algo.const import patterns
-from colonoscopy_algo.extract.utils import NumberConvert, depth_to_location, Location
+from colonoscopy_algo.extract.utils import NumberConvert, depth_to_location, StandardTerminology
 
 
 class Finding:
@@ -35,7 +35,7 @@ class Finding:
             key = None
             value = s.lower()
         f = Finding()
-        for location in Location.LOCATIONS:
+        for location in StandardTerminology.LOCATIONS:
             loc_pat = re.compile(f'\\b{location}\\b', re.IGNORECASE)
             if key and loc_pat.search(key):
                 f.locations.append(location)
@@ -51,7 +51,7 @@ class Finding:
         if prev_locations and not f.locations:
             f.locations = prev_locations
         else:
-            f.locations = Location.standardize_locations(f.locations)
+            f.locations = StandardTerminology.standardize_locations(f.locations)
         # there should only be one
         f.count = max(NumberConvert.contains(value, ['polyp'], 2, split_on_non_word=True) + [0])
         f.removal = 'remove' in value
