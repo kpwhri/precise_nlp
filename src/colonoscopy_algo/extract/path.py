@@ -492,12 +492,18 @@ class JarManager:
 class PathSection:
     WORD_SPLIT_PATTERN = re.compile(r'([a-z]+|[0-9]+(?:\.[0-9]+)?)')
     STOP = re.compile('.*(:|\.).*')
+    PREPROCESS = {re.escape(k): v for k, v in {
+        'tubularadenoma': 'tubular adenoma',
+        'tubularadenomas': 'tubular adenomas',
+    }.items()}
+    PREPROCESS_RX = re.compile("|".join(PREPROCESS.keys()))
 
     def __init__(self, section):
         pword = None
         pindex = 0
+        section = self._preprocess(section)
         self.section = []
-        for m in self.WORD_SPLIT_PATTERN.finditer(section):
+        for m in self.WORD_SPLIT_PATTERN.finditer(self._preprocess(section)):
             if pword:  # get intervening punctuation
                 self.section.append(PathWord(pword, section[pindex:m.start()]))
             pword = section[m.start(): m.end()]
@@ -505,6 +511,9 @@ class PathSection:
         if pword:
             self.section.append(PathWord(pword, section[pindex:]))
         self.curr = None
+
+    def _preprocess(self, text):
+        return self.PREPROCESS_RX.sub(lambda m: self.PREPROCESS[re.escape(m.group(0))], text, re.IGNORECASE)
 
     def __iter__(self):
         for i, section in enumerate(self.section):
