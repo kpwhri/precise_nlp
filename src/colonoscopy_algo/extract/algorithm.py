@@ -176,6 +176,20 @@ def get_adenoma_distal(pm: PathManager, greater_than=2):
     )
 
 
+def get_adenoma_proximal(pm: PathManager, greater_than=2):
+    """
+
+    :param pm:
+    :return:
+    """
+    min_count = pm.get_adenoma_proximal_count(AdenomaCountMethod.ONE_PER_JAR)
+    max_count = pm.get_adenoma_proximal_count(AdenomaCountMethod.COUNT_IN_JAR)
+    return (
+        1 if max_count.gt(greater_than) == 1 else 0,
+        0 if max_count.eq(0) == 1 else 1
+    )
+
+
 def has_large_adenoma(pm: PathManager, cm: CspyManager, min_size=10):
     """
     Location has large polyp and an adenoma

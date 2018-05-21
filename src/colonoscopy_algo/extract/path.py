@@ -42,15 +42,15 @@ class PathManager:
 
     @jarreader
     def get_adenoma_count(self, method=AdenomaCountMethod.COUNT_IN_JAR):
-        # if not self._jars_read:
-        #     self._read_jars()
         return self.manager.get_adenoma_count(method)
 
     @jarreader
     def get_adenoma_distal_count(self, method=AdenomaCountMethod.COUNT_IN_JAR):
-        # if not self._jars_read:
-        #     self._read_jars()
         return self.manager.get_adenoma_distal_count(method)
+
+    @jarreader
+    def get_adenoma_proximal_count(self, method=AdenomaCountMethod.COUNT_IN_JAR):
+        return self.manager.get_adenoma_proximal_count(method)
 
     @staticmethod
     def parse_jars(text):
@@ -210,6 +210,7 @@ class Jar:
         self.polyp_count = MaybeCounter(1)
         self.adenoma_count = MaybeCounter(0)
         self.adenoma_distal_count = MaybeCounter(0)
+        self.adenoma_proximal_count = MaybeCounter(0)
         self.locations = []
         self.histology = []
         self.polyp_size = []
@@ -251,8 +252,11 @@ class Jar:
 
 
 class JarManager:
-    DISTAL_LOCATIONS = ['descending', 'sigmoid', 'distal', 'rectal', 'rectum', 'hepatic', 'right']
-    PROXIMAL_LOCATIONS = ['proximal', 'ascending', 'transverse', 'cecum', 'cecal', 'splenic', 'left']
+    # https://www.cancer.gov/publications/dictionaries/cancer-terms/def/distal-colon
+    # technically, does not include rectum, though I've included it
+    DISTAL_LOCATIONS = ['descending', 'sigmoid', 'distal', 'rectum', 'hepatic', 'right']
+    # https://www.ncbi.nlm.nih.gov/pubmedhealth/PMHT0022241/
+    PROXIMAL_LOCATIONS = ['proximal', 'ascending', 'transverse', 'cecum', 'splenic', 'left']
     POLYPS = ['polyps', 'biopsies', 'polyp']
     POLYP = ['polyp']
     ADENOMAS = ['adenomas']
@@ -304,12 +308,33 @@ class JarManager:
     def maybe_distal(self, jar):
         return bool(set(jar.locations) & set(self.DISTAL_LOCATIONS))
 
+    def is_proximal(self, jar):
+        """
+        Proximal if location includes a proximal_location keyword
+        Cite for locations:
+            - https://www.cancer.gov/publications/dictionaries/cancer-terms/def/distal-colon
+            - http://cebp.aacrjournals.org/content/17/5/1144
+        Cite for distance: https://training.seer.cancer.gov/colorectal/anatomy/figure/figure1.html
+        Proximal defn: https://www.ncbi.nlm.nih.gov/pubmedhealth/PMHT0022241/
+        :param jar:
+        :return:
+        """
+        return bool(set(jar.locations) & set(self.PROXIMAL_LOCATIONS) and
+                    not set(jar.locations) | set(self.PROXIMAL_LOCATIONS)) or bool(jar.depth and jar.depth > 82)
+
+    def maybe_proximal(self, jar):
+        return bool(set(jar.locations) & set(self.PROXIMAL_LOCATIONS))
+
     def add_count_to_jar(self, jar, count=1, greater_than=False, at_least=False):
         jar.adenoma_count.add(count, greater_than, at_least)
         if self.is_distal(jar):
             jar.adenoma_distal_count.add(count, greater_than, at_least)
         elif self.maybe_distal(jar):  # be conservative
             jar.adenoma_distal_count.add(0, greater_than=True)
+        if self.is_proximal(jar):
+            jar.adenoma_proximal_count.add(count, greater_than, at_least)
+        elif self.maybe_proximal(jar):  # be conservative
+            jar.adenoma_proximal_count.add(0, greater_than=True)
 
     def cursory_diagnosis_examination(self, section):
         jar = Jar()
@@ -413,6 +438,20 @@ class JarManager:
                 count += jar.adenoma_distal_count
             elif method == AdenomaCountMethod.ONE_PER_JAR:
                 count += 1 if jar.adenoma_distal_count else 0
+        return count
+
+    def get_adenoma_proximal_count(self, method=AdenomaCountMethod.COUNT_IN_JAR):
+        """
+
+        :param method: AdenomaCountMethod - per jar or total number
+        :return:
+        """
+        count = MaybeCounter(0)
+        for jar in self.jars:
+            if method == AdenomaCountMethod.COUNT_IN_JAR:
+                count += jar.adenoma_proximal_count
+            elif method == AdenomaCountMethod.ONE_PER_JAR:
+                count += 1 if jar.adenoma_proximal_count else 0
         return count
 
     def get_locations_with_adenoma(self):
