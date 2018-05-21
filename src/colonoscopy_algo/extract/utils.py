@@ -47,6 +47,7 @@ class Location:
         'descending': 'descending',
         'ascending': 'ascending',
         'ac': 'ascending',
+        'hf': 'hepatic',
         'hepatic': 'hepatic',
         'transverse': 'transverse',
         'tc': 'transverse',
