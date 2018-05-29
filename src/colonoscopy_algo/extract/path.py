@@ -267,6 +267,7 @@ class Jar:
         :param depth:
         :return:
         """
+        self.depth = depth
         self.add_locations(depth_to_location(depth))
 
     def set_polyp_size(self, size: float, cm=False):
