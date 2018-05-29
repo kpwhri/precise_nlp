@@ -11,6 +11,10 @@ ADENOMA_DISTAL = 'adenoma_distal'
 ADENOMA_DISTAL_COUNT = 'adenoma_distal_count'
 ADENOMA_PROXIMAL = 'adenoma_proximal'
 ADENOMA_PROXIMAL_COUNT = 'adenoma_proximal_count'
+ADENOMA_RECTAL = 'adenoma_rectal'
+ADENOMA_RECTAL_COUNT = 'adenoma_rectal_count'
+ADENOMA_UNKNOWN = 'adenoma_unknown'
+ADENOMA_UNKNOWN_COUNT = 'adenoma_unknown_count'
 # tubulovillous adenoma detected
 TUBULOVILLOUS = 'tubulovillous'
 # tubular adenoma detected

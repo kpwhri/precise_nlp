@@ -18,9 +18,11 @@ from jsonschema import validate
 from colonoscopy_algo.const.const import HIGHGRADE_DYSPLASIA, ANY_VILLOUS, VILLOUS, TUBULAR, TUBULOVILLOUS, \
     ADENOMA_STATUS, \
     ADENOMA_COUNT, LARGE_ADENOMA, ADENOMA_COUNT_ADV, ADENOMA_STATUS_ADV, ADENOMA_DISTAL, ADENOMA_DISTAL_COUNT, \
-    ADENOMA_PROXIMAL_COUNT, ADENOMA_PROXIMAL
+    ADENOMA_PROXIMAL_COUNT, ADENOMA_PROXIMAL, ADENOMA_RECTAL_COUNT, ADENOMA_RECTAL, ADENOMA_UNKNOWN_COUNT, \
+    ADENOMA_UNKNOWN
 from colonoscopy_algo.extract.algorithm import get_adenoma_status, get_adenoma_histology, get_highgrade_dysplasia, \
-    get_adenoma_count, has_large_adenoma, get_adenoma_count_advanced, get_adenoma_distal, get_adenoma_proximal
+    get_adenoma_count, has_large_adenoma, get_adenoma_count_advanced, get_adenoma_distal, get_adenoma_proximal, \
+    get_adenoma_rectal, get_adenoma_unknown
 from colonoscopy_algo.extract.cspy import CspyManager
 from colonoscopy_algo.extract.path import PathManager
 from cronkd.util.logger import setup
@@ -55,6 +57,8 @@ def process_text(path_text, cspy_text=''):
     adenoma_count, adenoma_status = get_adenoma_count_advanced(pm)
     aden_dist_count, aden_dist_status = get_adenoma_distal(pm)
     aden_prox_count, aden_prox_status = get_adenoma_proximal(pm)
+    aden_rect_count, aden_rect_status = get_adenoma_rectal(pm)
+    aden_unk_count, aden_unk_status = get_adenoma_unknown(pm)
     return {
         ADENOMA_STATUS: get_adenoma_status(specs),
         TUBULAR: tb,
@@ -70,6 +74,10 @@ def process_text(path_text, cspy_text=''):
         ADENOMA_DISTAL_COUNT: aden_dist_count,
         ADENOMA_PROXIMAL: aden_prox_status,
         ADENOMA_PROXIMAL_COUNT: aden_prox_count,
+        ADENOMA_RECTAL: aden_rect_status,
+        ADENOMA_RECTAL_COUNT: aden_rect_count,
+        ADENOMA_UNKNOWN: aden_unk_status,
+        ADENOMA_UNKNOWN_COUNT: aden_unk_count,
     }
 
 

@@ -59,6 +59,14 @@ class PathManager:
     def get_adenoma_proximal_count(self, method=AdenomaCountMethod.COUNT_IN_JAR):
         return self.manager.get_adenoma_proximal_count(method)
 
+    @jarreader
+    def get_adenoma_rectal_count(self, method=AdenomaCountMethod.COUNT_IN_JAR):
+        return self.manager.get_adenoma_rectal_count(method)
+
+    @jarreader
+    def get_adenoma_unknown_count(self, method=AdenomaCountMethod.COUNT_IN_JAR):
+        return self.manager.get_adenoma_unknown_count(method)
+
     @staticmethod
     def parse_jars(text):
         specimens = [x.lower() for x in re.split(r'(?<!\()\W[A-Z]\)', text)]
@@ -237,6 +245,8 @@ class Jar:
         self.adenoma_count = MaybeCounter(0)
         self.adenoma_distal_count = MaybeCounter(0)
         self.adenoma_proximal_count = MaybeCounter(0)
+        self.adenoma_rectal_count = MaybeCounter(0)
+        self.adenoma_unknown_count = MaybeCounter(0)
         self.locations = []
         self.histologies = []
         self.polyp_size = []
@@ -275,7 +285,7 @@ class Jar:
 
     def add_location(self, location):
         self.add_locations([location])
-        
+
     def add_histology(self, histology):
         self.histologies.append(StandardTerminology.histology(histology))
 
@@ -334,8 +344,8 @@ class JarManager:
         :param jar:
         :return:
         """
-        return bool(set(jar.locations) & set(self.DISTAL_LOCATIONS) and
-                    not set(jar.locations) | set(self.DISTAL_LOCATIONS)) or bool(jar.depth and jar.depth < 82)
+        return bool(set(jar.locations) and set(jar.locations) <= set(self.DISTAL_LOCATIONS)) \
+            or bool(jar.depth and 16 < jar.depth < 82)
 
     def maybe_distal(self, jar):
         """
@@ -361,8 +371,8 @@ class JarManager:
         :param jar:
         :return:
         """
-        return bool(set(jar.locations) & set(self.PROXIMAL_LOCATIONS) and
-                    not set(jar.locations) | set(self.PROXIMAL_LOCATIONS)) or bool(jar.depth and jar.depth > 82)
+        return bool(set(jar.locations) and set(jar.locations) <= set(self.PROXIMAL_LOCATIONS)) \
+            or bool(jar.depth and jar.depth > 82)
 
     def maybe_proximal(self, jar):
         """
@@ -385,8 +395,8 @@ class JarManager:
         :param jar:
         :return:
         """
-        return bool(set(jar.locations) & set(self.RECTAL_LOCATIONS) and
-                    not set(jar.locations) | set(self.RECTAL_LOCATIONS)) or bool(jar.depth and jar.depth < 17)
+        return bool(jar.locations and set(jar.locations) <= set(self.RECTAL_LOCATIONS)) \
+               or bool(jar.depth and 4 <= jar.depth <= 16)
 
     def maybe_rectal(self, jar):
         """
@@ -482,22 +492,40 @@ class JarManager:
             return self.jars[self.curr_jar]
         raise ValueError('No current jar')
 
-    def postprocess(self):
+    def postprocess(self, allow_maybe=False):
         """
         Post-processing steps to assign locations to various components, etc.
         :return:
         """
         for jar in self.jars:
+            counts = []
+            # distal
             if self.is_distal(jar):
                 jar.adenoma_distal_count = jar.adenoma_count
-            elif self.maybe_distal(jar):  # be conservative
+            elif allow_maybe and self.maybe_distal(jar):  # be conservative
                 if jar.adenoma_count:
-                    jar.adenoma_distal_count.add(0, greater_than=True)
+                    jar.adenoma_distal_count.add(0, at_least=True)
+            else:
+                counts.append(0)
+            # proximal
             if self.is_proximal(jar):
                 jar.adenoma_proximal_count = jar.adenoma_count
-            elif self.maybe_proximal(jar):  # be conservative
+            elif allow_maybe and self.maybe_proximal(jar):  # be conservative
                 if jar.adenoma_count:
-                    jar.adenoma_proximal_count.add(0, greater_than=True)
+                    jar.adenoma_proximal_count.add(0, at_least=True)
+            else:
+                counts.append(0)
+            # rectal
+            if self.is_rectal(jar):
+                jar.adenoma_rectal_count = jar.adenoma_count
+            elif allow_maybe and self.maybe_rectal(jar):  # be conservative
+                if jar.adenoma_count:
+                    jar.adenoma_rectal_count.add(0, at_least=True)
+            else:
+                counts.append(0)
+            # unknown
+            if len(counts) == 3:  # no location identified
+                jar.adenoma_unknown_count = jar.adenoma_count
 
     def get_adenoma_count(self, method=AdenomaCountMethod.COUNT_IN_JAR):
         """
@@ -539,6 +567,34 @@ class JarManager:
                 count += jar.adenoma_proximal_count
             elif method == AdenomaCountMethod.ONE_PER_JAR:
                 count += 1 if jar.adenoma_proximal_count else 0
+        return count
+
+    def get_adenoma_rectal_count(self, method=AdenomaCountMethod.COUNT_IN_JAR):
+        """
+
+        :param method: AdenomaCountMethod - per jar or total number
+        :return:
+        """
+        count = MaybeCounter(0)
+        for jar in self.jars:
+            if method == AdenomaCountMethod.COUNT_IN_JAR:
+                count += jar.adenoma_rectal_count
+            elif method == AdenomaCountMethod.ONE_PER_JAR:
+                count += 1 if jar.adenoma_rectal_count else 0
+        return count
+
+    def get_adenoma_unknown_count(self, method=AdenomaCountMethod.COUNT_IN_JAR):
+        """
+
+        :param method: AdenomaCountMethod - per jar or total number
+        :return:
+        """
+        count = MaybeCounter(0)
+        for jar in self.jars:
+            if method == AdenomaCountMethod.COUNT_IN_JAR:
+                count += jar.adenoma_unknown_count
+            elif method == AdenomaCountMethod.ONE_PER_JAR:
+                count += 1 if jar.adenoma_unknown_count else 0
         return count
 
     def get_locations_with_adenoma(self):
@@ -591,7 +647,7 @@ class JarManager:
         :return: counts for category as tuple(total, proximal, distal, rectal)
         """
         total = 0
-        distal = 0 
+        distal = 0
         proximal = 0
         rectal = 0
         for jar in self.jars:

@@ -81,7 +81,6 @@ def get_adenoma_histology(pm: PathManager):
     return tub[0], tbv[0], vil[0]
 
 
-
 def get_adenoma_histology_simple(specimens):
     """
     Uses a simple set of negation and terms to identify tubular, tubulovillous, and villous histology for colons.
@@ -198,6 +197,34 @@ def get_adenoma_proximal(pm: PathManager, greater_than=2):
     """
     min_count = pm.get_adenoma_proximal_count(AdenomaCountMethod.ONE_PER_JAR)
     max_count = pm.get_adenoma_proximal_count(AdenomaCountMethod.COUNT_IN_JAR)
+    return (
+        1 if max_count.gt(greater_than) == 1 else 0,
+        0 if max_count.eq(0) == 1 else 1
+    )
+
+
+def get_adenoma_rectal(pm: PathManager, greater_than=2):
+    """
+
+    :param pm:
+    :return:
+    """
+    min_count = pm.get_adenoma_rectal_count(AdenomaCountMethod.ONE_PER_JAR)
+    max_count = pm.get_adenoma_rectal_count(AdenomaCountMethod.COUNT_IN_JAR)
+    return (
+        1 if max_count.gt(greater_than) == 1 else 0,
+        0 if max_count.eq(0) == 1 else 1
+    )
+
+
+def get_adenoma_unknown(pm: PathManager, greater_than=2):
+    """
+
+    :param pm:
+    :return:
+    """
+    min_count = pm.get_adenoma_unknown_count(AdenomaCountMethod.ONE_PER_JAR)
+    max_count = pm.get_adenoma_unknown_count(AdenomaCountMethod.COUNT_IN_JAR)
     return (
         1 if max_count.gt(greater_than) == 1 else 0,
         0 if max_count.eq(0) == 1 else 1
