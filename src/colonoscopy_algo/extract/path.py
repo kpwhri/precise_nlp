@@ -333,6 +333,8 @@ class JarManager:
             return True
         elif section.has_before('or', window=3) and section.has_before(self.ADENOMA_NEGATION, window=7):
             return True
+        elif section.has_before('no', window=5) and section.has_before(['evidence', 'hx', 'history'], window=4):
+            return True
         return False
 
     def is_distal(self, jar):
