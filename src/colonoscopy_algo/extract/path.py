@@ -434,7 +434,13 @@ class JarManager:
                     or word.matches(patterns.NUMBER_PATTERN) \
                     and section.has_after(['mm'], window=1):
                 # 15 cm, etc.
-                jar.set_depth(float(word.match(patterns.NUMBER_PATTERN)) / 10)
+                num = float(word.match(patterns.NUMBER_PATTERN)) / 10
+                if num < 10:
+                    if section.has_after(['dimension', 'maximal', 'maximum'], window=4):
+                        # might be polyp dimensions
+                        jar.set_polyp_size(num, cm=True)
+                else:
+                    jar.set_depth(num)
             elif not found_polyp and word.isin(self.POLYPS):  # polyps/biopsies
                 if section.has_before(self.ADENOMA_NEGATION):
                     continue
@@ -634,6 +640,8 @@ class JarManager:
 
     def find_locations(self, section):
         jar = self.get_current_jar()
+        if jar.locations:  # if jar already has locations
+            return
         section = PathSection(section)
         for word in section:
             if word.isin(StandardTerminology.LOCATIONS):
