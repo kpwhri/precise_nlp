@@ -44,6 +44,7 @@ class StandardTerminology:
         'rectal': 'rectum',
         'rectosigmoid': ['rectum', 'sigmoid'],
         'sigmoid': 'sigmoid',
+        'sig': 'sigmoid',
         'sc': 'sigmoid',
         'dc': 'descending',
         'descending': 'descending',
