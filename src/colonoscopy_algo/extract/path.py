@@ -653,6 +653,18 @@ class JarManager:
                 if word.isin(['distal', 'proximal']) and section.has_after(StandardTerminology.LOCATIONS, window=3):
                     continue  # distal is descriptive of another location (e.g., distal transverse)
                 jar.add_location(word)
+            elif word.matches(patterns.DEPTH_PATTERN) and 'cm' in word.word \
+                    or word.matches(patterns.NUMBER_PATTERN) \
+                    and section.has_after(['cm'], window=1):
+                # 15 cm, etc.
+                num = float(word.match(patterns.NUMBER_PATTERN))
+                if num < 10:
+                    pass  # not primary section
+                    # if section.has_after(['dimension', 'maximal', 'maximum'], window=4):
+                    #     # might be polyp dimensions
+                    #     jar.set_polyp_size(num, cm=True)
+                else:  # must be >= 10cm
+                    jar.set_depth(num)
 
     def get_histology(self, category: Histology):
         """
