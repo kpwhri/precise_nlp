@@ -37,6 +37,11 @@ def depth_to_location(depth: float):
 
 
 class StandardTerminology:
+    SPECIFYING_LOCATIONS = [  # locations which can just be adjectives
+        'right', 'left',
+        'distal', 'proximal'
+    ]
+
     LOCATIONS = {
         'anus': 'anus',
         'anal': 'anus',

@@ -421,7 +421,8 @@ class JarManager:
         found_polyp = False
         for word in section:
             if word.isin(StandardTerminology.LOCATIONS):
-                if word.isin(['distal', 'proximal']) and section.has_after(StandardTerminology.LOCATIONS, window=3):
+                if (word.isin(StandardTerminology.SPECIFYING_LOCATIONS)
+                        and section.has_after(StandardTerminology.LOCATIONS, window=3)):
                     continue  # distal is descriptive of another location (e.g., distal transverse)
                 jar.add_location(word)
             elif word.matches(patterns.DEPTH_PATTERN) and 'cm' in word.word \
@@ -650,7 +651,8 @@ class JarManager:
         section = PathSection(section)
         for word in section:
             if word.isin(StandardTerminology.LOCATIONS):
-                if word.isin(['distal', 'proximal']) and section.has_after(StandardTerminology.LOCATIONS, window=3):
+                if (word.isin(StandardTerminology.SPECIFYING_LOCATIONS)
+                        and section.has_after(StandardTerminology.LOCATIONS, window=3)):
                     continue  # distal is descriptive of another location (e.g., distal transverse)
                 jar.add_location(word)
             elif word.matches(patterns.DEPTH_PATTERN) and 'cm' in word.word \
