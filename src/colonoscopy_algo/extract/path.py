@@ -660,9 +660,6 @@ class JarManager:
                 num = float(word.match(patterns.NUMBER_PATTERN))
                 if num < 10:
                     pass  # not primary section
-                    # if section.has_after(['dimension', 'maximal', 'maximum'], window=4):
-                    #     # might be polyp dimensions
-                    #     jar.set_polyp_size(num, cm=True)
                 else:  # must be >= 10cm
                     jar.set_depth(num)
 
