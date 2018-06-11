@@ -315,7 +315,6 @@ class JarManager:
     ADENOMA_NEGATION = {'no', 'history', 'hx', 'sessile'}
     HISTOLOGY_NEGATION = {'no', 'or'}
     HISTOLOGY_NEGATION_MOD = {'evidence', 'residual'}
-    HISTOLOGY = ['tubulovillous', 'villous', 'tubular']
     NUMBER = {'one', 'two', 'three', 'four', 'five', 'six',
               'seven', 'eight', 'nine'} | {str(i) for i in range(10)}
     NUMBER_CONVERT = {
@@ -332,7 +331,8 @@ class JarManager:
         self.curr_jar = None
 
     def _adenoma_negated(self, section):
-        if section.has_before(self.ADENOMA_NEGATION) and not section.has_before(self.HISTOLOGY, window=4):
+        if section.has_before(self.ADENOMA_NEGATION
+                              ) and not section.has_before(StandardTerminology.HISTOLOGY, window=4):
             return True
         elif section.has_before('or', window=3) and section.has_before(self.ADENOMA_NEGATION, window=7):
             return True
@@ -508,7 +508,7 @@ class JarManager:
                     logging.debug('NEGATED!')
             elif word.isin(self.COLON):
                 jar.kinds.append('colon')
-            elif word.isin(self.HISTOLOGY):
+            elif word.isin(StandardTerminology.HISTOLOGY.keys()):
                 if self._histology_negated(section):
                     continue
                 jar.add_histology(word)

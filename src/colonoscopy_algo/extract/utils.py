@@ -108,7 +108,10 @@ class StandardTerminology:
     HISTOLOGY = {
         'tubular': Histology.TUBULAR,
         'tubulovillous': Histology.TUBULOVILLOUS,
-        'villous': Histology.VILLOUS
+        'tubulovil': Histology.TUBULOVILLOUS,
+        'villotubular': Histology.TUBULOVILLOUS,
+        'villous': Histology.VILLOUS,
+        'villiform': Histology.VILLOUS,
     }
 
     @classmethod
