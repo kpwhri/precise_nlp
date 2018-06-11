@@ -69,6 +69,7 @@ class PathManager:
 
     @staticmethod
     def parse_jars(text):
+        comment_pat = re.compile('comment(?:\W*\([A-Za-z]\))?:')
         specimens = [x.lower() for x in re.split(r'(?<!\()\W[A-Z]\)', text)]
         specimens_dict = defaultdict(list)
         it = iter(['A'] + re.split(
@@ -82,10 +83,10 @@ class PathManager:
             text = next(it).lower()
             if not text.strip():  # first round 'A' might include empty string
                 continue
-            if 'comment:' in text:
-                idx = text.index('comment:')
-                text = text[:idx]
-                comment = text[idx:]
+            m = comment_pat.search(text)
+            if m:
+                text = text[:m.start()]
+                comment = text[m.end():]
             if '-' in x or ',' in x or 'and' in x or '&' in x:
                 for spec in PathManager.parse_specimen_range(x):
                     specimens_dict[spec].append(text)
