@@ -347,6 +347,12 @@ class JarManager:
             return True
         return False
 
+    def is_colon(self, jar):
+        return len(set(jar.locations)) == len(set(StandardTerminology.filter_colon(jar.locations)))
+
+    def maybe_colon(self, jar):
+        return bool(set(StandardTerminology.filter_colon(jar.locations)))
+
     def is_distal(self, jar):
         """
         Distal if location includes a distal_location keyword and no other locations
@@ -687,6 +693,8 @@ class JarManager:
         proximal = 0
         rectal = 0
         for jar in self.jars:
+            if not self.is_colon(jar):
+                continue
             if category in jar.histologies:
                 total += 1
                 if self.is_proximal(jar):
