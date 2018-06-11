@@ -312,7 +312,7 @@ class JarManager:
     FRAGMENTS = ['segments', 'fragments', 'pieces']
     FRAGMENT = ['segment', 'fragment', 'piece']
     ADENOMA_NEGATION = {'no', 'history', 'hx', 'sessile'}
-    HISTOLOGY_NEGATION = {'no'}
+    HISTOLOGY_NEGATION = {'no', 'or'}
     HISTOLOGY = ['tubulovillous', 'villous', 'tubular']
     NUMBER = {'one', 'two', 'three', 'four', 'five', 'six',
               'seven', 'eight', 'nine'} | {str(i) for i in range(10)}
