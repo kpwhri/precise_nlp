@@ -313,6 +313,7 @@ class JarManager:
     FRAGMENT = ['segment', 'fragment', 'piece']
     ADENOMA_NEGATION = {'no', 'history', 'hx', 'sessile'}
     HISTOLOGY_NEGATION = {'no', 'or'}
+    HISTOLOGY_NEGATION_MOD = {'evidence', 'residual'}
     HISTOLOGY = ['tubulovillous', 'villous', 'tubular']
     NUMBER = {'one', 'two', 'three', 'four', 'five', 'six',
               'seven', 'eight', 'nine'} | {str(i) for i in range(10)}
@@ -344,6 +345,9 @@ class JarManager:
     def _histology_negated(self, section):
         if section.has_before(self.HISTOLOGY_NEGATION,
                               window=1) and not section.has_after(self.ADENOMA + self.ADENOMAS, window=3):
+            return True
+        elif section.has_before(self.HISTOLOGY_NEGATION,
+                                5) and section.has_before(self.HISTOLOGY_NEGATION_MOD, 4):
             return True
         return False
 
