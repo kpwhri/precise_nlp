@@ -62,9 +62,9 @@ def process_text(path_text, cspy_text=''):
     return {
         ADENOMA_STATUS: get_adenoma_status(specs),
         TUBULAR: tb,
-        TUBULOVILLOUS: tbv,
-        VILLOUS: vl,
-        ANY_VILLOUS: tbv or vl,
+        TUBULOVILLOUS: bool(tbv),
+        VILLOUS: bool(vl),
+        ANY_VILLOUS: bool(tbv + vl),
         HIGHGRADE_DYSPLASIA: get_highgrade_dysplasia(specs),
         ADENOMA_COUNT: get_adenoma_count(specs),
         LARGE_ADENOMA: has_large_adenoma(pm, cm),
