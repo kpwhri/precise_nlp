@@ -76,6 +76,7 @@ class StandardTerminology:
         'anorectum': ['anus', 'rectum'],
         'anorectal': ['anus', 'rectum'],
         # small intestine
+        'bowel': 'bowel',  # assume to be small
         'duodenum': 'duodenum',
         'duodenal': 'duodenum',
         'jejunum': 'jejunum',
