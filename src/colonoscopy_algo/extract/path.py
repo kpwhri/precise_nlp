@@ -312,6 +312,7 @@ class JarManager:
     FRAGMENTS = ['segments', 'fragments', 'pieces']
     FRAGMENT = ['segment', 'fragment', 'piece']
     ADENOMA_NEGATION = {'no', 'history', 'hx', 'sessile'}
+    HISTOLOGY_NEGATION = {'no'}
     HISTOLOGY = ['tubulovillous', 'villous', 'tubular']
     NUMBER = {'one', 'two', 'three', 'four', 'five', 'six',
               'seven', 'eight', 'nine'} | {str(i) for i in range(10)}
@@ -337,6 +338,12 @@ class JarManager:
                                                                                     window=4):
             return True
         elif section.has_before('r', window=5) and section.has_before('o', window=4):
+            return True
+        return False
+
+    def _histology_negated(self, section):
+        if section.has_before(self.HISTOLOGY_NEGATION,
+                              window=1) and not section.has_after(self.ADENOMA + self.ADENOMAS, window=3):
             return True
         return False
 
@@ -491,6 +498,8 @@ class JarManager:
             elif word.isin(self.COLON):
                 jar.kinds.append('colon')
             elif word.isin(self.HISTOLOGY):
+                if self._histology_negated(section):
+                    continue
                 jar.add_histology(word)
             elif word.isin(self.DYSPLASIA):
                 if section.has_before(self.HIGHGRADE_DYS, 1):
@@ -665,9 +674,11 @@ class JarManager:
                 else:  # must be >= 10cm
                     jar.set_depth(num)
 
-    def get_histology(self, category: Histology):
+    def get_histology(self, category: Histology, allow_maybe=False):
         """
 
+        :param allow_maybe: if True, any histology which _might_ be in that location is assumed
+            to be in that location
         :param category:
         :return: counts for category as tuple(total, proximal, distal, rectal)
         """
@@ -680,15 +691,15 @@ class JarManager:
                 total += 1
                 if self.is_proximal(jar):
                     proximal += 1
-                elif self.maybe_proximal(jar):
+                elif allow_maybe and self.maybe_proximal(jar):
                     proximal += 1
                 if self.is_distal(jar):
                     distal += 1
-                elif self.maybe_distal(jar):
+                elif allow_maybe and self.maybe_distal(jar):
                     distal += 1
                 if self.is_rectal(jar):
                     rectal += 1
-                elif self.maybe_rectal(jar):
+                elif allow_maybe and self.maybe_rectal(jar):
                     rectal += 1
         return total, proximal, distal, rectal
 
