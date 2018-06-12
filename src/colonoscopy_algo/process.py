@@ -19,10 +19,11 @@ from colonoscopy_algo.const.const import HIGHGRADE_DYSPLASIA, ANY_VILLOUS, VILLO
     ADENOMA_STATUS, \
     ADENOMA_COUNT, LARGE_ADENOMA, ADENOMA_COUNT_ADV, ADENOMA_STATUS_ADV, ADENOMA_DISTAL, ADENOMA_DISTAL_COUNT, \
     ADENOMA_PROXIMAL_COUNT, ADENOMA_PROXIMAL, ADENOMA_RECTAL_COUNT, ADENOMA_RECTAL, ADENOMA_UNKNOWN_COUNT, \
-    ADENOMA_UNKNOWN
+    ADENOMA_UNKNOWN, PROXIMAL_VILLOUS, DISTAL_VILLOUS, RECTAL_VILLOUS, UNKNOWN_VILLOUS
+from colonoscopy_algo.const.enums import Location
 from colonoscopy_algo.extract.algorithm import get_adenoma_status, get_adenoma_histology, get_highgrade_dysplasia, \
     get_adenoma_count, has_large_adenoma, get_adenoma_count_advanced, get_adenoma_distal, get_adenoma_proximal, \
-    get_adenoma_rectal, get_adenoma_unknown
+    get_adenoma_rectal, get_adenoma_unknown, get_villous_histology
 from colonoscopy_algo.extract.cspy import CspyManager
 from colonoscopy_algo.extract.path import PathManager
 from cronkd.util.logger import setup
@@ -46,6 +47,10 @@ ITEMS = [
     ADENOMA_DISTAL_COUNT,
     ADENOMA_PROXIMAL,
     ADENOMA_PROXIMAL_COUNT,
+    PROXIMAL_VILLOUS,
+    DISTAL_VILLOUS,
+    RECTAL_VILLOUS,
+    UNKNOWN_VILLOUS,
 ]
 
 
@@ -64,7 +69,11 @@ def process_text(path_text, cspy_text=''):
         TUBULAR: tb,
         TUBULOVILLOUS: bool(tbv),
         VILLOUS: bool(vl),
-        ANY_VILLOUS: bool(tbv + vl),
+        ANY_VILLOUS: get_villous_histology(pm),
+        PROXIMAL_VILLOUS: get_villous_histology(pm, Location.PROXIMAL),
+        DISTAL_VILLOUS: get_villous_histology(pm, Location.DISTAL),
+        RECTAL_VILLOUS: get_villous_histology(pm, Location.RECTAL),
+        UNKNOWN_VILLOUS: get_villous_histology(pm, Location.UNKNOWN),
         HIGHGRADE_DYSPLASIA: get_highgrade_dysplasia(specs),
         ADENOMA_COUNT: get_adenoma_count(specs),
         LARGE_ADENOMA: has_large_adenoma(pm, cm),

@@ -152,13 +152,14 @@ class PathManager:
         return self.manager.get_locations_with_size(min_size)
 
     @jarreader
-    def get_histology(self, category):
+    def get_histology(self, category, allow_maybe=False):
         """
 
+        :param allow_maybe:
         :param category:
         :return: counts for category as tuple(total, proximal, distal, rectal)
         """
-        return self.manager.get_histology(category)
+        return self.manager.get_histology(category, allow_maybe)
 
 
 class PolypSize:
@@ -697,24 +698,38 @@ class JarManager:
         distal = 0
         proximal = 0
         rectal = 0
+        unknown = 0
         for jar in self.jars:
             if not self.is_colon(jar):
                 continue
             if category in jar.histologies:
+                counts = []
                 total += 1
                 if self.is_proximal(jar):
                     proximal += 1
                 elif allow_maybe and self.maybe_proximal(jar):
                     proximal += 1
+                else:
+                    counts.append(0)
+
                 if self.is_distal(jar):
                     distal += 1
                 elif allow_maybe and self.maybe_distal(jar):
                     distal += 1
+                else:
+                    counts.append(0)
+
                 if self.is_rectal(jar):
                     rectal += 1
                 elif allow_maybe and self.maybe_rectal(jar):
                     rectal += 1
-        return total, proximal, distal, rectal
+                else:
+                    counts.append(0)
+
+                # unknown
+                if len(counts) == 3:  # no location identified
+                    unknown += 1
+        return total, proximal, distal, rectal, unknown
 
 
 class PathSection:

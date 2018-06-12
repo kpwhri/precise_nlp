@@ -23,6 +23,10 @@ TUBULAR = 'tubular'
 VILLOUS = 'villous'
 # either villous or tubulovillous adenoma detected
 ANY_VILLOUS = 'any_villous'
+PROXIMAL_VILLOUS = 'proximal_villous'
+DISTAL_VILLOUS = 'distal_villous'
+RECTAL_VILLOUS = 'rectal_villous'
+UNKNOWN_VILLOUS = 'unknown_villous'
 # high-grade dysplasia detected
 HIGHGRADE_DYSPLASIA = 'highgrade_dysplasia'
 # number of adenomas found

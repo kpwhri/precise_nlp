@@ -2,7 +2,7 @@ import re
 
 from colonoscopy_algo.extract.cspy import CspyManager
 from colonoscopy_algo.extract.path import PathManager
-from colonoscopy_algo.const.enums import AdenomaCountMethod, Histology
+from colonoscopy_algo.const.enums import AdenomaCountMethod, Histology, Location
 
 
 def has_negation(index, text, window, negset):
@@ -79,6 +79,32 @@ def get_adenoma_histology(pm: PathManager):
     tbv = pm.get_histology(Histology.TUBULOVILLOUS)
     vil = pm.get_histology(Histology.VILLOUS)
     return tub[0], tbv[0], vil[0]
+
+
+def get_villous_histology(pm: PathManager,
+                          location: Location=Location.ANY,
+                          allow_maybe=False):
+    """
+    Get villous or tubulovillous by requested location
+    :param allow_maybe: if False, only include when location is guaranteed
+    :param location: location to look for
+    :param pm:
+    :return:
+    """
+    tbv = pm.get_histology(Histology.TUBULOVILLOUS, allow_maybe=allow_maybe)
+    vil = pm.get_histology(Histology.VILLOUS, allow_maybe=allow_maybe)
+    if location == Location.ANY:
+        return 1 if tbv[0] + vil[0] else 0
+    elif location == Location.PROXIMAL:
+        return 1 if tbv[1] + vil[1] else 0
+    elif location == Location.DISTAL:
+        return 1 if tbv[2] + vil[2] else 0
+    elif location == Location.RECTAL:
+        return 1 if tbv[3] + vil[3] else 0
+    elif location == Location.UNKNOWN:
+        return 1 if tbv[4] + vil[4] else 0
+    else:
+        raise ValueError(f'Unrecognized location: {location}')
 
 
 def get_adenoma_histology_simple(specimens):
