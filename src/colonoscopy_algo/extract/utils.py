@@ -48,6 +48,7 @@ class StandardTerminology:
         'rectum': 'rectum',
         'rectal': 'rectum',
         'rectosigmoid': ['rectum', 'sigmoid'],
+        'rectosig': ['rectum', 'sigmoid'],
         'sigmoid': 'sigmoid',
         'sig': 'sigmoid',
         'sc': 'sigmoid',
