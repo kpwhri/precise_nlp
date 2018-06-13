@@ -41,6 +41,19 @@ class StandardTerminology:
         'right', 'left',
         'distal', 'proximal'
     ]
+    # https://www.cancer.gov/publications/dictionaries/cancer-terms/def/distal-colon
+    # technically, does not include rectum, though I've included it
+    RECTAL_LOCATIONS = ['rectum']
+    # TODO: remove 'rectum' from DISTAL_LOCATIONS
+    # https://www.ncbi.nlm.nih.gov/pubmedhealth/PMHT0022241/
+    DISTAL_LOCATIONS = [
+        'descending', 'sigmoid', 'distal',
+        'splenic', 'left', 'rectum'
+    ]
+    PROXIMAL_LOCATIONS = [
+        'proximal', 'ascending',
+        'transverse', 'cecum', 'hepatic', 'right'
+    ]
 
     LOCATIONS = {
         'anus': 'anus',

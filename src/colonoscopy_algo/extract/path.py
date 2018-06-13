@@ -294,13 +294,6 @@ class Jar:
 
 
 class JarManager:
-    # https://www.cancer.gov/publications/dictionaries/cancer-terms/def/distal-colon
-    # technically, does not include rectum, though I've included it
-    RECTAL_LOCATIONS = ['rectum']
-    # TODO: remove 'rectum' from DISTAL_LOCATIONS
-    DISTAL_LOCATIONS = ['descending', 'sigmoid', 'distal', 'rectum', 'splenic', 'left']
-    # https://www.ncbi.nlm.nih.gov/pubmedhealth/PMHT0022241/
-    PROXIMAL_LOCATIONS = ['proximal', 'ascending', 'transverse', 'cecum', 'hepatic', 'right']
     POLYPS = ['polyps', 'biopsies', 'polyp']
     POLYP = ['polyp']
     ADENOMAS = ['adenomas']
@@ -369,7 +362,7 @@ class JarManager:
         :param jar:
         :return:
         """
-        return bool(set(jar.locations) and set(jar.locations) <= set(self.DISTAL_LOCATIONS)) \
+        return bool(set(jar.locations) and set(jar.locations) <= set(StandardTerminology.DISTAL_LOCATIONS)) \
             or bool(jar.depth and 16 < jar.depth < 82)
 
     def maybe_distal(self, jar):
@@ -383,7 +376,7 @@ class JarManager:
         :param jar:
         :return:
         """
-        return bool(set(jar.locations) & set(self.DISTAL_LOCATIONS))
+        return bool(set(jar.locations) & set(StandardTerminology.DISTAL_LOCATIONS))
 
     def is_proximal(self, jar):
         """
@@ -396,7 +389,7 @@ class JarManager:
         :param jar:
         :return:
         """
-        return bool(set(jar.locations) and set(jar.locations) <= set(self.PROXIMAL_LOCATIONS)) \
+        return bool(set(jar.locations) and set(jar.locations) <= set(StandardTerminology.PROXIMAL_LOCATIONS)) \
             or bool(jar.depth and jar.depth > 82)
 
     def maybe_proximal(self, jar):
@@ -410,7 +403,7 @@ class JarManager:
         :param jar:
         :return:
         """
-        return bool(set(jar.locations) & set(self.PROXIMAL_LOCATIONS))
+        return bool(set(jar.locations) & set(StandardTerminology.PROXIMAL_LOCATIONS))
 
     def is_rectal(self, jar):
         """
@@ -420,7 +413,7 @@ class JarManager:
         :param jar:
         :return:
         """
-        return bool(jar.locations and set(jar.locations) <= set(self.RECTAL_LOCATIONS)) \
+        return bool(jar.locations and set(jar.locations) <= set(StandardTerminology.RECTAL_LOCATIONS)) \
                or bool(jar.depth and 4 <= jar.depth <= 16)
 
     def maybe_rectal(self, jar):
@@ -429,7 +422,7 @@ class JarManager:
         :param jar:
         :return:
         """
-        return bool(set(jar.locations) & set(self.RECTAL_LOCATIONS))
+        return bool(set(jar.locations) & set(StandardTerminology.RECTAL_LOCATIONS))
 
     def add_count_to_jar(self, jar, count=1, greater_than=False, at_least=False):
         jar.adenoma_count.add(count, greater_than, at_least)
