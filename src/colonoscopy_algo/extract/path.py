@@ -161,6 +161,14 @@ class PathManager:
         """
         return self.manager.get_histology(category, allow_maybe)
 
+    @jarreader
+    def has_dysplasia(self):
+        """
+
+        :return: True if any jar contains dysplasia
+        """
+        return self.manager.has_dysplasia()
+
 
 class PolypSize:
     """
@@ -507,8 +515,11 @@ class JarManager:
                     continue
                 jar.add_histology(word)
             elif word.isin(self.DYSPLASIA):
-                if section.has_before(self.HIGHGRADE_DYS, 1):
-                    jar.dysplasia = True
+                if section.has_before(self.HIGHGRADE_DYS, 2):
+                    if section.has_before('no', 5) and section.has_before('evidence', 4):
+                        pass  # don't make false in case something else
+                    elif not section.has_before({'no', 'without', 'low'}, 3):
+                        jar.dysplasia = True
         logging.info('Adenoma Count for Jar: {}'.format(jar.adenoma_count))
         self.jars.append(jar)
         self.curr_jar = len(self.jars) - 1
@@ -723,6 +734,12 @@ class JarManager:
                 if len(counts) == 3:  # no location identified
                     unknown += 1
         return total, proximal, distal, rectal, unknown
+
+    def has_dysplasia(self):
+        for jar in self.jars:
+            if jar.dysplasia:
+                return True
+        return False
 
 
 class PathSection:

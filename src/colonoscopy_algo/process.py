@@ -19,11 +19,11 @@ from colonoscopy_algo.const.const import HIGHGRADE_DYSPLASIA, ANY_VILLOUS, VILLO
     ADENOMA_STATUS, \
     ADENOMA_COUNT, LARGE_ADENOMA, ADENOMA_COUNT_ADV, ADENOMA_STATUS_ADV, ADENOMA_DISTAL, ADENOMA_DISTAL_COUNT, \
     ADENOMA_PROXIMAL_COUNT, ADENOMA_PROXIMAL, ADENOMA_RECTAL_COUNT, ADENOMA_RECTAL, ADENOMA_UNKNOWN_COUNT, \
-    ADENOMA_UNKNOWN, PROXIMAL_VILLOUS, DISTAL_VILLOUS, RECTAL_VILLOUS, UNKNOWN_VILLOUS
+    ADENOMA_UNKNOWN, PROXIMAL_VILLOUS, DISTAL_VILLOUS, RECTAL_VILLOUS, UNKNOWN_VILLOUS, SIMPLE_HIGHGRADE_DYSPLASIA
 from colonoscopy_algo.const.enums import Location
 from colonoscopy_algo.extract.algorithm import get_adenoma_status, get_adenoma_histology, get_highgrade_dysplasia, \
     get_adenoma_count, has_large_adenoma, get_adenoma_count_advanced, get_adenoma_distal, get_adenoma_proximal, \
-    get_adenoma_rectal, get_adenoma_unknown, get_villous_histology
+    get_adenoma_rectal, get_adenoma_unknown, get_villous_histology, has_dysplasia
 from colonoscopy_algo.extract.cspy import CspyManager
 from colonoscopy_algo.extract.path import PathManager
 from cronkd.util.logger import setup
@@ -51,6 +51,7 @@ ITEMS = [
     DISTAL_VILLOUS,
     RECTAL_VILLOUS,
     UNKNOWN_VILLOUS,
+    SIMPLE_HIGHGRADE_DYSPLASIA,
 ]
 
 
@@ -74,7 +75,8 @@ def process_text(path_text, cspy_text=''):
         DISTAL_VILLOUS: get_villous_histology(pm, Location.DISTAL),
         RECTAL_VILLOUS: get_villous_histology(pm, Location.RECTAL),
         UNKNOWN_VILLOUS: get_villous_histology(pm, Location.UNKNOWN),
-        HIGHGRADE_DYSPLASIA: get_highgrade_dysplasia(specs),
+        SIMPLE_HIGHGRADE_DYSPLASIA: get_highgrade_dysplasia(specs),
+        HIGHGRADE_DYSPLASIA: has_dysplasia(pm),
         ADENOMA_COUNT: get_adenoma_count(specs),
         LARGE_ADENOMA: has_large_adenoma(pm, cm),
         ADENOMA_COUNT_ADV: adenoma_count,

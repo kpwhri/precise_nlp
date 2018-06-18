@@ -144,6 +144,15 @@ def get_highgrade_dysplasia(specimens):
                    terminate_on_negation=True)
 
 
+def has_dysplasia(pm: PathManager):
+    """
+    Identify mentions of highgrade dysplasia
+    :param pm:
+    :return:
+    """
+    return pm.has_dysplasia()
+
+
 def get_adenoma_count(specimens, bins=(3,), many=7):
     """
 

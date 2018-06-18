@@ -29,6 +29,7 @@ RECTAL_VILLOUS = 'rectal_villous'
 UNKNOWN_VILLOUS = 'unknown_villous'
 # high-grade dysplasia detected
 HIGHGRADE_DYSPLASIA = 'highgrade_dysplasia'
+SIMPLE_HIGHGRADE_DYSPLASIA = 'simple_highgrade_dysplasia'
 # number of adenomas found
 ADENOMA_COUNT = 'adenoma_count'
 ADENOMA_COUNT_ADV = 'adenoma_count_adv'
