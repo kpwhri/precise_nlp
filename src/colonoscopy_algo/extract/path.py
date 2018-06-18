@@ -34,6 +34,7 @@ class PathManager:
             # sometimes locations appear in immediately subsequent section after dx
             if others:
                 self.manager.find_locations(sections[1])
+                self.manager.check_dysplasia(sections[1])
             # extract polyp sizes
             self.manager.extract_sizes(sections, i)
         # postprocessing all jars
@@ -325,7 +326,7 @@ class JarManager:
     }
     NUMBER_CONVERT.update({str(i): i for i in range(10)})
 
-    DYSPLASIA = {'dysplasia'}
+    DYSPLASIA = {'dysplasia', 'dysplastic'}
     HIGHGRADE_DYS = {'highgrade', 'grade', 'severe'}
 
     def __init__(self):
@@ -689,6 +690,20 @@ class JarManager:
                     pass  # not primary section
                 else:  # must be >= 10cm
                     jar.set_depth(num)
+
+    def check_dysplasia(self, section):
+        jar = self.get_current_jar()
+        if jar.dysplasia:
+            return
+        section = PathSection(section)
+        for word in section:
+            if word.isin(self.DYSPLASIA):
+                if section.has_before(self.HIGHGRADE_DYS, 2):
+                    if section.has_before('no', 5) and section.has_before('evidence', 4):
+                        pass  # don't make false in case something else
+                    elif not section.has_before({'no', 'without', 'low'}, 3):
+                        jar.dysplasia = True
+                        return
 
     def get_histology(self, category: Histology, allow_maybe=False):
         """
