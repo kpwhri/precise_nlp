@@ -316,7 +316,7 @@ class JarManager:
              ]
     FRAGMENTS = ['segments', 'fragments', 'pieces']
     FRAGMENT = ['segment', 'fragment', 'piece']
-    ADENOMA_NEGATION = {'no', 'history', 'hx', 'sessile'}
+    ADENOMA_NEGATION = {'no', 'history', 'hx', 'sessile', 'without'}
     HISTOLOGY_NEGATION = {'no', 'or'}
     HISTOLOGY_NEGATION_MOD = {'evidence', 'residual'}
     NUMBER = {'one', 'two', 'three', 'four', 'five', 'six',
