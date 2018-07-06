@@ -113,7 +113,8 @@ class PathManager:
             else:
                 # retain intro section
                 specimens_dict['a'] = [' '.join(specimens_dict['a'][:2])] + specimens_dict['a'][2:]
-
+        elif 'received' in specimens_dict['a'][0] and len(specimens_dict['a'][0]) < 30:
+            specimens_dict['a'] = specimens_dict['a'][1:]
         specimens_combined = [' '.join(spec) for spec in specimens_dict.values()]
         return specimens, specimens_combined, specimens_dict
 
