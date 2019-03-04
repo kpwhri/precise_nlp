@@ -1,4 +1,5 @@
 import re
+from enum import Enum
 
 from colonoscopy_algo.const.enums import Histology
 
@@ -172,3 +173,36 @@ class NumberConvert:
             if not followed_by or set(followed_by) & set(text[start:start + distance]):
                 results.append(NumberConvert.VALUES[val])
         return results
+
+
+class Prep(Enum):
+    EXCELLENT = 0
+    GOOD = 1
+    ADEQUATE = 2,
+    FAIR = 3
+    POOR = 4
+
+
+class ColonPrep:
+    VALUES = {
+        'excellent': Prep.EXCELLENT,
+        'well': Prep.EXCELLENT,
+        'good': Prep.GOOD,
+        'moderate': Prep.GOOD,
+        'adequate': Prep.ADEQUATE,
+        'fair': Prep.FAIR,
+        'poor': Prep.POOR,
+    }
+    REGEX = '|'.join(VALUES.keys())
+
+
+class Indication(Enum):
+    DIAGNOSTIC = 0
+    SURVEILLANCE = 1
+    SCREENING = 2
+    UNKNOWN = 99
+
+
+class Extent(Enum):
+    COMPLETE = 0
+    UNKNOWN = 99

@@ -2,7 +2,10 @@ import logging
 import re
 
 from colonoscopy_algo.const import patterns
-from colonoscopy_algo.extract.utils import NumberConvert, depth_to_location, StandardTerminology
+from colonoscopy_algo.const.patterns import INDICATION_DIAGNOSTIC, INDICATION_SURVEILLANCE, INDICATION_SCREENING, \
+    PROCEDURE_EXTENT, COLON_PREP_PRE, COLON_PREP_POST
+from colonoscopy_algo.extract.utils import NumberConvert, depth_to_location, StandardTerminology, Indication, Extent, \
+    ColonPrep
 
 
 class Finding:
@@ -74,11 +77,13 @@ class Finding:
 
 
 class CspyManager:
-    TITLE_PATTERN = re.compile(r'([A-Z][a-z]+\W?(?:[A-Z][a-z]+\W?|and\s|of\s)*:)')
+    TITLE_PATTERN = re.compile(r'([A-Z][a-z]+\W?(?:[A-Z][a-z]+\W?|and\s|of\s)*:|[A-Z]+:)')
     ENUMERATE_PATTERN = re.compile(r'\d[\)\.]')
     FINDINGS = 'FINDINGS'
+    INDICATIONS = 'INDICATIONS'
     LABELS = {
-        FINDINGS: ['Findings', 'Impression']
+        FINDINGS: ['Findings', 'Impression'],
+        INDICATIONS: ['INDICATIONS'],
     }
 
     def __init__(self, text):
@@ -87,6 +92,9 @@ class CspyManager:
         self.sections = {}
         self._get_sections()
         self.findings = self.get_findings()
+        self.indication = self.get_indication()
+        self.prep = self.get_prep()
+        self.extent = self.get_extent()
 
     def _get_sections(self):
         """
@@ -116,6 +124,13 @@ class CspyManager:
                     or self.ENUMERATE_PATTERN.match(el.strip()[-2:])
             )
 
+    def _get_section(self, category):
+        for label in self.LABELS[category]:
+            if label in self.sections:
+                sect = self.sections[label]
+                if sect:
+                    yield sect
+
     def get_findings(self):
         findings = []
         for label in self.LABELS[self.FINDINGS]:
@@ -130,6 +145,27 @@ class CspyManager:
                     prev_locations = f.locations
                     findings.append(f)
         return findings
+
+    def get_indication(self):
+        for sect in self._get_section(self.INDICATIONS):
+            if INDICATION_DIAGNOSTIC.matches(sect):
+                return Indication.DIAGNOSTIC
+            elif INDICATION_SURVEILLANCE.matches(sect):
+                return Indication.SURVEILLANCE
+            elif INDICATION_SCREENING.matches(sect):
+                return Indication.SCREENING
+        return Indication.UNKNOWN
+
+    def get_extent(self):
+        if PROCEDURE_EXTENT.matches(self.text):
+            return Extent.COMPLETE
+        return Extent.UNKNOWN
+
+    def get_prep(self):
+        m = COLON_PREP_PRE.matches(self.text) or COLON_PREP_POST.matches(self.text)
+        if m:
+            res = m.groupdict('prep').lower()
+            return ColonPrep.VALUES[res]
 
     def _deenumerate(self, sect):
         # find first list marker
