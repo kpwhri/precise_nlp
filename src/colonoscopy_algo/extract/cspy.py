@@ -96,6 +96,9 @@ class CspyManager:
         self.prep = self.get_prep()
         self.extent = self.get_extent()
 
+    def __bool__(self):
+        return bool(self.text.strip())
+    
     def _get_sections(self):
         """
         Separate using Header: value

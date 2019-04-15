@@ -10,12 +10,12 @@ import pandas as pd
 
 import os
 
-import re
 import yaml
 from collections import defaultdict
 from jsonschema import validate
 
-from colonoscopy_algo.const.const import HIGHGRADE_DYSPLASIA, ANY_VILLOUS, VILLOUS, TUBULAR, TUBULOVILLOUS, \
+from colonoscopy_algo.const.cspy import INDICATION, FINDINGS, BOWEL_PREP, EXTENT
+from colonoscopy_algo.const.path import HIGHGRADE_DYSPLASIA, ANY_VILLOUS, VILLOUS, TUBULAR, TUBULOVILLOUS, \
     ADENOMA_STATUS, \
     ADENOMA_COUNT, LARGE_ADENOMA, ADENOMA_COUNT_ADV, ADENOMA_STATUS_ADV, ADENOMA_DISTAL, ADENOMA_DISTAL_COUNT, \
     ADENOMA_PROXIMAL_COUNT, ADENOMA_PROXIMAL, ADENOMA_RECTAL_COUNT, ADENOMA_RECTAL, ADENOMA_UNKNOWN_COUNT, \
@@ -28,7 +28,6 @@ from colonoscopy_algo.extract.cspy import CspyManager
 from colonoscopy_algo.extract.path import PathManager
 from cronkd.util.logger import setup
 
-from colonoscopy_algo.extract.path import PathManager
 
 logging.config.dictConfig(setup())
 
@@ -55,44 +54,54 @@ ITEMS = [
 ]
 
 
-def process_text(path_text, cspy_text=''):
+def process_text(path_text='', cspy_text=''):
     pm = PathManager(path_text)
     cm = CspyManager(cspy_text)
-    specs, specs_combined, specs_dict = PathManager.parse_jars(path_text)
-    tb, tbv, vl = get_adenoma_histology(pm)
-    adenoma_count, adenoma_status = get_adenoma_count_advanced(pm)
-    aden_dist_count, aden_dist_status = get_adenoma_distal(pm)
-    aden_prox_count, aden_prox_status = get_adenoma_proximal(pm)
-    aden_rect_count, aden_rect_status = get_adenoma_rectal(pm)
-    aden_unk_count, aden_unk_status = get_adenoma_unknown(pm)
-    return {
-        ADENOMA_STATUS: get_adenoma_status(specs),
-        TUBULAR: tb,
-        TUBULOVILLOUS: bool(tbv),
-        VILLOUS: bool(vl),
-        ANY_VILLOUS: get_villous_histology(pm),
-        PROXIMAL_VILLOUS: get_villous_histology(pm, Location.PROXIMAL),
-        DISTAL_VILLOUS: get_villous_histology(pm, Location.DISTAL),
-        RECTAL_VILLOUS: get_villous_histology(pm, Location.RECTAL),
-        UNKNOWN_VILLOUS: get_villous_histology(pm, Location.UNKNOWN),
-        SIMPLE_HIGHGRADE_DYSPLASIA: get_highgrade_dysplasia(specs),
-        HIGHGRADE_DYSPLASIA: has_dysplasia(pm),
-        ADENOMA_COUNT: get_adenoma_count(specs),
-        LARGE_ADENOMA: has_large_adenoma(pm, cm),
-        ADENOMA_COUNT_ADV: adenoma_count,
-        ADENOMA_STATUS_ADV: adenoma_status,
-        ADENOMA_DISTAL: aden_dist_status,
-        ADENOMA_DISTAL_COUNT: aden_dist_count,
-        ADENOMA_PROXIMAL: aden_prox_status,
-        ADENOMA_PROXIMAL_COUNT: aden_prox_count,
-        ADENOMA_RECTAL: aden_rect_status,
-        ADENOMA_RECTAL_COUNT: aden_rect_count,
-        ADENOMA_UNKNOWN: aden_unk_status,
-        ADENOMA_UNKNOWN_COUNT: aden_unk_count,
-    }
+    data = {}
+    if pm:
+        specs, specs_combined, specs_dict = PathManager.parse_jars(path_text)
+        tb, tbv, vl = get_adenoma_histology(pm)
+        adenoma_count, adenoma_status = get_adenoma_count_advanced(pm)
+        aden_dist_count, aden_dist_status = get_adenoma_distal(pm)
+        aden_prox_count, aden_prox_status = get_adenoma_proximal(pm)
+        aden_rect_count, aden_rect_status = get_adenoma_rectal(pm)
+        aden_unk_count, aden_unk_status = get_adenoma_unknown(pm)
+        data.update({
+            ADENOMA_STATUS: get_adenoma_status(specs),
+            TUBULAR: tb,
+            TUBULOVILLOUS: bool(tbv),
+            VILLOUS: bool(vl),
+            ANY_VILLOUS: get_villous_histology(pm),
+            PROXIMAL_VILLOUS: get_villous_histology(pm, Location.PROXIMAL),
+            DISTAL_VILLOUS: get_villous_histology(pm, Location.DISTAL),
+            RECTAL_VILLOUS: get_villous_histology(pm, Location.RECTAL),
+            UNKNOWN_VILLOUS: get_villous_histology(pm, Location.UNKNOWN),
+            SIMPLE_HIGHGRADE_DYSPLASIA: get_highgrade_dysplasia(specs),
+            HIGHGRADE_DYSPLASIA: has_dysplasia(pm),
+            ADENOMA_COUNT: get_adenoma_count(specs),
+            LARGE_ADENOMA: has_large_adenoma(pm, cm),
+            ADENOMA_COUNT_ADV: adenoma_count,
+            ADENOMA_STATUS_ADV: adenoma_status,
+            ADENOMA_DISTAL: aden_dist_status,
+            ADENOMA_DISTAL_COUNT: aden_dist_count,
+            ADENOMA_PROXIMAL: aden_prox_status,
+            ADENOMA_PROXIMAL_COUNT: aden_prox_count,
+            ADENOMA_RECTAL: aden_rect_status,
+            ADENOMA_RECTAL_COUNT: aden_rect_count,
+            ADENOMA_UNKNOWN: aden_unk_status,
+            ADENOMA_UNKNOWN_COUNT: aden_unk_count,
+        })
+    if cm:
+        data.update({
+            INDICATION: cm.get_indication(),
+            FINDINGS: cm.get_findings(),
+            BOWEL_PREP: cm.get_prep(),
+            EXTENT: cm.get_extent(),
+        })
+    return data
 
 
-def get_data(filetype, path, identifier, path_text=None, cspy_text=None,
+def get_data(filetype, path, identifier=None, path_text=None, cspy_text=None,
              limit=None, truth=None, text=None, requires_cspy_text=False):
     """
 
@@ -114,7 +123,10 @@ def get_data(filetype, path, identifier, path_text=None, cspy_text=None,
 
     if path and os.path.isdir(path):
         for fn in os.listdir(path):
-            get_data(filetype, os.path.join(path, fn), identifier, path_text, cspy_text, truth)
+            yield from get_data(filetype, os.path.join(path, fn), identifier, path_text, cspy_text, truth)
+    elif path and filetype == 'txt' and os.path.isfile(path):
+        with open(path, encoding='utf8') as fh:
+            yield os.path.basename(path), '', fh.read(), None
     else:
         if 'DataFrame' in str(type(filetype)):
             df = filetype
@@ -173,7 +185,7 @@ def add_identifier(identifier, d, label, errors, value='fp'):
     return 1
 
 
-def process(data, truth, errors=None, output=None, outfile=None):
+def process(data, truth=None, errors=None, output=None, outfile=None):
     score = defaultdict(lambda: [0, 0, 0, 0])  # TP, FP, FN, TN
     fps = defaultdict(list)
     fns = defaultdict(list)
@@ -194,7 +206,7 @@ def process(data, truth, errors=None, output=None, outfile=None):
         print(f'Starting: {identifier}')
         res = process_text(path_text, cspy_text)
         row = [i, identifier]
-        for label in truth_values:
+        for label in truth_values or list():
             truth_item = clean_truth(truth_values[label])
             row.append(res[label])
             row.append(truth_item)

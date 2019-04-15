@@ -21,9 +21,15 @@ class PathManager:
 
     def __init__(self, text):
         self.text = text
-        self.specs, self.specs_combined, self.specs_dict = PathManager.parse_jars(text)
+        if self.text:
+            self.specs, self.specs_combined, self.specs_dict = PathManager.parse_jars(text)
+        else:
+            self.specs, self.specs_combined, self.specs_dict = None, None, None
         self.manager = JarManager()
         self._jars_read = False
+
+    def __bool__(self):
+        return bool(self.text.strip())
 
     def _read_jars(self, **kwargs):
         for i, (name, sections) in enumerate(self.specs_dict.items()):
