@@ -164,7 +164,7 @@ class NumberConvert:
     def contains(text, followed_by=None, distance=0, split_on_non_word=False):
         results = []
         if split_on_non_word:
-            text = re.split('\W+', text)
+            text = re.split(r'\W+', text)
         else:
             text = text.split()
         dtext = {x: i for i, x in enumerate(text)}
@@ -192,6 +192,8 @@ class ColonPrep:
         'adequate': Prep.ADEQUATE,
         'fair': Prep.FAIR,
         'poor': Prep.POOR,
+        'inadequate': Prep.POOR,
+        'suboptimal': Prep.FAIR,
     }
     REGEX = '|'.join(VALUES.keys())
 
