@@ -11,7 +11,7 @@ import pandas as pd
 import os
 
 import yaml
-from collections import defaultdict
+from collections import defaultdict, Counter
 from jsonschema import validate
 
 from colonoscopy_algo.const.cspy import INDICATION, FINDINGS, BOWEL_PREP, EXTENT
@@ -21,6 +21,7 @@ from colonoscopy_algo.const.path import HIGHGRADE_DYSPLASIA, ANY_VILLOUS, VILLOU
     ADENOMA_PROXIMAL_COUNT, ADENOMA_PROXIMAL, ADENOMA_RECTAL_COUNT, ADENOMA_RECTAL, ADENOMA_UNKNOWN_COUNT, \
     ADENOMA_UNKNOWN, PROXIMAL_VILLOUS, DISTAL_VILLOUS, RECTAL_VILLOUS, UNKNOWN_VILLOUS, SIMPLE_HIGHGRADE_DYSPLASIA
 from colonoscopy_algo.const.enums import Location
+from colonoscopy_algo.doc_parser import parse_file
 from colonoscopy_algo.extract.algorithm import get_adenoma_status, get_adenoma_histology, get_highgrade_dysplasia, \
     get_adenoma_count, has_large_adenoma, get_adenoma_count_advanced, get_adenoma_distal, get_adenoma_proximal, \
     get_adenoma_rectal, get_adenoma_unknown, get_villous_histology, has_dysplasia
@@ -185,10 +186,57 @@ def add_identifier(identifier, d, label, errors, value='fp'):
     return 1
 
 
-def process(data, truth=None, errors=None, output=None, outfile=None):
+def preprocess(text, requires_cleaning=None, spell_correction=None):
+    if requires_cleaning:
+        text = parse_file(text)
+    if spell_correction:
+        pass
+    return text
+
+
+class DataCounter:
+
+    def __init__(self, data=None):
+        self.data = data or defaultdict(Counter)
+
+    def __add__(self, other):
+        if isinstance(other, dict):
+            res = self.data.copy()
+            for k, v in other.items():
+                if isinstance(v, list):
+                    res[k].update(v)
+                else:
+                    res[k][v] += 1
+            return DataCounter(res)
+        else:
+            raise NotImplementedError(f'Cannot add {self.__class__} and {other.__class__}')
+
+    def update(self, other, val=None):
+        if isinstance(other, dict):
+            for k, v in other.items():
+                if isinstance(v, list):
+                    self.data[k].update(v)
+                else:
+                    self.data[k][v] += 1
+        elif isinstance(other, str):
+            self.data[other][val] += 1
+
+    def __repr__(self):
+        return repr(self.data)
+
+    def __str__(self):
+        return str(self.data)
+
+    def __iter__(self):
+        for k, cnt in self.data.items():
+            yield k, cnt
+
+
+def process(data, truth=None, errors=None, output=None, outfile=None, preprocessing=None):
     score = defaultdict(lambda: [0, 0, 0, 0])  # TP, FP, FN, TN
     fps = defaultdict(list)
     fns = defaultdict(list)
+    c = DataCounter()
     if outfile:
         fh = open(outfile, 'w', newline='')
         outfile = csv.writer(fh)
@@ -204,8 +252,18 @@ def process(data, truth=None, errors=None, output=None, outfile=None):
                 row.append(f'{label}_pred')
             outfile.writerow(row)
         print(f'Starting: {identifier}')
+        if preprocessing:
+            path_text = preprocess(path_text,
+                                   **dict(preprocessing.get('all', dict()), **preprocessing.get('path', dict())))
+            cspy_text = preprocess(cspy_text,
+                                   **dict(preprocessing.get('all', dict()), **preprocessing.get('cspy', dict())))
         res = process_text(path_text, cspy_text)
         row = [i, identifier]
+        # collect counts
+        c.update(res)
+        if not res:
+            c.update('failed', f'{identifier}')
+        # output truth
         for label in truth_values or list():
             truth_item = clean_truth(truth_values[label])
             row.append(res[label])
@@ -223,12 +281,17 @@ def process(data, truth=None, errors=None, output=None, outfile=None):
         if outfile:
             outfile.writerow(row)
     output_results(score, truth, fps, fns, **output if output else dict())
+    print(c)
+    for k, cnt in c:
+        print(f'{k}\t{len(cnt)}')
+        for v, count in cnt.most_common(10):
+            print(f'\t{v}\t{count}')
     if outfile:
         fh.close()
 
 
 def output_results(score, truth, fps, fns, max_false=5):
-    for label in truth:
+    for label in truth or list():
         print(f'Label: {label}')
         print('TP \tFP \tFN \t TN')
         print('\t'.join(str(x) for x in score[label]))
@@ -248,6 +311,13 @@ def calculate_score(num, denom):
 
 
 def process_config():
+    preprocessing = {
+        'type': 'object',
+        'properties': {
+            'requires_cleaning': {'type': 'boolean'},
+            'spell_correction': {'type': 'string'}  # filepath
+        }
+    }
     schema = {
         'type': 'object',
         'properties': {
@@ -262,6 +332,14 @@ def process_config():
                     'path_text': {'type': 'string'},
                     'text': {'type': 'string'},  # assumed to be path_text
                     'limit': {'type': 'string'},
+                }
+            },
+            'preprocessing': {
+                'type': 'object',
+                'properties': {
+                    'all': preprocessing,
+                    'path': preprocessing,
+                    'cspy': preprocessing,
                 }
             },
             'truth': {

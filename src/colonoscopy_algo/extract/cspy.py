@@ -26,6 +26,12 @@ class Finding:
         self.removal = removal
         self.size = size
 
+    def __repr__(self):
+        return f'<{self.count}{{}}@{",".join(self.locations)}:{self.size}>'.format('removed' if self.removal else '')
+
+    def __str__(self):
+        return repr(self)
+
     @staticmethod
     def parse_finding(s, prev_locations=None):
         key = None
@@ -39,7 +45,7 @@ class Finding:
             value = s.lower()
         f = Finding()
         for location in StandardTerminology.LOCATIONS:
-            loc_pat = re.compile(f'\\b{location}\\b', re.IGNORECASE)
+            loc_pat = re.compile(fr'\b{location}\b', re.IGNORECASE)
             if key and loc_pat.search(key):
                 f.locations.append(location)
             elif not key and loc_pat.search(value):
@@ -77,7 +83,8 @@ class Finding:
 
 
 class CspyManager:
-    TITLE_PATTERN = re.compile(r'([A-Z][a-z]+\W?(?:[A-Z][a-z]+\W?|and\s|of\s)*:|[A-Z]+:)')
+    _Wn = r'[^\w\n]'
+    TITLE_PATTERN = re.compile(rf'([A-Z][a-z]+{_Wn}?(?:[A-Z][a-z]+{_Wn}?|and\s|of\s)*:|[A-Z]+:)')
     ENUMERATE_PATTERN = re.compile(r'\d[\)\.]')
     FINDINGS = 'FINDINGS'
     INDICATIONS = 'INDICATIONS'
@@ -98,7 +105,7 @@ class CspyManager:
 
     def __bool__(self):
         return bool(self.text.strip())
-    
+
     def _get_sections(self):
         """
         Separate using Header: value

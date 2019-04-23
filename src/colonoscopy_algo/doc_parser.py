@@ -2,7 +2,9 @@ import re
 import string
 
 
-def remove_ocr_junk(line):
+def remove_ocr_junk(line, remove_colon=True):
+    if remove_colon:
+        line = re.sub('The Colon', '', line)
     tokens = line.split()
     up_letters = re.compile(f'[{string.ascii_uppercase}]')
     lw_letters = re.compile(f'[{string.ascii_lowercase}]')
@@ -17,7 +19,7 @@ def remove_ocr_junk(line):
         size = len(token)
         up_let = len(up_letters.findall(token))
         lw_let = len(lw_letters.findall(token))
-        punct = 1 if token[-1] in ['.,'] else 0
+        punct = 1 if token[-1] in '.,' else 0
         nums = len(numbers.findall(token))
         rest = size - up_let - lw_let - nums - punct
         if size > 4:
@@ -81,11 +83,13 @@ def remove_ocr_junk(line):
 
 def parse_file(text):
     skip_pat = re.compile(
-        r'(gender|sex|(procedure:\W*)?date(\W*of\W*birth)?'
-        r'|mrn|\w+\W*md|medicines?|age|(patient\W*)name'
-        r'|images?|providers'
-        r'|\d{1,3}[-/)]\W*\d{1,3}\W*[/-]\W*\d{2,4}'  # phone number
-        r')\W*?:', re.IGNORECASE
+        r'('
+            r'(gender|sex|(procedure:\W*)?date(\W*of\W*birth)?'
+            r'|mrn|\w+\W*md|medicines?|age|(patient\W*)name'
+            r'|images?|providers'
+            r')\W*?:'
+        r'|\d{1,3}[-/)]\W*\d{1,3}\W*[/-]\W*\d{2,4}'  # phone number/date
+        r')', re.IGNORECASE
     )
     word_pat = re.compile(r'[^a-z]', re.I)
     header_pat = re.compile(r'[A-Z][A-Za-z]+:')
@@ -127,5 +131,8 @@ def parse_file(text):
         elif skip_mode:
             continue
         else:
-            lines[-1] += ' ' + line
+            if lines:
+                lines[-1] += ' ' + line
+            else:
+                lines.append(line)
     return '\n'.join(lines)
