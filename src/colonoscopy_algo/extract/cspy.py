@@ -110,7 +110,7 @@ class Finding:
         else:
             f.locations = StandardTerminology.standardize_locations(f.locations)
         # there should only be one
-        f.count = max(NumberConvert.contains(patterns.SIZE_PATTERN.sub(' ', value), ['polyp'], 2,
+        f.count = max(NumberConvert.contains(patterns.SIZE_PATTERN.sub(' ', value), ['polyp', 'polyps'], 2,
                                              split_on_non_word=True) + [1])
         f.removal = 'remove' in value or 'retriev' in value
         # size
@@ -135,6 +135,7 @@ class CspyManager:
     _Wn = r'[^\w\n]'
     TITLE_PATTERN = re.compile(rf'([A-Z][a-z]+{_Wn}?(?:[A-Z][a-z]+{_Wn}?|and\s|of\s)*:|[A-Z]+:)')
     ENUMERATE_PATTERN = re.compile(r'\d[\)\.]')
+    NOT_FINDING_PATTERN = re.compile(r'\b(exam|lesion)', re.I)
     FINDINGS = 'FINDINGS'
     INDICATIONS = 'INDICATIONS'
     LABELS = {
@@ -208,6 +209,8 @@ class CspyManager:
     def _parse_sections(self, findings, label, sects):
         prev_locations = None
         for s in sects:
+            if self.NOT_FINDING_PATTERN.search(s):
+                continue
             prev_locations = self._parse_section(findings, label, prev_locations, s)
 
     @staticmethod
@@ -217,7 +220,7 @@ class CspyManager:
             findings[label][-1].merge(f)
         else:
             findings[label].append(f)
-        return f.locations
+        return list(set(f.locations))
 
     def get_indication(self):
         for sect in self._get_section(self.INDICATIONS):
