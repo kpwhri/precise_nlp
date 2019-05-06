@@ -14,7 +14,7 @@ import yaml
 from collections import defaultdict, Counter
 from jsonschema import validate
 
-from colonoscopy_algo.const.cspy import INDICATION, FINDINGS, BOWEL_PREP, EXTENT
+from colonoscopy_algo.const.cspy import INDICATION, FINDINGS, BOWEL_PREP, EXTENT, NUM_POLYPS
 from colonoscopy_algo.const.path import HIGHGRADE_DYSPLASIA, ANY_VILLOUS, VILLOUS, TUBULAR, TUBULOVILLOUS, \
     ADENOMA_STATUS, \
     ADENOMA_COUNT, LARGE_ADENOMA, ADENOMA_COUNT_ADV, ADENOMA_STATUS_ADV, ADENOMA_DISTAL, ADENOMA_DISTAL_COUNT, \
@@ -95,7 +95,7 @@ def process_text(path_text='', cspy_text=''):
     if cm:
         data.update({
             INDICATION: cm.get_indication(),
-            FINDINGS: cm.get_findings(),
+            NUM_POLYPS: cm.num_polyps,
             BOWEL_PREP: cm.get_prep(),
             EXTENT: cm.get_extent(),
         })

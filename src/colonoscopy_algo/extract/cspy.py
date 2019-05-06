@@ -145,9 +145,9 @@ class CspyManager:
         self.title = ''
         self.sections = {}
         self._get_sections()
-        self.findings = self.get_findings()
-        if self.findings:
-            self.num_polyps = max(sum(f.count for f in self.findings[src]) for src in self.findings)
+        self._findings = self.get_findings()
+        if self._findings:
+            self.num_polyps = max(sum(f.count for f in self._findings[src]) for src in self._findings)
         else:
             self.num_polyps = 0
         self.indication = self.get_indication()
@@ -277,7 +277,7 @@ class CspyManager:
         :return: location, size
         """
         res = []
-        for f in self.findings:
+        for f in self._findings:
             if f.size and f.size >= min_size:
                 res.append(f)
         return res
