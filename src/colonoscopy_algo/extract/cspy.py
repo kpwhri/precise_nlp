@@ -72,6 +72,8 @@ class Finding:
         value = None
         if '-' in s:
             key, value = s.lower().split('-', maxsplit=1)
+        if '—' in s:
+            key, value = s.lower().split('—', maxsplit=1)
         elif ':' in s:
             key, value = s.lower().split(':', maxsplit=1)
         if not key or len(key) > 40:
