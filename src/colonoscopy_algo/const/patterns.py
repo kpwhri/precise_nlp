@@ -8,7 +8,9 @@ NUMBER_PATTERN = re.compile(r'(\d{1,3}(?:\.\d{,2})?)', re.IGNORECASE)
 DEPTH_PATTERN = re.compile(r'(\d{1,3}(?:\.\d{,2})?)\W*[cm]m', re.IGNORECASE)
 # this should probably take the larger of the two options
 # instead of ignoring the second
-SIZE_PATTERN = re.compile(r'(<?\d{1,3}(?:\.\d)?)(?:\W*x\W*(?:\d{1,3}(?:\.\d)?))?\W*[cm]m', re.IGNORECASE)
+SIZE_PATTERN = re.compile(r'(<?\d{1,3}(?:\.\d)?)(?:\W*x\W*(?:\d{1,3}(?:\.\d)?))?\W*([cm]m)', re.IGNORECASE)
+IN_SIZE_PATTERN = re.compile(r'(?:(?:\d{1,3}(?:\.\d)?)\W*(?:to|-|and)\W*)?([<>]?\d{1,3}(?:\.\d)?)\W*([cm]m)\W*in\W*size',
+                             re.IGNORECASE)
 AT_DEPTH_PATTERN = re.compile(
     r'(?:at|@|to|from)\W*(\d{1,3}(?:\.\d)?)\W*[cm]m(\W*(proximal\W*)?(from|to)\W*(the\W*)?an(al|us))?',
     re.IGNORECASE)
@@ -47,7 +49,7 @@ divertic = r'divertic'
 perhx = r'(?<!family\w)(?<!family)(((h[ist]+ory|hx)\W*of)|h\/o)'
 famhx = r'family|famhx|mother|father|sister|brother|\bFH\b'
 genetic = r'fap|lynch|hnpcc'
-followup = r'follow\W*-?\W*up|f\/u'
+followup = r'follow\W*-?\W*up|self\/u'
 ibd = r'(ibd|uc|ulcerative|crohn|inflammatory bowl pan colitis)'
 surveil = r'(surveillance|barrett)'
 INDICATION_DIAGNOSTIC = Pattern(f'({occult}|{abnormal}|{blood}|{anemia}|{diarrhea}'

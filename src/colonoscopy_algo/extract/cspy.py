@@ -66,6 +66,38 @@ class Finding:
         elif f.size:
             self.size = f.size
 
+    def _locate_depth(self, pat, value):
+        new_value = []
+        end = 0
+        for m in pat.finditer(value):
+            if 'size' in value[m.end():m.end() + 15]:
+                continue
+            self.locations += depth_to_location(float(m.group(1)))
+            new_value.append(value[end:m.start()])
+            end = m.end()
+        new_value.append(value[end:])
+        return ' '.join(new_value)
+
+    def _locate_size(self, pat, value):
+        new_value = []
+        end = 0
+        for m in pat.finditer(value):
+            num = m.group(1)
+            if num[0] == '<':
+                size = float(num[1:]) - 0.1
+            else:
+                size = float(num)
+            if m.group(2)[-2] == 'c':  # mm
+                size *= 10  # convert to mm
+            if size > 100:
+                continue
+            if not self.size or size > self.size:  # get largest size only
+                self.size = size
+            new_value.append(value[end:m.start()])
+            end = m.end()
+        new_value.append(value[end:])
+        return ' '.join(new_value)
+
     @staticmethod
     def parse_finding(s, prev_locations=None, source=None):
         key = None
@@ -80,24 +112,16 @@ class Finding:
             key = None
             value = s.lower()
         f = Finding(source=source)
+        # in size pattern
+        value = f._locate_size(patterns.IN_SIZE_PATTERN, value)
         # look for location as an "at 10cm" expression
-        new_value = []
-        end = 0
-        for m in patterns.AT_DEPTH_PATTERN.finditer(value):
-            f.locations += depth_to_location(float(m.group(1)))
-            new_value.append(value[end:m.start()])
-            end = m.end()
-        new_value.append(value[end:])
-        value = ' '.join(new_value)
-        # without at, require 2 digits and "CM"
-        new_value = []
-        end = 0
-        for m in patterns.CM_DEPTH_PATTERN.finditer(value):
-            f.locations += depth_to_location(float(m.group(1)))
-            new_value.append(value[end:m.start()])
-            end = m.end()
-        new_value.append(value[end:])
-        value = ' '.join(new_value)
+        value = f._locate_depth(patterns.AT_DEPTH_PATTERN, value)
+        if not f.size:
+            value = f._locate_size(patterns.SIZE_PATTERN, value)
+        if not f.locations:
+            # without at, require 2 digits and "CM"
+            value = f._locate_depth(patterns.CM_DEPTH_PATTERN, value)
+        # spelled-out locations
         for location in StandardTerminology.LOCATIONS:
             loc_pat = re.compile(fr'\b{location}\b', re.IGNORECASE)
             if key and loc_pat.search(key):
@@ -105,29 +129,15 @@ class Finding:
             elif not key and loc_pat.search(value):
                 logging.warning(f'Possible unrecognized finding separator in "{s}"')
                 f.locations.append(location)
+        # update locations if none found
         if prev_locations and not f.locations:
             f.locations = prev_locations
         else:
             f.locations = StandardTerminology.standardize_locations(f.locations)
         # there should only be one
-        f.count = max(NumberConvert.contains(patterns.SIZE_PATTERN.sub(' ', value), ['polyp', 'polyps'], 2,
+        f.count = max(NumberConvert.contains(value, ['polyp', 'polyps'], 2,
                                              split_on_non_word=True) + [1])
         f.removal = 'remove' in value or 'retriev' in value
-        # size
-        for m in patterns.SIZE_PATTERN.finditer(
-                patterns.AT_DEPTH_PATTERN.sub(' ', value)
-        ):
-            num = m.group(1)
-            if num[0] == '<':
-                size = float(num[1:]) - 0.1
-            else:
-                size = float(num)
-            if m.group().strip()[-2] == 'c':  # mm
-                size *= 10  # convert to mm
-            if size > 100:
-                continue
-            if not f.size or size > f.size:  # get largest size only
-                f.size = size
         return f
 
 
