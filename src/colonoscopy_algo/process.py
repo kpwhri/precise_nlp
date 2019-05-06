@@ -94,10 +94,10 @@ def process_text(path_text='', cspy_text=''):
         })
     if cm:
         data.update({
-            INDICATION: cm.get_indication(),
+            INDICATION: cm.indication,
             NUM_POLYPS: cm.num_polyps,
-            BOWEL_PREP: cm.get_prep(),
-            EXTENT: cm.get_extent(),
+            BOWEL_PREP: cm.prep,
+            EXTENT: cm.extent,
         })
     return data
 

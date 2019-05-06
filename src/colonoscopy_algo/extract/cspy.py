@@ -137,7 +137,7 @@ class CspyManager:
     INDICATIONS = 'INDICATIONS'
     LABELS = {
         FINDINGS: ['Findings', 'Impression'],
-        INDICATIONS: ['INDICATIONS'],
+        INDICATIONS: ['INDICATIONS', 'Indications'],
     }
 
     def __init__(self, text):
