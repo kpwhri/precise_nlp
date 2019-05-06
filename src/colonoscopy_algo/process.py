@@ -103,7 +103,7 @@ def process_text(path_text='', cspy_text=''):
 
 
 def get_data(filetype, path, identifier=None, path_text=None, cspy_text=None,
-             limit=None, truth=None, text=None, requires_cspy_text=False):
+             limit=None, truth=None, text=None, filenames=None, requires_cspy_text=False):
     """
 
     :param filetype:
@@ -123,8 +123,15 @@ def get_data(filetype, path, identifier=None, path_text=None, cspy_text=None,
         path_text = text
 
     if path and os.path.isdir(path):
-        for fn in os.listdir(path):
-            yield from get_data(filetype, os.path.join(path, fn), identifier, path_text, cspy_text, truth)
+        if filenames:
+            for fn in filenames:
+                fp = os.path.join(path, fn)
+                if not os.path.exists(fp):
+                    fp = f'{fp}.{filetype}'
+                yield from get_data(filetype, fp, identifier, path_text, cspy_text, truth)
+        else:
+            for fn in os.listdir(path):
+                yield from get_data(filetype, os.path.join(path, fn), identifier, path_text, cspy_text, truth)
     elif path and filetype == 'txt' and os.path.isfile(path):
         with open(path, encoding='utf8') as fh:
             yield os.path.basename(path), '', fh.read(), None
@@ -326,6 +333,7 @@ def process_config():
                 'properties': {
                     'filetype': {'type': 'string'},
                     'path': {'type': 'string'},
+                    'filenames': {'type': 'array', 'items': {'type': 'string'}},
                     'identifier': {'type': 'string'},
                     'cspy_text': {'type': 'string'},
                     'requires_cspy_text': {'type': 'boolean'},
