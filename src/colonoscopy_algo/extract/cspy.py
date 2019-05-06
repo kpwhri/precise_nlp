@@ -23,7 +23,7 @@ class Finding:
             self.locations = [location]
         else:
             self.locations = []
-        self.count = count
+        self._count = count
         self.removal = removal
         self.size = size
         self.source = None
@@ -34,18 +34,24 @@ class Finding:
     def __str__(self):
         return repr(self)
 
+    @property
+    def count(self):
+        return self._count if self._count else 1
+
     def is_compatible(self, f):
         if not isinstance(f, Finding):
             raise ValueError('Can only compare findings')
         if self.source == f.source:
-            if self.count != f.count:  # counts must be the same
+            if f.removal and not self.removal:  # removal is last item mentioned, usually
+                return False
+            elif self._count and f._count and self._count != f._count:  # counts must be the same
                 return False
             elif set(self.locations) != set(f.locations):
                 return False
             elif self.size and f.size:
                 return False
         else:  # sources not equal
-            if self.count and f.count and self.count != f.count:
+            if self._count and f._count and self._count != f._count:
                 return False
             elif self.removal and f.removal and self.removal != f.removal:
                 return False
@@ -58,7 +64,7 @@ class Finding:
     def merge(self, f):
         if not isinstance(f, Finding):
             raise ValueError('Can only merge findings')
-        self.count = max(self.count, f.count)
+        self._count = max(self._count, f._count)
         self.removal = self.removal or f.removal
         self.locations += f.locations
         if self.size and f.size:
@@ -81,13 +87,18 @@ class Finding:
     def _locate_size(self, pat, value):
         new_value = []
         end = 0
-        for m in pat.finditer(value):
-            num = m.group(1)
-            if num[0] == '<':
-                size = float(num[1:]) - 0.1
+
+        def get_size(s):
+            if not s:
+                return 0
+            if s[0] == '<':
+                return float(s[1:]) - 0.1
             else:
-                size = float(num)
-            if m.group(2)[-2] == 'c':  # mm
+                return float(s)
+
+        for m in pat.finditer(value):
+            size = max(get_size(m.group(n)) for n in ('n1', 'n2'))
+            if m.group('m')[-2] == 'c':  # mm
                 size *= 10  # convert to mm
             if size > 100:
                 continue
@@ -135,10 +146,20 @@ class Finding:
         else:
             f.locations = StandardTerminology.standardize_locations(f.locations)
         # there should only be one
-        f.count = max(NumberConvert.contains(value, ['polyp', 'polyps'], 2,
-                                             split_on_non_word=True) + [1])
+        f._count = max(NumberConvert.contains(value, ['polyp', 'polyps'], 2,
+                                              split_on_non_word=True) + [0])
         f.removal = 'remove' in value or 'retriev' in value
         return f
+
+    def is_standalone(self, prev_locations):
+        """Need more than just removal and prev_locations"""
+        if self.locations != prev_locations:
+            return True
+        elif self.size:
+            return True
+        elif self._count:
+            return True
+        return False
 
 
 class CspyManager:
@@ -228,7 +249,7 @@ class CspyManager:
         f = Finding.parse_finding(s, prev_locations=prev_locations, source=label)
         if findings[label] and f.is_compatible(findings[label][-1]):
             findings[label][-1].merge(f)
-        else:
+        elif f.is_standalone(prev_locations):
             findings[label].append(f)
         return list(set(f.locations))
 
