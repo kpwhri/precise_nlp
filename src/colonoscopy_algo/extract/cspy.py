@@ -93,6 +93,8 @@ class Finding:
                 return 0
             if s[0] == '<':
                 return float(s[1:]) - 0.1
+            elif s[0] == '>':
+                return float(s[1:]) + 0.1
             else:
                 return float(s)
 

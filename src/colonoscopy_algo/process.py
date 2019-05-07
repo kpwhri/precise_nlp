@@ -102,8 +102,8 @@ def process_text(path_text='', cspy_text=''):
     return data
 
 
-def get_data(filetype, path, identifier=None, path_text=None, cspy_text=None,
-             limit=None, truth=None, text=None, filenames=None, requires_cspy_text=False):
+def get_data(filetype, path, identifier=None, path_text=None, cspy_text=None, encoding='utf8',
+             limit=None, count=None, truth=None, text=None, filenames=None, requires_cspy_text=False):
     """
 
     :param filetype:
@@ -130,22 +130,27 @@ def get_data(filetype, path, identifier=None, path_text=None, cspy_text=None,
                     fp = f'{fp}.{filetype}'
                 yield from get_data(filetype, fp, identifier, path_text, cspy_text, truth)
         else:
-            for fn in os.listdir(path):
-                yield from get_data(filetype, os.path.join(path, fn), identifier, path_text, cspy_text, truth)
+            for i, fn in enumerate(os.listdir(path)):
+                if count and i >= count:
+                    break
+                yield from get_data(filetype, os.path.join(path, fn), identifier, path_text,
+                                    cspy_text, encoding, count=count, truth=truth)
     elif path and filetype == 'txt' and os.path.isfile(path):
-        with open(path, encoding='utf8') as fh:
+        with open(path, encoding=encoding) as fh:
             yield os.path.basename(path), '', fh.read(), None
     else:
         if 'DataFrame' in str(type(filetype)):
             df = filetype
         elif filetype == 'csv':
-            df = pd.read_csv(path, encoding='latin1')
+            df = pd.read_csv(path, encoding=encoding)
         elif filetype == 'sas':
-            df = pd.read_sas(path, encoding='latin1')
+            df = pd.read_sas(path, encoding=encoding)
         elif filetype == 'h5':
             df = pd.read_hdf(path, 'data')
         else:
             raise ValueError(f'Unrecognized filetype: {filetype}')
+        if count:
+            df = df.head(count)
         # ensure no nan
         if cspy_text:
             df[cspy_text].fillna('', inplace=True)
@@ -246,18 +251,11 @@ def process(data, truth=None, errors=None, output=None, outfile=None, preprocess
     c = DataCounter()
     if outfile:
         fh = open(outfile, 'w', newline='')
-        outfile = csv.writer(fh)
     for i, (identifier, path_text, cspy_text, truth_values) in enumerate(get_data(**data, truth=truth)):
         if pd.isnull(path_text):
             ve = ValueError('Text cannot be missing/none')
             print(ve)
             continue
-        if outfile and i == 0:
-            row = ['row', 'identifier']  # header
-            for label in truth_values:
-                row.append(f'{label}_true')
-                row.append(f'{label}_pred')
-            outfile.writerow(row)
         print(f'Starting: {identifier}')
         if preprocessing:
             path_text = preprocess(path_text,
@@ -265,28 +263,46 @@ def process(data, truth=None, errors=None, output=None, outfile=None, preprocess
             cspy_text = preprocess(cspy_text,
                                    **dict(preprocessing.get('all', dict()), **preprocessing.get('cspy', dict())))
         res = process_text(path_text, cspy_text)
+
+        if outfile and i == 0:
+            header = ['row', 'identifier']  # header
+            if truth_values:
+                outfile = csv.writer(fh)
+                for label in truth_values:
+                    header.append(f'{label}_true')
+                    header.append(f'{label}_pred')
+                outfile.writerow(header)
+            else:
+                header += list(res.keys())
+                outfile = csv.DictWriter(fh, fieldnames=header)
+                outfile.writeheader()
         row = [i, identifier]
         # collect counts
         c.update(res)
         if not res:
             c.update('failed', f'{identifier}')
         # output truth
-        for label in truth_values or list():
-            truth_item = clean_truth(truth_values[label])
-            row.append(res[label])
-            row.append(truth_item)
-            if res[label] == truth_item == 0:
-                logging.info(f'{identifier}: TN')
-                score[label][3] += 1
-            elif res[label] == truth_item:
-                logging.info(f'{identifier}: TP')
-                score[label][0] += 1
-            elif truth_item == 1:
-                score[label][2] += add_identifier(identifier, fns, label, errors, 'fn')
-            else:
-                score[label][1] += add_identifier(identifier, fps, label, errors, 'fp')
-        if outfile:
-            outfile.writerow(row)
+        if truth_values:
+            for label in truth_values or list():
+                truth_item = clean_truth(truth_values[label])
+                row.append(res[label])
+                row.append(truth_item)
+                if res[label] == truth_item == 0:
+                    logging.info(f'{identifier}: TN')
+                    score[label][3] += 1
+                elif res[label] == truth_item:
+                    logging.info(f'{identifier}: TP')
+                    score[label][0] += 1
+                elif truth_item == 1:
+                    score[label][2] += add_identifier(identifier, fns, label, errors, 'fn')
+                else:
+                    score[label][1] += add_identifier(identifier, fps, label, errors, 'fp')
+            if outfile:
+                outfile.writerow(row)
+        elif outfile:
+            res['row'] = i
+            res['identifier'] = identifier
+            outfile.writerow(res)
     output_results(score, truth, fps, fns, **output if output else dict())
     print(c)
     for k, cnt in c:
@@ -340,6 +356,8 @@ def process_config():
                     'path_text': {'type': 'string'},
                     'text': {'type': 'string'},  # assumed to be path_text
                     'limit': {'type': 'string'},
+                    'count': {'type': 'number'},
+                    'encoding': {'type': 'string'},
                 }
             },
             'preprocessing': {
