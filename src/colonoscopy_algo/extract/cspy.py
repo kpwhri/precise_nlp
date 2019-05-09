@@ -315,7 +315,8 @@ class CspyManager:
         :return: location, size
         """
         res = []
-        for f in self._findings:
-            if f.size and f.size >= min_size:
-                res.append(f)
+        for section, findings in self._findings.items():
+            for f in findings:
+                if f.size and f.size >= min_size:
+                    res.append(f)
         return res
