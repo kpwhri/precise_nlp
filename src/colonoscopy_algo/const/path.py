@@ -15,6 +15,12 @@ ADENOMA_RECTAL = 'adenoma_rectal'
 ADENOMA_RECTAL_COUNT = 'adenoma_rectal_count'
 ADENOMA_UNKNOWN = 'adenoma_unknown'
 ADENOMA_UNKNOWN_COUNT = 'adenoma_unknown_count'
+JAR_ADENOMA_COUNT_ADV = 'jar_adenoma_count_adv'
+JAR_ADENOMA_DISTAL_COUNT = 'jar_adenoma_distal_count'
+JAR_ADENOMA_PROXIMAL_COUNT = 'jar_adenoma_proximal_count'
+JAR_ADENOMA_RECTAL_COUNT = 'jar_adenoma_rectal_count'
+JAR_ADENOMA_UNKNOWN_COUNT = 'jar_adenoma_unknown_count'
+
 # tubulovillous adenoma detected
 TUBULOVILLOUS = 'tubulovillous'
 # tubular adenoma detected

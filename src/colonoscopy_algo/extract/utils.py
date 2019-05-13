@@ -178,7 +178,7 @@ class NumberConvert:
 class Prep(Enum):
     EXCELLENT = 0
     GOOD = 1
-    ADEQUATE = 2,
+    ADEQUATE = 2
     FAIR = 3
     POOR = 4
 

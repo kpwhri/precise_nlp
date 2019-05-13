@@ -19,7 +19,9 @@ from colonoscopy_algo.const.path import HIGHGRADE_DYSPLASIA, ANY_VILLOUS, VILLOU
     ADENOMA_STATUS, \
     ADENOMA_COUNT, LARGE_ADENOMA, ADENOMA_COUNT_ADV, ADENOMA_STATUS_ADV, ADENOMA_DISTAL, ADENOMA_DISTAL_COUNT, \
     ADENOMA_PROXIMAL_COUNT, ADENOMA_PROXIMAL, ADENOMA_RECTAL_COUNT, ADENOMA_RECTAL, ADENOMA_UNKNOWN_COUNT, \
-    ADENOMA_UNKNOWN, PROXIMAL_VILLOUS, DISTAL_VILLOUS, RECTAL_VILLOUS, UNKNOWN_VILLOUS, SIMPLE_HIGHGRADE_DYSPLASIA
+    ADENOMA_UNKNOWN, PROXIMAL_VILLOUS, DISTAL_VILLOUS, RECTAL_VILLOUS, UNKNOWN_VILLOUS, SIMPLE_HIGHGRADE_DYSPLASIA, \
+    JAR_ADENOMA_COUNT_ADV, JAR_ADENOMA_DISTAL_COUNT, JAR_ADENOMA_PROXIMAL_COUNT, JAR_ADENOMA_RECTAL_COUNT, \
+    JAR_ADENOMA_UNKNOWN_COUNT
 from colonoscopy_algo.const.enums import Location
 from colonoscopy_algo.doc_parser import parse_file
 from colonoscopy_algo.extract.algorithm import get_adenoma_status, get_adenoma_histology, get_highgrade_dysplasia, \
@@ -62,11 +64,21 @@ def process_text(path_text='', cspy_text=''):
     if pm:
         specs, specs_combined, specs_dict = PathManager.parse_jars(path_text)
         tb, tbv, vl = get_adenoma_histology(pm)
-        adenoma_count, adenoma_status = get_adenoma_count_advanced(pm)
-        aden_dist_count, aden_dist_status = get_adenoma_distal(pm)
-        aden_prox_count, aden_prox_status = get_adenoma_proximal(pm)
-        aden_rect_count, aden_rect_status = get_adenoma_rectal(pm)
-        aden_unk_count, aden_unk_status = get_adenoma_unknown(pm)
+        # count
+        adenoma_cutoff, adenoma_status, adenoma_count = get_adenoma_count_advanced(pm)
+        _, _, jar_adenoma_count = get_adenoma_count_advanced(pm, jar_count=True)
+        # distal
+        aden_dist_cutoff, aden_dist_status, aden_dist_count = get_adenoma_distal(pm)
+        _, _, jar_ad_cnt_dist = get_adenoma_distal(pm, jar_count=True)
+        # proximal
+        aden_prox_cutoff, aden_prox_status, aden_prox_count = get_adenoma_proximal(pm)
+        _, _, jar_ad_cnt_prox = get_adenoma_proximal(pm, jar_count=True)
+        # rectal
+        aden_rect_cutoff, aden_rect_status, aden_rect_count = get_adenoma_rectal(pm)
+        _, _, jar_ad_cnt_rect = get_adenoma_rectal(pm, jar_count=True)
+        # unk
+        aden_unk_cutoff, aden_unk_status, aden_unk_count = get_adenoma_unknown(pm)
+        _, _, jar_ad_cnt_unk = get_adenoma_unknown(pm, jar_count=True)
         data.update({
             ADENOMA_STATUS: get_adenoma_status(specs),
             TUBULAR: tb,
@@ -82,15 +94,20 @@ def process_text(path_text='', cspy_text=''):
             ADENOMA_COUNT: get_adenoma_count(specs),
             LARGE_ADENOMA: has_large_adenoma(pm, cm),
             ADENOMA_COUNT_ADV: adenoma_count,
+            JAR_ADENOMA_COUNT_ADV: jar_adenoma_count,
             ADENOMA_STATUS_ADV: adenoma_status,
             ADENOMA_DISTAL: aden_dist_status,
             ADENOMA_DISTAL_COUNT: aden_dist_count,
+            JAR_ADENOMA_DISTAL_COUNT: jar_ad_cnt_dist,
             ADENOMA_PROXIMAL: aden_prox_status,
             ADENOMA_PROXIMAL_COUNT: aden_prox_count,
+            JAR_ADENOMA_PROXIMAL_COUNT: jar_ad_cnt_prox,
             ADENOMA_RECTAL: aden_rect_status,
             ADENOMA_RECTAL_COUNT: aden_rect_count,
+            JAR_ADENOMA_RECTAL_COUNT: jar_ad_cnt_rect,
             ADENOMA_UNKNOWN: aden_unk_status,
             ADENOMA_UNKNOWN_COUNT: aden_unk_count,
+            JAR_ADENOMA_UNKNOWN_COUNT: jar_ad_cnt_unk
         })
     if cm:
         data.update({

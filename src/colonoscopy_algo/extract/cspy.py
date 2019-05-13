@@ -186,9 +186,21 @@ class CspyManager:
             self.num_polyps = max(sum(f.count for f in self._findings[src]) for src in self._findings)
         else:
             self.num_polyps = 0
-        self.indication = self.get_indication()
-        self.prep = self.get_prep()
-        self.extent = self.get_extent()
+        self._indication = self.get_indication()
+        self._prep = self.get_prep()
+        self._extent = self.get_extent()
+
+    @property
+    def indication(self):
+        return self._indication.name if self._indication else self._indication
+
+    @property
+    def prep(self):
+        return self._prep.name if self._prep else self._prep
+
+    @property
+    def extent(self):
+        return self._extent.name if self._extent else self._extent
 
     def __bool__(self):
         return bool(self.text.strip())

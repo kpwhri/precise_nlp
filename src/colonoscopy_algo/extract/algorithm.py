@@ -196,74 +196,61 @@ def get_adenoma_count(specimens, bins=(3,), many=7):
     return len(bins)  # top bin
 
 
-def get_adenoma_count_advanced(pm: PathManager, greater_than=2):
+def _get_adenoma_count(func, greater_than, jar_count):
+    if jar_count:
+        count = func(AdenomaCountMethod.ONE_PER_JAR)
+    else:
+        count = func(AdenomaCountMethod.COUNT_IN_JAR)
+    return (
+        1 if count.gt(greater_than) == 1 else 0,
+        0 if count.eq(0) == 1 else 1,
+        count
+    )
+
+
+def get_adenoma_count_advanced(pm: PathManager, greater_than=2, jar_count=False):
     """
     Defaulting to bin for >3
     :param pm: PathManager instance
     :return:
     """
-    min_count = pm.get_adenoma_count(AdenomaCountMethod.ONE_PER_JAR)
-    max_count = pm.get_adenoma_count(AdenomaCountMethod.COUNT_IN_JAR)
-    return (
-        1 if max_count.gt(greater_than) == 1 else 0,
-        0 if max_count.eq(0) == 1 else 1
-    )
+    return _get_adenoma_count(pm.get_adenoma_count, greater_than, jar_count)
 
 
-def get_adenoma_distal(pm: PathManager, greater_than=2):
+def get_adenoma_distal(pm: PathManager, greater_than=2, jar_count=False):
     """
 
     :param pm:
     :return:
     """
-    min_count = pm.get_adenoma_distal_count(AdenomaCountMethod.ONE_PER_JAR)
-    max_count = pm.get_adenoma_distal_count(AdenomaCountMethod.COUNT_IN_JAR)
-    return (
-        1 if max_count.gt(greater_than) == 1 else 0,
-        0 if max_count.eq(0) == 1 else 1
-    )
+    return _get_adenoma_count(pm.get_adenoma_distal_count, greater_than, jar_count)
 
 
-def get_adenoma_proximal(pm: PathManager, greater_than=2):
+def get_adenoma_proximal(pm: PathManager, greater_than=2, jar_count=False):
     """
 
     :param pm:
     :return:
     """
-    min_count = pm.get_adenoma_proximal_count(AdenomaCountMethod.ONE_PER_JAR)
-    max_count = pm.get_adenoma_proximal_count(AdenomaCountMethod.COUNT_IN_JAR)
-    return (
-        1 if max_count.gt(greater_than) == 1 else 0,
-        0 if max_count.eq(0) == 1 else 1
-    )
+    return _get_adenoma_count(pm.get_adenoma_proximal_count, greater_than, jar_count)
 
 
-def get_adenoma_rectal(pm: PathManager, greater_than=2):
+def get_adenoma_rectal(pm: PathManager, greater_than=2, jar_count=False):
     """
 
     :param pm:
     :return:
     """
-    min_count = pm.get_adenoma_rectal_count(AdenomaCountMethod.ONE_PER_JAR)
-    max_count = pm.get_adenoma_rectal_count(AdenomaCountMethod.COUNT_IN_JAR)
-    return (
-        1 if max_count.gt(greater_than) == 1 else 0,
-        0 if max_count.eq(0) == 1 else 1
-    )
+    return _get_adenoma_count(pm.get_adenoma_rectal_count, greater_than, jar_count)
 
 
-def get_adenoma_unknown(pm: PathManager, greater_than=2):
+def get_adenoma_unknown(pm: PathManager, greater_than=2, jar_count=False):
     """
 
     :param pm:
     :return:
     """
-    min_count = pm.get_adenoma_unknown_count(AdenomaCountMethod.ONE_PER_JAR)
-    max_count = pm.get_adenoma_unknown_count(AdenomaCountMethod.COUNT_IN_JAR)
-    return (
-        1 if max_count.gt(greater_than) == 1 else 0,
-        0 if max_count.eq(0) == 1 else 1
-    )
+    return _get_adenoma_count(pm.get_adenoma_unknown_count, greater_than, jar_count)
 
 
 def has_large_adenoma(pm: PathManager, cm: CspyManager, min_size=10):
