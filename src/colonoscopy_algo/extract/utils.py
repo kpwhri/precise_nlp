@@ -176,24 +176,22 @@ class NumberConvert:
 
 
 class Prep(Enum):
-    EXCELLENT = 0
-    GOOD = 1
-    ADEQUATE = 2
-    FAIR = 3
-    POOR = 4
+    ADEQUATE = 0
+    INADEQUATE = 1
 
 
 class ColonPrep:
     VALUES = {
-        'excellent': Prep.EXCELLENT,
-        'well': Prep.EXCELLENT,
-        'good': Prep.GOOD,
-        'moderate': Prep.GOOD,
+        'excellent': Prep.ADEQUATE,
+        'well': Prep.ADEQUATE,
+        'good': Prep.ADEQUATE,
+        'moderate': Prep.ADEQUATE,
         'adequate': Prep.ADEQUATE,
-        'fair': Prep.FAIR,
-        'poor': Prep.POOR,
-        'inadequate': Prep.POOR,
-        'suboptimal': Prep.FAIR,
+        'optimal': Prep.ADEQUATE,
+        'fair': Prep.INADEQUATE,
+        'poor': Prep.INADEQUATE,
+        'inadequate': Prep.INADEQUATE,
+        'suboptimal': Prep.INADEQUATE,
     }
     REGEX = '|'.join(VALUES.keys())
 

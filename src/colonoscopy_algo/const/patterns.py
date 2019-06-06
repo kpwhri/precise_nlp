@@ -30,7 +30,9 @@ PROCEDURE_EXTENT = Pattern(r'('
                            r'|to (the )?cecum'
                            r'|advanced into the final \d{1,2} cm of the term\w* ileum'
                            r')')
-COLON_PREP_PRE = Pattern(r'((colon|bowel) prep\w+ (visualization )?(was )?(?P<prep>{})\w*)'.format(ColonPrep.REGEX))
+COLON_PREP_PRE = Pattern(
+    r'((colon|bowel) prep\w+ (visualization )?(was )?(very )?(?P<prep>{})\w*)'.format(ColonPrep.REGEX)
+)
 COLON_PREP_POST = Pattern(r'((?P<prep>{})\w*) (\w+ ){{0,2}}prepared colon'.format(ColonPrep.REGEX))
 
 ind = r'indications?:'
