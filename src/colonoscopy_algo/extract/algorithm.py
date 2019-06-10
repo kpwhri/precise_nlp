@@ -150,7 +150,7 @@ def has_dysplasia(pm: PathManager):
     :param pm:
     :return:
     """
-    return pm.has_dysplasia()
+    return 1 if pm.has_dysplasia() else 0
 
 
 def get_adenoma_count(specimens, bins=(3,), many=7):
