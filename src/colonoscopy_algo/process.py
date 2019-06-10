@@ -28,7 +28,7 @@ from colonoscopy_algo.extract.algorithm import get_adenoma_status, get_adenoma_h
     get_adenoma_count, has_large_adenoma, get_adenoma_count_advanced, get_adenoma_distal, get_adenoma_proximal, \
     get_adenoma_rectal, get_adenoma_unknown, get_villous_histology, has_dysplasia
 from colonoscopy_algo.extract.cspy import CspyManager
-from colonoscopy_algo.extract.path import PathManager
+from colonoscopy_algo.extract.path import PathManager, MaybeCounter
 from cronkd.util.logger import setup
 
 
@@ -55,6 +55,26 @@ ITEMS = [
     UNKNOWN_VILLOUS,
     SIMPLE_HIGHGRADE_DYSPLASIA,
 ]
+
+
+def split_maybe_counters(data):
+    """
+    Separate maybe counters into two additional variables
+        label__ge - 1 if ge, else 0
+        label__num - numeric portion of number
+    :param data:
+    :return:
+    """
+    res = {}
+    for k, v in data.items():
+        if isinstance(v, MaybeCounter):
+            if v.greater_than:
+                res[f'{k}__ge'] = 1
+                res[f'{k}__num'] = v.count - 1
+            else:
+                res[f'{k}__ge'] = 1 if v.at_least else 0
+                res[f'{k}__num'] = v.count
+    return res
 
 
 def process_text(path_text='', cspy_text=''):
@@ -116,6 +136,8 @@ def process_text(path_text='', cspy_text=''):
             BOWEL_PREP: cm.prep,
             EXTENT: cm.extent,
         })
+    # split maybe counters into two separate columns
+    data.update(split_maybe_counters(data))
     return data
 
 
