@@ -178,6 +178,7 @@ class NumberConvert:
 class Prep(Enum):
     ADEQUATE = 0
     INADEQUATE = 1
+    UNKNOWN = 99
 
 
 class ColonPrep:
@@ -205,4 +206,5 @@ class Indication(Enum):
 
 class Extent(Enum):
     COMPLETE = 0
+    INCOMPLETE = 1
     UNKNOWN = 99

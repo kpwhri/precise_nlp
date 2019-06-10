@@ -4,9 +4,9 @@ import re
 
 from colonoscopy_algo.const import patterns
 from colonoscopy_algo.const.patterns import INDICATION_DIAGNOSTIC, INDICATION_SURVEILLANCE, INDICATION_SCREENING, \
-    PROCEDURE_EXTENT, COLON_PREP_PRE, COLON_PREP_POST
+    PROCEDURE_EXTENT_COMPLETE, COLON_PREP_PRE, COLON_PREP_POST, PROCEDURE_EXTENT_INCOMPLETE
 from colonoscopy_algo.extract.utils import NumberConvert, depth_to_location, StandardTerminology, Indication, Extent, \
-    ColonPrep
+    ColonPrep, Prep
 
 
 class Finding:
@@ -278,8 +278,10 @@ class CspyManager:
         return Indication.UNKNOWN
 
     def get_extent(self):
-        if PROCEDURE_EXTENT.matches(self.text):
+        if PROCEDURE_EXTENT_COMPLETE.matches(self.text):
             return Extent.COMPLETE
+        elif PROCEDURE_EXTENT_INCOMPLETE.matches(self.text):
+            return Extent.INCOMPLETE
         return Extent.UNKNOWN
 
     def get_prep(self):
@@ -287,6 +289,7 @@ class CspyManager:
         if m:
             res = m.groupdict('prep').lower()
             return ColonPrep.VALUES[res]
+        return Prep.UNKNOWN
 
     def _deenumerate(self, sect):
         # find first list marker

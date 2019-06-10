@@ -24,12 +24,19 @@ CM_DEPTH_PATTERN = re.compile(r'(\d{2,3})\W*cm(\W*(proximal\W*)?(from|to)\W*(the
 SSPLIT = re.compile(r'\.(?=\s)')
 NO_PERIOD_SENT = re.compile(r'\n\W*[A-Z0-9]')  # no ignorecase!
 
-PROCEDURE_EXTENT = Pattern(r'('
-                           r'extent of procedure ((the )?colon )?cecum|term\w* ileum'
-                           r'|(cecal location|cecum) was identified'
-                           r'|to (the )?cecum'
-                           r'|advanced into the final \d{1,2} cm of the term\w* ileum'
-                           r')')
+PROCEDURE_EXTENT_COMPLETE = Pattern(
+    r'('
+    r'extent of procedure ((the )?colon )?cecum|term\w* ileum'
+    r'|(cecal location|cecum) was identified'
+    r'|to (the )?cecum'
+    r'|advanced into the final \d{1,2} cm of the term\w* ileum'
+    r')'
+)
+PROCEDURE_EXTENT_INCOMPLETE = Pattern(
+    r'('
+    r'extent of procedure'
+    r')'
+)
 COLON_PREP_PRE = Pattern(
     r'((colon|bowel) prep\w+ (visualization )?(was )?(very )?(?P<prep>{})\w*)'.format(ColonPrep.REGEX)
 )
