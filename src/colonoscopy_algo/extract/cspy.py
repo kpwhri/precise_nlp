@@ -166,7 +166,12 @@ class Finding:
 
 class CspyManager:
     _Wn = r'[^\w\n]'
-    TITLE_PATTERN = re.compile(rf'([A-Z][a-z]+{_Wn}?(?:[A-Z][a-z]+{_Wn}?|and\s|of\s)*:|[A-Z]+:)')
+    TITLE_PATTERN = re.compile(
+        rf'('
+        rf'[A-Z][a-z]+{_Wn}?(?:[A-Z][a-z]+{_Wn}?|and\s|of\s)*:'
+        rf'|[A-Z]+:'
+        rf'|(?:Patient\W*)?(?:Active\W*)?\W*Problem List'
+        rf')')
     ENUMERATE_PATTERN = re.compile(r'\d[\)\.]')
     NOT_FINDING_PATTERN = re.compile(r'\b(exam|lesion)', re.I)
     FINDINGS = 'FINDINGS'
@@ -217,7 +222,7 @@ class CspyManager:
         for el in self.TITLE_PATTERN.split(self.text):
             if not el.strip():  # skip empty lines
                 continue
-            elif el.endswith(':') and not prev_line_item:
+            elif (el.endswith(':') or 'Problem List' in el) and not prev_line_item:
                 curr = el[:-1]
                 self.sections[curr] = ''
             elif curr is None:
