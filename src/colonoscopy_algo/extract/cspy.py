@@ -224,7 +224,8 @@ class CspyManager:
                 continue
             elif (el.endswith(':') or 'Problem List' in el) and not prev_line_item:
                 curr = el[:-1]
-                self.sections[curr] = ''
+                if curr not in self.sections:
+                    self.sections[curr] = ''
             elif curr is None:
                 if not self.title:
                     self.title = el.strip()
