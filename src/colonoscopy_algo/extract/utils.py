@@ -204,6 +204,13 @@ class Indication(Enum):
     UNKNOWN = 99
 
 
+IndicationPriority = (
+    Indication.DIAGNOSTIC,
+    Indication.SURVEILLANCE,
+    Indication.SCREENING,
+)
+
+
 class Extent(Enum):
     COMPLETE = 0
     INCOMPLETE = 1

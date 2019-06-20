@@ -6,7 +6,7 @@ from colonoscopy_algo.const import patterns
 from colonoscopy_algo.const.patterns import INDICATION_DIAGNOSTIC, INDICATION_SURVEILLANCE, INDICATION_SCREENING, \
     PROCEDURE_EXTENT_COMPLETE, COLON_PREP_PRE, COLON_PREP_POST, PROCEDURE_EXTENT_INCOMPLETE
 from colonoscopy_algo.extract.utils import NumberConvert, depth_to_location, StandardTerminology, Indication, Extent, \
-    ColonPrep, Prep
+    ColonPrep, Prep, IndicationPriority
 
 
 class Finding:
@@ -234,8 +234,9 @@ class CspyManager:
                 self.sections[curr] += ' ' + el
             else:
                 self.sections[curr] += el
+            # TODO: only allow certain sections to contain these lists??
             prev_line_item = (
-                    el.strip()[-1] in ['·', '•', '-', '*']
+                (el.strip()[-1] in ['·', '•', '-', '*'] and not '----' in el)
                     or self.ENUMERATE_PATTERN.match(el.strip()[-2:])
             )
 
@@ -274,13 +275,18 @@ class CspyManager:
         return list(set(f.locations))
 
     def get_indication(self):
+        indications = []
         for sect in self._get_section(self.INDICATIONS):
             if INDICATION_DIAGNOSTIC.matches(sect):
-                return Indication.DIAGNOSTIC
+                indications.append(Indication.DIAGNOSTIC)
             elif INDICATION_SURVEILLANCE.matches(sect):
-                return Indication.SURVEILLANCE
+                indications.append(Indication.SURVEILLANCE)
             elif INDICATION_SCREENING.matches(sect):
-                return Indication.SCREENING
+                indications.append(Indication.SCREENING)
+        if indications:
+            for ind in IndicationPriority:
+                if ind in indications:
+                    return ind
         return Indication.UNKNOWN
 
     def get_extent(self):
