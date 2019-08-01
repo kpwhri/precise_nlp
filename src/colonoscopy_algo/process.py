@@ -37,23 +37,37 @@ logging.config.dictConfig(setup())
 
 ITEMS = [
     ADENOMA_STATUS,
-    TUBULOVILLOUS,
     TUBULAR,
+    TUBULOVILLOUS,
     VILLOUS,
     ANY_VILLOUS,
-    HIGHGRADE_DYSPLASIA,
-    ADENOMA_COUNT,
-    ADENOMA_COUNT_ADV,
-    ADENOMA_STATUS_ADV,
-    ADENOMA_DISTAL,
-    ADENOMA_DISTAL_COUNT,
-    ADENOMA_PROXIMAL,
-    ADENOMA_PROXIMAL_COUNT,
     PROXIMAL_VILLOUS,
     DISTAL_VILLOUS,
     RECTAL_VILLOUS,
     UNKNOWN_VILLOUS,
     SIMPLE_HIGHGRADE_DYSPLASIA,
+    HIGHGRADE_DYSPLASIA,
+    ADENOMA_COUNT,
+    LARGE_ADENOMA,
+    ADENOMA_COUNT_ADV,
+    JAR_ADENOMA_COUNT_ADV,
+    ADENOMA_STATUS_ADV,
+    ADENOMA_DISTAL,
+    ADENOMA_DISTAL_COUNT,
+    JAR_ADENOMA_DISTAL_COUNT,
+    ADENOMA_PROXIMAL,
+    ADENOMA_PROXIMAL_COUNT,
+    JAR_ADENOMA_PROXIMAL_COUNT,
+    ADENOMA_RECTAL,
+    ADENOMA_RECTAL_COUNT,
+    JAR_ADENOMA_RECTAL_COUNT,
+    ADENOMA_UNKNOWN,
+    ADENOMA_UNKNOWN_COUNT,
+    JAR_ADENOMA_UNKNOWN_COUNT,
+    INDICATION,
+    NUM_POLYPS,
+    BOWEL_PREP,
+    EXTENT,
 ]
 
 
@@ -313,7 +327,7 @@ def process(data, truth=None, errors=None, output=None, outfile=None, preprocess
                 outfile.writerow(header)
             else:
                 header += list(res.keys())
-                outfile = csv.DictWriter(fh, fieldnames=header)
+                outfile = csv.DictWriter(fh, fieldnames=header + [item for item in ITEMS if item not in set(header)])
                 outfile.writeheader()
         row = [i, identifier]
         # collect counts
