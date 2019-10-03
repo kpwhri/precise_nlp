@@ -14,21 +14,21 @@ import yaml
 from collections import defaultdict, Counter
 from jsonschema import validate
 
-from colonoscopy_algo.const.cspy import INDICATION, FINDINGS, BOWEL_PREP, EXTENT, NUM_POLYPS
-from colonoscopy_algo.const.path import HIGHGRADE_DYSPLASIA, ANY_VILLOUS, VILLOUS, TUBULAR, TUBULOVILLOUS, \
+from precise_nlp.const.cspy import INDICATION, FINDINGS, BOWEL_PREP, EXTENT, NUM_POLYPS
+from precise_nlp.const.path import HIGHGRADE_DYSPLASIA, ANY_VILLOUS, VILLOUS, TUBULAR, TUBULOVILLOUS, \
     ADENOMA_STATUS, \
     ADENOMA_COUNT, LARGE_ADENOMA, ADENOMA_COUNT_ADV, ADENOMA_STATUS_ADV, ADENOMA_DISTAL, ADENOMA_DISTAL_COUNT, \
     ADENOMA_PROXIMAL_COUNT, ADENOMA_PROXIMAL, ADENOMA_RECTAL_COUNT, ADENOMA_RECTAL, ADENOMA_UNKNOWN_COUNT, \
     ADENOMA_UNKNOWN, PROXIMAL_VILLOUS, DISTAL_VILLOUS, RECTAL_VILLOUS, UNKNOWN_VILLOUS, SIMPLE_HIGHGRADE_DYSPLASIA, \
     JAR_ADENOMA_COUNT_ADV, JAR_ADENOMA_DISTAL_COUNT, JAR_ADENOMA_PROXIMAL_COUNT, JAR_ADENOMA_RECTAL_COUNT, \
     JAR_ADENOMA_UNKNOWN_COUNT
-from colonoscopy_algo.const.enums import Location
-from colonoscopy_algo.doc_parser import parse_file
-from colonoscopy_algo.extract.algorithm import get_adenoma_status, get_adenoma_histology, get_highgrade_dysplasia, \
+from precise_nlp.const.enums import Location
+from precise_nlp.doc_parser import parse_file
+from precise_nlp.extract.algorithm import get_adenoma_status, get_adenoma_histology, get_highgrade_dysplasia, \
     get_adenoma_count, has_large_adenoma, get_adenoma_count_advanced, get_adenoma_distal, get_adenoma_proximal, \
     get_adenoma_rectal, get_adenoma_unknown, get_villous_histology, has_dysplasia
-from colonoscopy_algo.extract.cspy import CspyManager
-from colonoscopy_algo.extract.path import PathManager, MaybeCounter
+from precise_nlp.extract.cspy import CspyManager
+from precise_nlp.extract.path import PathManager, MaybeCounter
 from cronkd.util.logger import setup
 
 

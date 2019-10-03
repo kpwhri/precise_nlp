@@ -1,8 +1,8 @@
 import re
 
-from colonoscopy_algo.extract.cspy import CspyManager
-from colonoscopy_algo.extract.path import PathManager
-from colonoscopy_algo.const.enums import AdenomaCountMethod, Histology, Location
+from precise_nlp.extract.cspy import CspyManager
+from precise_nlp.extract.path import PathManager
+from precise_nlp.const.enums import AdenomaCountMethod, Histology, Location
 
 
 def has_negation(index, text, window, negset):

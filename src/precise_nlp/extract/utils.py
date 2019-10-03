@@ -1,7 +1,7 @@
 import re
 from enum import Enum
 
-from colonoscopy_algo.const.enums import Histology
+from precise_nlp.const.enums import Histology
 
 
 def append_str(lst, el):

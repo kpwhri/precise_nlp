@@ -2,7 +2,7 @@ import re
 
 from cronkd.util.regex import Pattern
 
-from colonoscopy_algo.extract.utils import ColonPrep
+from precise_nlp.extract.utils import ColonPrep
 
 NUMBER_PATTERN = re.compile(r'(\d{1,3}(?:\.\d{,2})?)', re.IGNORECASE)
 DEPTH_PATTERN = re.compile(r'(\d{1,3}(?:\.\d{,2})?)\W*[cm]m', re.IGNORECASE)

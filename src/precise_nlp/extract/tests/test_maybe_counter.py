@@ -1,6 +1,6 @@
 import pytest
 
-from colonoscopy_algo.extract.path import MaybeCounter
+from precise_nlp.extract.path import MaybeCounter
 
 
 def test_create_maybe():

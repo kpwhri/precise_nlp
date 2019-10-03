@@ -2,10 +2,10 @@ import collections
 import logging
 import re
 
-from colonoscopy_algo.const import patterns
-from colonoscopy_algo.const.patterns import INDICATION_DIAGNOSTIC, INDICATION_SURVEILLANCE, INDICATION_SCREENING, \
+from precise_nlp.const import patterns
+from precise_nlp.const.patterns import INDICATION_DIAGNOSTIC, INDICATION_SURVEILLANCE, INDICATION_SCREENING, \
     PROCEDURE_EXTENT_COMPLETE, COLON_PREP_PRE, COLON_PREP_POST, PROCEDURE_EXTENT_INCOMPLETE
-from colonoscopy_algo.extract.utils import NumberConvert, depth_to_location, StandardTerminology, Indication, Extent, \
+from precise_nlp.extract.utils import NumberConvert, depth_to_location, StandardTerminology, Indication, Extent, \
     ColonPrep, Prep, IndicationPriority
 
 

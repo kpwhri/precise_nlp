@@ -3,9 +3,9 @@ import re
 
 from collections import defaultdict
 
-from colonoscopy_algo.const import patterns
-from colonoscopy_algo.const.enums import AdenomaCountMethod, Histology
-from colonoscopy_algo.extract.utils import depth_to_location, StandardTerminology
+from precise_nlp.const import patterns
+from precise_nlp.const.enums import AdenomaCountMethod, Histology
+from precise_nlp.extract.utils import depth_to_location, StandardTerminology
 
 
 def jarreader(f):
