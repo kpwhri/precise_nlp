@@ -1,5 +1,6 @@
 
 
+
 ## Adding Variable ##
 
 * Give it a configuration name
@@ -11,3 +12,7 @@
     * `algorithm.py`: functions called by `process_text`; these tend to access data in `path.py` and `cspy.py` and format the data
     * `cspy.py`: responsible for parsing the colonoscopy report and making data accessible
     * `path.py`: responsible for parsing the pathology report and making data accessible
+    
+
+## License
+Under MIT license, see: https://kpwhri.mit-license.org/
