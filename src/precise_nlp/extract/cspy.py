@@ -1,5 +1,5 @@
 import collections
-import logging
+from loguru import logger
 import re
 
 from precise_nlp.const import patterns
@@ -140,7 +140,7 @@ class Finding:
             if key and loc_pat.search(key):
                 f.locations.append(location)
             elif not key and loc_pat.search(value):
-                logging.warning(f'Possible unrecognized finding separator in "{s}"')
+                logger.warning(f'Possible unrecognized finding separator in "{s}"')
                 f.locations.append(location)
         # update locations if none found
         if prev_locations and not f.locations:
@@ -331,7 +331,7 @@ class CspyManager:
                 if len(period_split) > len(newline_split):
                     return period_split
                 return newline_split
-            logging.warning(f'Did not find list marker to separate: "{sect[:50]}..."')
+            logger.warning(f'Did not find list marker to separate: "{sect[:50]}..."')
             return []
         return [sect]
 
