@@ -1,7 +1,5 @@
 import csv
 import json
-import logging
-import logging.config
 import random
 import sys
 import warnings
@@ -29,11 +27,7 @@ from precise_nlp.extract.algorithm import get_adenoma_status, get_adenoma_histol
     get_adenoma_rectal, get_adenoma_unknown, get_villous_histology, has_dysplasia
 from precise_nlp.extract.cspy import CspyManager
 from precise_nlp.extract.path import PathManager, MaybeCounter
-from cronkd.util.logger import setup
-
-
-logging.config.dictConfig(setup())
-
+from loguru import logger
 
 ITEMS = [
     ADENOMA_STATUS,
@@ -246,7 +240,7 @@ def add_identifier(identifier, d, label, errors, value='fp'):
         pass
     except TypeError:
         pass
-    logging.info(f'{identifier}: {value.upper()}')
+    logger.info(f'{identifier}: {value.upper()}')
     d[label].append(identifier)
     return 1
 
@@ -341,10 +335,10 @@ def process(data, truth=None, errors=None, output=None, outfile=None, preprocess
                 row.append(res[label])
                 row.append(truth_item)
                 if res[label] == truth_item == 0:
-                    logging.info(f'{identifier}: TN')
+                    logger.info(f'{identifier}: TN')
                     score[label][3] += 1
                 elif res[label] == truth_item:
-                    logging.info(f'{identifier}: TP')
+                    logger.info(f'{identifier}: TP')
                     score[label][0] += 1
                 elif truth_item == 1:
                     score[label][2] += add_identifier(identifier, fns, label, errors, 'fn')

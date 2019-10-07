@@ -1,5 +1,5 @@
-import logging
 import re
+from loguru import logger
 
 from collections import defaultdict
 
@@ -515,7 +515,7 @@ class JarManager:
                     else:
                         self.add_count_to_jar(jar, 1)
                 else:
-                    logging.debug('NEGATED!')
+                    logger.debug('NEGATED!')
             elif word.isin(self.COLON):
                 jar.kinds.append('colon')
             elif word.isin(StandardTerminology.HISTOLOGY.keys()):
@@ -528,7 +528,7 @@ class JarManager:
                         pass  # don't make false in case something else
                     elif not section.has_before({'no', 'without', 'low'}, 3):
                         jar.dysplasia = True
-        logging.info('Adenoma Count for Jar: {}'.format(jar.adenoma_count))
+        logger.info('Adenoma Count for Jar: {}'.format(jar.adenoma_count))
         self.jars.append(jar)
         self.curr_jar = len(self.jars) - 1
         return self
