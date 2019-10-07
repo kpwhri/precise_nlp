@@ -76,7 +76,7 @@ class PathManager:
 
     @staticmethod
     def parse_jars(text):
-        comment_pat = re.compile('comment(?:\W*\([A-Za-z]\))?:')
+        comment_pat = re.compile(r'comment(?:\W*\([A-Za-z]\))?:')
         specimens = [x.lower() for x in re.split(r'(?<!\()\W[A-Z]\)', text)]
         specimens_dict = defaultdict(list)
         it = iter(['A'] + re.split(
@@ -188,14 +188,14 @@ class PolypSize:
     _COUNT = r'a|an|one|two|three|four|five|six|seven|eight|nine|\d'
     _TYPE = r'(cm|mm)?'
     _MEASURE = r'\d{1,2}\.?\d{,2}'
-    PATTERN = re.compile(f'(?P<count>{_COUNT})?\W*'  # number
-                         f'(?:(?P<min1>{_MEASURE})\W*{_TYPE}'  # min size (or only size)
-                         f'(?:\W*x\W*(?P<min2>{_MEASURE})\W*{_TYPE}'
-                         f'(?:\W*x\W*(?P<min3>{_MEASURE})\W*{_TYPE})?)?)'
-                         f'(?:(?:up\W*to|to|-|and)\W*'
-                         f'(?P<max1>{_MEASURE})\W*{_TYPE}'  # max size if exists
-                         f'(?:\W*x\W*(?P<max2>{_MEASURE})\W*{_TYPE}'
-                         f'(?:\W*x\W*(?P<max3>{_MEASURE})\W*{_TYPE})?)?)?')
+    PATTERN = re.compile(fr'(?P<count>{_COUNT})?\W*'  # number
+                         fr'(?:(?P<min1>{_MEASURE})\W*{_TYPE}'  # min size (or only size)
+                         fr'(?:\W*x\W*(?P<min2>{_MEASURE})\W*{_TYPE}'
+                         fr'(?:\W*x\W*(?P<min3>{_MEASURE})\W*{_TYPE})?)?)'
+                         fr'(?:(?:up\W*to|to|-|and)\W*'
+                         fr'(?P<max1>{_MEASURE})\W*{_TYPE}'  # max size if exists
+                         fr'(?:\W*x\W*(?P<max2>{_MEASURE})\W*{_TYPE}'
+                         fr'(?:\W*x\W*(?P<max3>{_MEASURE})\W*{_TYPE})?)?)?')
 
     def __init__(self, text=''):
         self.count = 1
@@ -379,7 +379,7 @@ class JarManager:
         :return:
         """
         return bool(set(jar.locations) and set(jar.locations) <= set(StandardTerminology.DISTAL_LOCATIONS)) \
-            or bool(jar.depth and 16 < jar.depth < 82)
+               or bool(jar.depth and 16 < jar.depth < 82)
 
     def maybe_distal(self, jar):
         """
@@ -406,7 +406,7 @@ class JarManager:
         :return:
         """
         return bool(set(jar.locations) and set(jar.locations) <= set(StandardTerminology.PROXIMAL_LOCATIONS)) \
-            or bool(jar.depth and jar.depth > 82)
+               or bool(jar.depth and jar.depth > 82)
 
     def maybe_proximal(self, jar):
         """
@@ -766,7 +766,7 @@ class JarManager:
 
 class PathSection:
     WORD_SPLIT_PATTERN = re.compile(r'([a-z]+|[0-9]+(?:\.[0-9]+)?)')
-    STOP = re.compile('.*(:|\.).*')
+    STOP = re.compile(r'.*(:|\.).*')
     PREPROCESS = {re.escape(k) if esc else k: v for k, v, esc in (
         # 1 to use regex escape, 0 if you want to use a regex
         ('tubularadenoma', 'tubular adenoma', 1),
