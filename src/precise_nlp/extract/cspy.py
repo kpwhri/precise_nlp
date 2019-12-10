@@ -34,7 +34,7 @@ class Finding:
 
     def __repr__(self):
         removed = 'removed' if self.removal else ''
-        return f'<{self.count}{removed}@{",".join(self._locations)}:{self.size}>'
+        return f'<{self.count}{removed}@{",".join(self.locations)}:{self.size}>'
 
     def __str__(self):
         return repr(self)
@@ -51,7 +51,7 @@ class Finding:
                 return False
             elif self._count and f._count and self._count != f._count:  # counts must be the same
                 return False
-            elif set(self._locations) != set(f._locations):
+            elif set(self.locations) != set(f.locations):
                 return False
             elif self.size and f.size:
                 return False
@@ -60,7 +60,7 @@ class Finding:
                 return False
             elif self.removal and f.removal and self.removal != f.removal:
                 return False
-            elif self._locations and f._locations and set(self._locations) | set(f._locations):
+            elif self.locations and f.locations and set(self.locations) | set(f.locations):
                 return False
             elif self.size and f.size and self.size != f.size:
                 return False
@@ -136,7 +136,7 @@ class Finding:
         value = f._locate_depth(patterns.AT_DEPTH_PATTERN, value)
         if not f.size:
             value = f._locate_size(patterns.SIZE_PATTERN, value)
-        if not f._locations:
+        if not f.locations:
             # without at, require 2 digits and "CM"
             value = f._locate_depth(patterns.CM_DEPTH_PATTERN, value)
         # spelled-out locations
@@ -277,7 +277,7 @@ class CspyManager:
             findings[label][-1].merge(f)
         elif f.is_standalone(prev_locations):
             findings[label].append(f)
-        return list(set(f._locations))
+        return list(set(f.locations))
 
     def get_indication(self):
         indications = []
