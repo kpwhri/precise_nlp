@@ -4,7 +4,12 @@ import random
 import sys
 import warnings
 
-import pandas as pd
+try:
+    import pandas as pd
+
+    PANDAS = True
+except ModuleNotFoundError:
+    PANDAS = False
 
 import os
 
@@ -185,7 +190,7 @@ def get_data(filetype, path, identifier=None, path_text=None, cspy_text=None, en
     elif path and filetype == 'txt' and os.path.isfile(path):
         with open(path, encoding=encoding) as fh:
             yield os.path.basename(path), '', fh.read(), None
-    else:
+    elif PANDAS:
         if 'DataFrame' in str(type(filetype)):
             df = filetype
         elif filetype == 'csv':
@@ -212,6 +217,8 @@ def get_data(filetype, path, identifier=None, path_text=None, cspy_text=None, en
                    getattr(row, path_text),
                    getattr(row, cspy_text) if cspy_text else '',
                    {x: getattr(row, truth[x]) for x in truth} if truth else None)
+    else:
+        raise ValueError(f'Unclear how to handle {filetype} with {path}; pandas installed: {PANDAS}')
 
 
 def clean_truth(x):
@@ -299,7 +306,7 @@ def process(data, truth=None, errors=None, output=None, outfile=None, preprocess
     if outfile:
         fh = open(outfile, 'w', newline='')
     for i, (identifier, path_text, cspy_text, truth_values) in enumerate(get_data(**data, truth=truth)):
-        if pd.isnull(path_text):
+        if PANDAS and pd.isnull(path_text) or path_text is None:
             ve = ValueError('Text cannot be missing/none')
             print(ve)
             continue

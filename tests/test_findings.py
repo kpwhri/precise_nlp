@@ -2,7 +2,7 @@ import collections
 
 import pytest
 
-from precise_nlp.extract.cspy import CspyManager
+from precise_nlp.extract.cspy import CspyManager, Finding
 
 
 @pytest.mark.parametrize(('sections', 'expected_count'), [
@@ -18,3 +18,15 @@ def test_merge_findings(sections, expected_count):
     for s in sections:
         prev_locations = CspyManager._parse_section(findings, label, prev_locations, s)
     assert sum(f.count for f in findings[label]) == expected_count
+
+
+def test_parse_finding_count():
+    sentence = 'Two benign sessile polyps were found'
+    f = Finding.parse_finding(sentence)
+    assert f.count == 2
+
+
+def test_parse_finding_location():
+    sentence = 'polyps found in rectum'
+    f = Finding.parse_finding(sentence)
+    assert f.locations == ('rectum',)

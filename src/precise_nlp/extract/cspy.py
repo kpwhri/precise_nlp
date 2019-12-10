@@ -20,17 +20,21 @@ class Finding:
         :param size: in mm
         """
         if location:
-            self.locations = [location]
+            self._locations = [location]
         else:
-            self.locations = []
+            self._locations = []
         self._count = count
         self.removal = removal
         self.size = size
         self.source = None
 
+    @property
+    def locations(self):
+        return tuple(self._locations)
+
     def __repr__(self):
         removed = 'removed' if self.removal else ''
-        return f'<{self.count}{removed}@{",".join(self.locations)}:{self.size}>'
+        return f'<{self.count}{removed}@{",".join(self._locations)}:{self.size}>'
 
     def __str__(self):
         return repr(self)
@@ -47,7 +51,7 @@ class Finding:
                 return False
             elif self._count and f._count and self._count != f._count:  # counts must be the same
                 return False
-            elif set(self.locations) != set(f.locations):
+            elif set(self._locations) != set(f._locations):
                 return False
             elif self.size and f.size:
                 return False
@@ -56,7 +60,7 @@ class Finding:
                 return False
             elif self.removal and f.removal and self.removal != f.removal:
                 return False
-            elif self.locations and f.locations and set(self.locations) | set(f.locations):
+            elif self._locations and f._locations and set(self._locations) | set(f._locations):
                 return False
             elif self.size and f.size and self.size != f.size:
                 return False
@@ -67,7 +71,7 @@ class Finding:
             raise ValueError('Can only merge findings')
         self._count = max(self._count, f._count)
         self.removal = self.removal or f.removal
-        self.locations += f.locations
+        self._locations += f._locations
         if self.size and f.size:
             self.size = max(self.size, f.size)
         elif f.size:
@@ -79,7 +83,7 @@ class Finding:
         for m in pat.finditer(value):
             if 'size' in value[m.end():m.end() + 15]:
                 continue
-            self.locations += depth_to_location(float(m.group(1)))
+            self._locations += depth_to_location(float(m.group(1)))
             new_value.append(value[end:m.start()])
             end = m.end()
         new_value.append(value[end:])
@@ -132,31 +136,31 @@ class Finding:
         value = f._locate_depth(patterns.AT_DEPTH_PATTERN, value)
         if not f.size:
             value = f._locate_size(patterns.SIZE_PATTERN, value)
-        if not f.locations:
+        if not f._locations:
             # without at, require 2 digits and "CM"
             value = f._locate_depth(patterns.CM_DEPTH_PATTERN, value)
         # spelled-out locations
         for location in StandardTerminology.LOCATIONS:
             loc_pat = re.compile(fr'\b{location}\b', re.IGNORECASE)
             if key and loc_pat.search(key):
-                f.locations.append(location)
+                f._locations.append(location)
             elif not key and loc_pat.search(value):
                 logger.warning(f'Possible unrecognized finding separator in "{s}"')
-                f.locations.append(location)
+                f._locations.append(location)
         # update locations if none found
-        if prev_locations and not f.locations:
-            f.locations = prev_locations
+        if prev_locations and not f._locations:
+            f._locations = prev_locations
         else:
-            f.locations = StandardTerminology.standardize_locations(f.locations)
+            f._locations = StandardTerminology.standardize_locations(f._locations)
         # there should only be one
-        f._count = max(NumberConvert.contains(value, ['polyp', 'polyps'], 2,
+        f._count = max(NumberConvert.contains(value, ['polyp', 'polyps'], 3,
                                               split_on_non_word=True) + [0])
         f.removal = 'remove' in value or 'retriev' in value
         return f
 
     def is_standalone(self, prev_locations):
         """Need more than just removal and prev_locations"""
-        if self.locations != prev_locations:
+        if self._locations != prev_locations:
             return True
         elif self.size:
             return True
@@ -273,7 +277,7 @@ class CspyManager:
             findings[label][-1].merge(f)
         elif f.is_standalone(prev_locations):
             findings[label].append(f)
-        return list(set(f.locations))
+        return list(set(f._locations))
 
     def get_indication(self):
         indications = []

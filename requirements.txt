@@ -1,5 +1,4 @@
 loguru
 pyyaml
 jsonschema
-pandas
 regexify
