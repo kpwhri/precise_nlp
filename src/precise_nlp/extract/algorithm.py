@@ -7,9 +7,9 @@ from precise_nlp.const.enums import AdenomaCountMethod, Histology, Location
 
 def has_negation(index, text, window, negset):
     if window > 0:
-        s = set(re.split('\W+', text[index:])[:window])
+        s = set(re.split(r'\W+', text[index:])[:window])
     else:
-        s = set(re.split('\W+', text[:index + 1])[window:])
+        s = set(re.split(r'\W+', text[:index + 1])[window:])
     return s & negset
 
 
@@ -82,7 +82,7 @@ def get_adenoma_histology(pm: PathManager):
 
 
 def get_villous_histology(pm: PathManager,
-                          location: Location=Location.ANY,
+                          location: Location = Location.ANY,
                           allow_maybe=False):
     """
     Get villous or tubulovillous by requested location

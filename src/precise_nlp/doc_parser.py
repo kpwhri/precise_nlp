@@ -84,10 +84,10 @@ def remove_ocr_junk(line, remove_colon=True):
 def parse_file(text):
     skip_pat = re.compile(
         r'('
-            r'(gender|sex|(procedure:\W*)?date(\W*of\W*birth)?'
-            r'|mrn|\w+\W*md|medicines?|age|(patient\W*)name'
-            r'|images?|providers'
-            r')\W*?:'
+        r'(gender|sex|(procedure:\W*)?date(\W*of\W*birth)?'
+        r'|mrn|\w+\W*md|medicines?|age|(patient\W*)name'
+        r'|images?|providers'
+        r')\W*?:'
         r'|\d{1,3}[-/)]\W*\d{1,3}\W*[/-]\W*\d{2,4}'  # phone number/date
         r')', re.IGNORECASE
     )

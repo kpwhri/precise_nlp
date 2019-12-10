@@ -12,7 +12,7 @@ import yaml
 from collections import defaultdict, Counter
 from jsonschema import validate
 
-from precise_nlp.const.cspy import INDICATION, FINDINGS, BOWEL_PREP, EXTENT, NUM_POLYPS
+from precise_nlp.const.cspy import INDICATION, BOWEL_PREP, EXTENT, NUM_POLYPS
 from precise_nlp.const.path import HIGHGRADE_DYSPLASIA, ANY_VILLOUS, VILLOUS, TUBULAR, TUBULOVILLOUS, \
     ADENOMA_STATUS, \
     ADENOMA_COUNT, LARGE_ADENOMA, ADENOMA_COUNT_ADV, ADENOMA_STATUS_ADV, ADENOMA_DISTAL, ADENOMA_DISTAL_COUNT, \

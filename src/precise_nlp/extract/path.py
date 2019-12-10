@@ -80,7 +80,7 @@ class PathManager:
         specimens = [x.lower() for x in re.split(r'(?<!\()\W[A-Z]\)', text)]
         specimens_dict = defaultdict(list)
         it = iter(['A'] + re.split(
-            r'(?:^|[^a-zA-Z0-9_\(])'
+            r'(?:^|[^a-zA-Z0-9_(])'
             r'([A-Z](?:\D?(?:and|-|,|&)\D?[A-Z])*)(?:\d(?:-\d)?)?\)',
             text
         ))
@@ -766,7 +766,7 @@ class JarManager:
 
 class PathSection:
     WORD_SPLIT_PATTERN = re.compile(r'([a-z]+|[0-9]+(?:\.[0-9]+)?)')
-    STOP = re.compile(r'.*(:|\.).*')
+    STOP = re.compile(r'.*([:.]).*')
     PREPROCESS = {re.escape(k) if esc else k: v for k, v, esc in (
         # 1 to use regex escape, 0 if you want to use a regex
         ('tubularadenoma', 'tubular adenoma', 1),

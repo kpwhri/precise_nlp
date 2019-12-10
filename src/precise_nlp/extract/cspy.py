@@ -172,7 +172,7 @@ class CspyManager:
         rf'|[A-Z]+:'
         rf'|(?:Patient\W*)?(?:Active\W*)?\W*Problem List'
         rf')')
-    ENUMERATE_PATTERN = re.compile(r'\d[\)\.]')
+    ENUMERATE_PATTERN = re.compile(r'\d[).]')
     NOT_FINDING_PATTERN = re.compile(r'\b(exam|lesion)', re.I)
     FINDINGS = 'FINDINGS'
     INDICATIONS = 'INDICATIONS'
@@ -236,7 +236,7 @@ class CspyManager:
                 self.sections[curr] += el
             # TODO: only allow certain sections to contain these lists??
             prev_line_item = (
-                (el.strip()[-1] in ['·', '•', '-', '*'] and not '----' in el)
+                    (el.strip()[-1] in ['·', '•', '-', '*'] and not '----' in el)
                     or self.ENUMERATE_PATTERN.match(el.strip()[-2:])
             )
 

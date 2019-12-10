@@ -1,6 +1,6 @@
 import re
 
-from cronkd.util.regex import Pattern
+from regexify.pattern import Pattern
 
 from precise_nlp.extract.utils import ColonPrep
 
