@@ -29,7 +29,8 @@ class Finding:
         self.source = None
 
     def __repr__(self):
-        return f'<{self.count}{{}}@{",".join(self.locations)}:{self.size}>'.format('removed' if self.removal else '')
+        removed = 'removed' if self.removal else ''
+        return f'<{self.count}{removed}@{",".join(self.locations)}:{self.size}>'
 
     def __str__(self):
         return repr(self)
@@ -236,7 +237,7 @@ class CspyManager:
                 self.sections[curr] += el
             # TODO: only allow certain sections to contain these lists??
             prev_line_item = (
-                    (el.strip()[-1] in ['·', '•', '-', '*'] and not '----' in el)
+                    (el.strip()[-1] in ['·', '•', '-', '*'] and '----' not in el)
                     or self.ENUMERATE_PATTERN.match(el.strip()[-2:])
             )
 

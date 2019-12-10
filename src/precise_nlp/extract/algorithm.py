@@ -174,7 +174,7 @@ def get_adenoma_count(specimens, bins=(3,), many=7):
     count = 0
     names = '|'.join(lkp.keys())
     patterns = [
-        re.compile(f'polyps?\W*x\W*({names})', re.IGNORECASE),
+        re.compile(fr'polyps?\W*x\W*({names})', re.IGNORECASE),
     ]
     for specimen in specimens:
         if get_adenoma_status([specimen]):

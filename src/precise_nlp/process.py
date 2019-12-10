@@ -314,6 +314,7 @@ def process(data, truth=None, errors=None, output=None, outfile=None, preprocess
         if outfile and i == 0:
             header = ['row', 'identifier']  # header
             if truth_values:
+                # noinspection PyUnboundLocalVariable
                 outfile = csv.writer(fh)
                 for label in truth_values:
                     header.append(f'{label}_true')

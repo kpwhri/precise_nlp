@@ -379,7 +379,7 @@ class JarManager:
         :return:
         """
         return bool(set(jar.locations) and set(jar.locations) <= set(StandardTerminology.DISTAL_LOCATIONS)) \
-               or bool(jar.depth and 16 < jar.depth < 82)
+            or bool(jar.depth and 16 < jar.depth < 82)
 
     def maybe_distal(self, jar):
         """
@@ -406,7 +406,7 @@ class JarManager:
         :return:
         """
         return bool(set(jar.locations) and set(jar.locations) <= set(StandardTerminology.PROXIMAL_LOCATIONS)) \
-               or bool(jar.depth and jar.depth > 82)
+            or bool(jar.depth and jar.depth > 82)
 
     def maybe_proximal(self, jar):
         """
@@ -430,7 +430,7 @@ class JarManager:
         :return:
         """
         return bool(jar.locations and set(jar.locations) <= set(StandardTerminology.RECTAL_LOCATIONS)) \
-               or bool(jar.depth and 4 <= jar.depth <= 16)
+            or bool(jar.depth and 4 <= jar.depth <= 16)
 
     def maybe_rectal(self, jar):
         """
