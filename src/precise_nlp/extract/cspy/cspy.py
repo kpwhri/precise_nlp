@@ -5,168 +5,9 @@ import re
 from precise_nlp.const import patterns
 from precise_nlp.const.patterns import INDICATION_DIAGNOSTIC, INDICATION_SURVEILLANCE, INDICATION_SCREENING, \
     PROCEDURE_EXTENT_COMPLETE, COLON_PREP_PRE, COLON_PREP_POST, PROCEDURE_EXTENT_INCOMPLETE
-from precise_nlp.extract.utils import NumberConvert, depth_to_location, StandardTerminology, Indication, Extent, \
+from precise_nlp.extract.cspy.naive_finding import NaiveFinding
+from precise_nlp.extract.utils import Indication, Extent, \
     ColonPrep, Prep, IndicationPriority
-
-
-class Finding:
-
-    def __init__(self, location=None, count=1, removal=None, size=None, source=None):
-        """
-
-        :param location:
-        :param count: default to 1
-        :param removal:
-        :param size: in mm
-        """
-        if location:
-            self._locations = [location]
-        else:
-            self._locations = []
-        self._count = count
-        self.removal = removal
-        self.size = size
-        self.source = None
-
-    @property
-    def locations(self):
-        return tuple(self._locations)
-
-    def __repr__(self):
-        removed = 'removed' if self.removal else ''
-        return f'<{self.count}{removed}@{",".join(self.locations)}:{self.size}>'
-
-    def __str__(self):
-        return repr(self)
-
-    @property
-    def count(self):
-        return self._count if self._count else 1
-
-    def is_compatible(self, f):
-        if not isinstance(f, Finding):
-            raise ValueError('Can only compare findings')
-        if self.source == f.source:
-            if f.removal and not self.removal:  # removal is last item mentioned, usually
-                return False
-            elif self._count and f._count and self._count != f._count:  # counts must be the same
-                return False
-            elif set(self.locations) != set(f.locations):
-                return False
-            elif self.size and f.size:
-                return False
-        else:  # sources not equal
-            if self._count and f._count and self._count != f._count:
-                return False
-            elif self.removal and f.removal and self.removal != f.removal:
-                return False
-            elif self.locations and f.locations and set(self.locations) | set(f.locations):
-                return False
-            elif self.size and f.size and self.size != f.size:
-                return False
-        return True
-
-    def merge(self, f):
-        if not isinstance(f, Finding):
-            raise ValueError('Can only merge findings')
-        self._count = max(self._count, f._count)
-        self.removal = self.removal or f.removal
-        self._locations += f._locations
-        if self.size and f.size:
-            self.size = max(self.size, f.size)
-        elif f.size:
-            self.size = f.size
-
-    def _locate_depth(self, pat, value):
-        new_value = []
-        end = 0
-        for m in pat.finditer(value):
-            if 'size' in value[m.end():m.end() + 15]:
-                continue
-            self._locations += depth_to_location(float(m.group(1)))
-            new_value.append(value[end:m.start()])
-            end = m.end()
-        new_value.append(value[end:])
-        return ' '.join(new_value)
-
-    def _locate_size(self, pat, value):
-        new_value = []
-        end = 0
-
-        def get_size(s):
-            if not s:
-                return 0
-            if s[0] == '<':
-                return float(s[1:]) - 0.1
-            elif s[0] == '>':
-                return float(s[1:]) + 0.1
-            else:
-                return float(s)
-
-        for m in pat.finditer(value):
-            size = max(get_size(m.group(n)) for n in ('n1', 'n2'))
-            if m.group('m')[-2] == 'c':  # mm
-                size *= 10  # convert to mm
-            if size > 100:
-                continue
-            if not self.size or size > self.size:  # get largest size only
-                self.size = size
-            new_value.append(value[end:m.start()])
-            end = m.end()
-        new_value.append(value[end:])
-        return ' '.join(new_value)
-
-    @staticmethod
-    def parse_finding(s, prev_locations=None, source=None):
-        key = None
-        value = None
-        if '-' in s:
-            key, value = s.lower().split('-', maxsplit=1)
-        if '—' in s:
-            key, value = s.lower().split('—', maxsplit=1)
-        elif ':' in s:
-            key, value = s.lower().split(':', maxsplit=1)
-        if not key or len(key) > 40:
-            key = None
-            value = s.lower()
-        f = Finding(source=source)
-        # in size pattern
-        value = f._locate_size(patterns.IN_SIZE_PATTERN, value)
-        # look for location as an "at 10cm" expression
-        value = f._locate_depth(patterns.AT_DEPTH_PATTERN, value)
-        if not f.size:
-            value = f._locate_size(patterns.SIZE_PATTERN, value)
-        if not f.locations:
-            # without at, require 2 digits and "CM"
-            value = f._locate_depth(patterns.CM_DEPTH_PATTERN, value)
-        # spelled-out locations
-        for location in StandardTerminology.LOCATIONS:
-            loc_pat = re.compile(fr'\b{location}\b', re.IGNORECASE)
-            if key and loc_pat.search(key):
-                f._locations.append(location)
-            elif not key and loc_pat.search(value):
-                logger.warning(f'Possible unrecognized finding separator in "{s}"')
-                f._locations.append(location)
-        # update locations if none found
-        if prev_locations and not f._locations:
-            f._locations = prev_locations
-        else:
-            f._locations = StandardTerminology.standardize_locations(f._locations)
-        # there should only be one
-        f._count = max(NumberConvert.contains(value, ['polyp', 'polyps'], 3,
-                                              split_on_non_word=True) + [0])
-        f.removal = 'remove' in value or 'retriev' in value
-        return f
-
-    def is_standalone(self, prev_locations):
-        """Need more than just removal and prev_locations"""
-        if self._locations != prev_locations:
-            return True
-        elif self.size:
-            return True
-        elif self._count:
-            return True
-        return False
 
 
 class CspyManager:
@@ -272,7 +113,7 @@ class CspyManager:
 
     @staticmethod
     def _parse_section(findings, label, prev_locations, s):
-        f = Finding.parse_finding(s, prev_locations=prev_locations, source=label)
+        f = NaiveFinding.parse_finding(s, prev_locations=prev_locations, source=label)
         if findings[label] and f.is_compatible(findings[label][-1]):
             findings[label][-1].merge(f)
         elif f.is_standalone(prev_locations):

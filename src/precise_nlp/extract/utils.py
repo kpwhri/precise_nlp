@@ -130,15 +130,19 @@ class StandardTerminology:
     }
 
     @classmethod
+    def standardize_location(cls, el, colon_only=False):
+        try:
+            return cls.LOCATIONS[el]
+        except KeyError:
+            raise ValueError(f'Unknown location: {el}')
+
+    @classmethod
     def standardize_locations(cls, lst, colon_only=False):
         res = []
         for el in lst:
-            try:
-                loc = cls.LOCATIONS[el]
-            except KeyError:
-                raise ValueError(f'Unknown location: {el}')
+            loc = cls.standardize_location(el, colon_only=colon_only)
             if not colon_only or loc in cls.COLON:
-                append_str(res, cls.LOCATIONS[el])
+                append_str(res, loc)
         return res
 
     @classmethod

@@ -2,7 +2,8 @@ import collections
 
 import pytest
 
-from precise_nlp.extract.cspy import CspyManager, Finding
+from precise_nlp.extract.cspy.cspy import CspyManager
+from precise_nlp.extract.cspy.naive_finding import NaiveFinding
 
 
 @pytest.mark.parametrize(('sections', 'expected_count'), [
@@ -22,11 +23,11 @@ def test_merge_findings(sections, expected_count):
 
 def test_parse_finding_count():
     sentence = 'Two benign sessile polyps were found'
-    f = Finding.parse_finding(sentence)
+    f = NaiveFinding.parse_finding(sentence)
     assert f.count == 2
 
 
 def test_parse_finding_location():
     sentence = 'polyps found in rectum'
-    f = Finding.parse_finding(sentence)
+    f = NaiveFinding.parse_finding(sentence)
     assert f.locations == ('rectum',)
