@@ -45,11 +45,12 @@ class Finding:
 
 class FindingBuilder:
 
-    def __init__(self, version=FindingType.SINGLE_FINDING):
+    def __init__(self, version=FindingType.SINGLE_FINDING, split_findings=True):
         self._findings = []
         self._locations = []
         self._version = version
         self._current = []
+        self._split_findings = split_findings
         if version == FindingType.SINGLE_FINDING:
             self.cls = SingleFinding
         else:
@@ -79,6 +80,16 @@ class FindingBuilder:
                     return key, val
         return None, text
 
+    def split_findings(self, *findings):
+        for finding in findings:
+            if len(finding.locations) <= 1:
+                self._findings.append(finding)
+            else:
+                finding.count = 1
+                for location in finding.locations:
+                    finding.locations = (location,)
+                    self._findings.append(finding)
+
     def fsm(self, text):
         key, text = self.split_key_text(text)
         finding = Finding()
@@ -89,8 +100,11 @@ class FindingBuilder:
                 break
             indicator, text = func(finding, text, key=key)
             state = true_state if indicator else false_state
-        self._findings.append(finding)
-        return finding
+        if self._split_findings:
+            self.split_findings(finding)
+        else:
+            self._findings.append(finding)
+        return tuple(self._findings)
 
     def was_removed(self, finding, text, **kwargs):
         finding.removal = 'remove' in text or 'retriev' in text

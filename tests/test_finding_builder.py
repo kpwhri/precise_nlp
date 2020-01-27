@@ -28,3 +28,14 @@ def test_two_benign_polyps():
     assert f.locations == ()
     assert not f.removal
     assert f.size == 0
+
+
+def test_multiple_locations():
+    s = 'Removed 3 polyps from ascending, descending, and cecum'
+    fb = FindingBuilder()
+    fb.fsm(s)
+    lst = list(fb.get_findings())
+    assert len(lst) == 3
+    for f in lst:
+        assert f.count == 1
+    assert not {loc for f in lst for loc in f.locations} - {'ascending', 'descending', 'cecum'}
