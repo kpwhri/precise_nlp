@@ -1,11 +1,11 @@
 from precise_nlp.const import patterns
-from precise_nlp.extract.cspy import Finding
+from precise_nlp.extract.cspy.finding_builder import FindingBuilder
 
 
 def test_polyp_size():
     text = 'The polyps were 4 to 6 mm in size'
     exp = 6
-    f = Finding.parse_finding(text)
+    f = FindingBuilder().fsm(text)
     assert f.size == exp
 
 

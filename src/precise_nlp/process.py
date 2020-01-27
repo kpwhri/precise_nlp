@@ -30,7 +30,7 @@ from precise_nlp.doc_parser import parse_file
 from precise_nlp.extract.algorithm import get_adenoma_status, get_adenoma_histology, get_highgrade_dysplasia, \
     get_adenoma_count, has_large_adenoma, get_adenoma_count_advanced, get_adenoma_distal, get_adenoma_proximal, \
     get_adenoma_rectal, get_adenoma_unknown, get_villous_histology, has_dysplasia
-from precise_nlp.extract.cspy import CspyManager
+from precise_nlp.extract.cspy.cspy import CspyManager
 from precise_nlp.extract.path import PathManager, MaybeCounter
 from loguru import logger
 
