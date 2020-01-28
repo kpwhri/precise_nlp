@@ -42,12 +42,17 @@ class Finding:
     removal: bool = False
     depth: int = 0
 
+    def copy(self, location):
+        f = Finding(count=1, size=self.size, removal=self.removal, depth=self.depth)
+        f.locations = (location,)
+        return f
+
 
 class FindingBuilder:
 
     def __init__(self, version=FindingType.SINGLE_FINDING, split_findings=True):
         self._findings = []
-        self._locations = []
+        self._locations = ()
         self._version = version
         self._current = []
         self._split_findings = split_findings
@@ -81,18 +86,22 @@ class FindingBuilder:
         return None, text
 
     def split_findings(self, *findings):
+        curr = []
+        extra_locations = []
         for finding in findings:
             if len(finding.locations) <= 1:
-                self._findings.append(finding)
+                curr.append(finding)
             else:
-                finding.count = 1
-                for location in finding.locations:
-                    finding.locations = (location,)
-                    self._findings.append(finding)
+                for location in finding.locations[:finding.count]:
+                    f = finding.copy(location)
+                    curr.append(f)
+                extra_locations += finding.locations[finding.count:]
+        self._findings += curr
+        return tuple(extra_locations)
 
     def fsm(self, text):
         key, text = self.split_key_text(text)
-        finding = Finding()
+        finding = Finding(locations=self._locations)
         state = FindingState.START
         while True:
             func, true_state, false_state = self.TRANSITIONS[state]
@@ -100,11 +109,16 @@ class FindingBuilder:
                 break
             indicator, text = func(finding, text, key=key)
             state = true_state if indicator else false_state
+        if finding.count < 1 and finding.locations:
+            self._locations = tuple(finding.locations)
+        else:
+            self._locations = tuple()
         if self._split_findings:
-            self.split_findings(finding)
+            extra_locations = self.split_findings(finding)
+            self._locations += extra_locations
         else:
             self._findings.append(finding)
-        return tuple(self._findings)
+        return finding
 
     def was_removed(self, finding, text, **kwargs):
         finding.removal = 'remove' in text or 'retriev' in text
