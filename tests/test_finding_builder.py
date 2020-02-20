@@ -77,3 +77,4 @@ def test_merge_split_findings():
         assert len(finding) == 1
         assert finding.size == exp_size
         assert finding.location == exp_loc
+        assert finding.removal

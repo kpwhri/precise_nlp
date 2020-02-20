@@ -178,15 +178,15 @@ class FindingBuilder:
 
     def extract_location(self, finding, text, key, **kwargs):
         locations = []
-        for location in StandardTerminology.LOCATIONS:
-            loc_pat = re.compile(fr'\b{location}\b', re.IGNORECASE)
-            if key and loc_pat.search(key):
-                locations.append(location)
-            elif not key and loc_pat.search(text):
+        key_length = len(key) if key else 0
+        for location, loc_pat in StandardTerminology.LOCATION_REGEX:
+            if key and (m := loc_pat.search(key)):
+                locations.append((location, m.start()))
+            elif not key and (m := loc_pat.search(text)):
                 logger.warning(f'Possible unrecognized finding separator in "{text}"')
-                locations.append(location)
+                locations.append((location, m.start() + key_length))
         if locations:
-            finding.locations = tuple(locations)
+            finding.locations = tuple(x[0] for x in sorted(locations, key=lambda x: x[1]))
         return len(locations) > 0, text
 
     def _extract_size(self, finding, pat, value):

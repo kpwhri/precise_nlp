@@ -105,6 +105,8 @@ class StandardTerminology:
         'random': 'random'
     }
 
+    LOCATION_REGEX = [(loc, re.compile(rf'\b{loc}\b', re.I)) for loc in LOCATIONS]
+
     COLON = {
         'anus',
         'rectum',
