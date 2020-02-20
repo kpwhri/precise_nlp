@@ -119,6 +119,7 @@ class CspyManager:
             fb = FindingBuilder()
             for segment in self._deenumerate(sect):
                 fb.fsm(segment)
+            findings = fb.get_merged_findings()
 
     def get_findings_broad(self):
         findings = collections.defaultdict(list)

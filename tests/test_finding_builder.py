@@ -1,3 +1,5 @@
+import collections
+
 import pytest
 
 from precise_nlp.extract.cspy.finding_builder import FindingBuilder
@@ -39,3 +41,34 @@ def test_multiple_locations():
     for f in lst:
         assert f.count == 1
     assert not {loc for f in lst for loc in f.locations} - {'ascending', 'descending', 'cecum'}
+
+
+@pytest.mark.parametrize(('sections', 'expected_count'), [
+    (('A sessile polyp was found at 55 cm proximal to the anus.',
+      'The polyp was 7 mm in size.',
+      'The polyp was removed with a hot snare.',
+      'Resection and retrieval were complete'), 1)
+])
+def test_merge_findings(sections, expected_count):
+    fb = FindingBuilder()
+    for s in sections:
+        fb.fsm(s)
+    findings = fb.get_merged_findings()
+    assert len(findings) == 1
+    f = findings[0]
+    assert f.count == 1
+    assert f.size == 7
+    assert f.removal
+    assert f.locations == ('sigmoid',)
+
+
+def test_merge_split_findings():
+    sections = (
+        'Removed 7mm, 3mm, and 2mm polyps from transverse, ascending, descending.',
+    )
+    fb = FindingBuilder()
+    for s in sections:
+        fb.fsm(s)
+    findings = fb.get_merged_findings()
+    print(findings)
+    assert False

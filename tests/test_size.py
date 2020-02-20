@@ -16,3 +16,10 @@ def test_in_size_pattern():
     assert m.group('n1') == '4'
     assert m.group('n2') == '6'
     assert m.group('m') == 'mm'
+
+
+def test_multiple_sizes():
+    text = 'Removed 3 descending polyps 3mm, 4mm, 7mm'
+    f = FindingBuilder().fsm(text)
+    exp = 7
+    assert f.size == exp

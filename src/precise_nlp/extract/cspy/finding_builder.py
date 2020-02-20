@@ -37,13 +37,17 @@ class FindingState(enum.Enum):
 @dataclass
 class Finding:
     count: int = 0
-    size: int = 0
+    sizes: Tuple[int] = field(default_factory=tuple)
     locations: Tuple[str] = field(default_factory=tuple)
     removal: bool = False
     depth: int = 0
 
+    @property
+    def size(self):
+        return max(self.sizes) if self.sizes else 0
+
     def copy(self, location):
-        f = Finding(count=1, size=self.size, removal=self.removal, depth=self.depth)
+        f = Finding(count=1, sizes=self.sizes, removal=self.removal, depth=self.depth)
         f.locations = (location,)
         return f
 
@@ -85,6 +89,36 @@ class FindingBuilder:
                     return key, val
         return None, text
 
+    def can_merge_findings(self, f1: Finding, f2: Finding):
+        if f1.count != f2.count and f1.count > 1 and f2.count > 1:
+            return False
+        if f1.locations and f2.locations and f1.locations != f2.locations:
+            return False
+        if f1.depth != 0 and f2.depth != 0 and f1.depth != f2.depth:
+            return False
+        return True
+
+    def merge_findings(self, f1: Finding, f2: Finding):
+        f = Finding()
+        f.count = max((f1.count, f2.count))
+        f.locations = f1.locations + f2.locations
+        f.depth = max((f1.depth, f2.depth))
+        f.removal = f1.removal or f2.removal
+        f.sizes = f1.sizes + f2.sizes
+        return f
+
+    def get_merged_findings(self):
+        new_findings = []
+        prev_finding = self._findings[0]
+        for finding in self._findings[1:]:
+            if self.can_merge_findings(prev_finding, finding):
+                prev_finding = self.merge_findings(prev_finding, finding)
+            else:
+                new_findings.append(prev_finding)
+                prev_finding = finding
+        new_findings.append(prev_finding)
+        return tuple(new_findings)
+
     def split_findings(self, *findings):
         curr = []
         extra_locations = []
@@ -101,7 +135,7 @@ class FindingBuilder:
 
     def fsm(self, text):
         key, text = self.split_key_text(text)
-        finding = Finding(locations=self._locations)
+        finding = Finding()
         state = FindingState.START
         while True:
             func, true_state, false_state = self.TRANSITIONS[state]
@@ -109,15 +143,17 @@ class FindingBuilder:
                 break
             indicator, text = func(finding, text, key=key)
             state = true_state if indicator else false_state
-        if finding.count < 1 and finding.locations:
-            self._locations = tuple(finding.locations)
-        else:
-            self._locations = tuple()
-        if self._split_findings:
-            extra_locations = self.split_findings(finding)
-            self._locations += extra_locations
-        else:
-            self._findings.append(finding)
+        # self.split_findings(finding)
+        self._findings.append(finding)
+        # if finding.count < 1 and finding.locations:
+        #     self._locations = tuple(finding.locations)
+        # else:
+        #     self._locations = tuple()
+        # if self._split_findings:
+        #     extra_locations = self.split_findings(finding)
+        #     self._locations += extra_locations
+        # else:
+        #     self._findings.append(finding)
         return finding
 
     def was_removed(self, finding, text, **kwargs):
@@ -151,21 +187,20 @@ class FindingBuilder:
             else:
                 return float(s)
 
-        size = 0
+        sizes = []
         for m in pat.finditer(value):
-            curr_size = max(get_size(m.group(n)) for n in ('n1', 'n2'))
-            if m.group('m')[-2] == 'c':  # mm
-                curr_size *= 10  # convert to mm
-            if curr_size > 100:
-                continue
-            if curr_size > size:  # get largest size only
-                size = curr_size
+            for curr_size in (get_size(m.group(n)) for n in ('n1', 'n2')):
+                if m.group('m')[-2] == 'c':  # mm
+                    curr_size *= 10  # convert to mm
+                if curr_size > 100:
+                    continue
+                sizes.append(curr_size)
             new_value.append(value[end:m.start()])
             end = m.end()
         new_value.append(value[end:])
-        if size:
-            finding.size = size
-        return bool(size), ' '.join(new_value)
+        if sizes:
+            finding.sizes = tuple(sizes)
+        return bool(sizes), ' '.join(new_value)
 
     def get_count(self, finding, text, **kwargs):
         # there should only be one
@@ -193,7 +228,7 @@ class FindingBuilder:
             end = m.end()
         new_value.append(value[end:])
         if locations:
-            finding.locations = locations
+            finding.locations = tuple(locations)
         return len(locations) > 0, ' '.join(new_value)
 
     def extract_depth1(self, finding, text, **kwargs):
