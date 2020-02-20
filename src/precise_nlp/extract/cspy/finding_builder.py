@@ -2,6 +2,7 @@ import enum
 import re
 from collections import namedtuple
 from dataclasses import dataclass, field
+from itertools import zip_longest
 from typing import Iterable, List, Tuple
 
 from loguru import logger
@@ -46,10 +47,29 @@ class Finding:
     def size(self):
         return max(self.sizes) if self.sizes else 0
 
+    @property
+    def location(self):
+        return self.locations[0] if self.locations else None
+
     def copy(self, location):
         f = Finding(count=1, sizes=self.sizes, removal=self.removal, depth=self.depth)
         f.locations = (location,)
         return f
+
+    def __len__(self):
+        return max((self.count, len(self.sizes), len(self.locations)))
+
+    def split(self):
+        if len(self) > 1:
+            for i, size, location in zip_longest(range(self.count), self.sizes, self.locations):
+                yield Finding(
+                    count=1,
+                    sizes=(size,) if size is not None else self.sizes[-1:],
+                    locations=(location,) if location is not None else self.locations[-1:],
+                    removal=self.removal
+                )
+        else:
+            yield self
 
 
 class FindingBuilder:
@@ -119,6 +139,12 @@ class FindingBuilder:
         new_findings.append(prev_finding)
         return tuple(new_findings)
 
+    def split_findings2(self, *findings):
+        if not findings:
+            findings = self._findings
+        for finding in findings:
+            yield from finding.split()
+
     def split_findings(self, *findings):
         curr = []
         extra_locations = []
@@ -143,17 +169,7 @@ class FindingBuilder:
                 break
             indicator, text = func(finding, text, key=key)
             state = true_state if indicator else false_state
-        # self.split_findings(finding)
         self._findings.append(finding)
-        # if finding.count < 1 and finding.locations:
-        #     self._locations = tuple(finding.locations)
-        # else:
-        #     self._locations = tuple()
-        # if self._split_findings:
-        #     extra_locations = self.split_findings(finding)
-        #     self._locations += extra_locations
-        # else:
-        #     self._findings.append(finding)
         return finding
 
     def was_removed(self, finding, text, **kwargs):
@@ -190,6 +206,8 @@ class FindingBuilder:
         sizes = []
         for m in pat.finditer(value):
             for curr_size in (get_size(m.group(n)) for n in ('n1', 'n2')):
+                if curr_size <= 0:
+                    continue
                 if m.group('m')[-2] == 'c':  # mm
                     curr_size *= 10  # convert to mm
                 if curr_size > 100:

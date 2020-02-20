@@ -36,7 +36,7 @@ def test_multiple_locations():
     s = 'Removed 3 polyps from ascending, descending, and cecum'
     fb = FindingBuilder()
     fb.fsm(s)
-    lst = list(fb.get_findings())
+    lst = [f for finding in fb.get_findings() for f in finding.split()]
     assert len(lst) == 3
     for f in lst:
         assert f.count == 1
@@ -69,6 +69,11 @@ def test_merge_split_findings():
     fb = FindingBuilder()
     for s in sections:
         fb.fsm(s)
-    findings = fb.get_merged_findings()
-    print(findings)
-    assert False
+    findings = list(fb.split_findings2(*fb.get_merged_findings()))
+    assert len(findings) == 3
+    exp_sizes = (7, 3, 2)
+    exp_locations = ('transverse', 'ascending', 'descending')
+    for finding, exp_size, exp_loc in zip(findings, exp_sizes, exp_locations):
+        assert len(finding) == 1
+        assert finding.size == exp_size
+        assert finding.location == exp_loc

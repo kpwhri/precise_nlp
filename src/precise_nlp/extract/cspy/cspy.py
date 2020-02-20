@@ -104,7 +104,7 @@ class CspyManager:
         if version == FindingVersion.BROAD:
             return self.get_findings_broad()
         elif version == FindingVersion.PRECISE:
-            return self.get_findings_precise()
+            return list(self.get_findings_precise())
         else:
             raise ValueError(f'Unrecognized Finding Version: {version}')
 
@@ -119,7 +119,7 @@ class CspyManager:
             fb = FindingBuilder()
             for segment in self._deenumerate(sect):
                 fb.fsm(segment)
-            findings = fb.get_merged_findings()
+            yield from fb.split_findings2(fb.get_merged_findings())
 
     def get_findings_broad(self):
         findings = collections.defaultdict(list)
