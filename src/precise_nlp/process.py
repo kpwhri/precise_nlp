@@ -30,7 +30,7 @@ from precise_nlp.doc_parser import parse_file
 from precise_nlp.extract.algorithm import get_adenoma_status, get_adenoma_histology, get_highgrade_dysplasia, \
     get_adenoma_count, has_large_adenoma, get_adenoma_count_advanced, get_adenoma_distal, get_adenoma_proximal, \
     get_adenoma_rectal, get_adenoma_unknown, get_villous_histology, has_dysplasia
-from precise_nlp.extract.cspy.cspy import CspyManager
+from precise_nlp.extract.cspy.cspy import CspyManager, FindingVersion
 from precise_nlp.extract.path import PathManager, MaybeCounter
 from loguru import logger
 
@@ -90,9 +90,9 @@ def split_maybe_counters(data):
     return res
 
 
-def process_text(path_text='', cspy_text=''):
+def process_text(path_text='', cspy_text='', cspy_finding_version=FindingVersion.BROAD):
     pm = PathManager(path_text)
-    cm = CspyManager(cspy_text)
+    cm = CspyManager(cspy_text, version=cspy_finding_version)
     data = {}
     if pm:
         specs, specs_combined, specs_dict = PathManager.parse_jars(path_text)
@@ -125,7 +125,7 @@ def process_text(path_text='', cspy_text=''):
             SIMPLE_HIGHGRADE_DYSPLASIA: get_highgrade_dysplasia(specs),
             HIGHGRADE_DYSPLASIA: has_dysplasia(pm),
             ADENOMA_COUNT: get_adenoma_count(specs),
-            LARGE_ADENOMA: has_large_adenoma(pm, cm),
+            LARGE_ADENOMA: has_large_adenoma(pm, cm, cspy_finding_version),
             ADENOMA_COUNT_ADV: adenoma_count,
             JAR_ADENOMA_COUNT_ADV: jar_adenoma_count,
             ADENOMA_STATUS_ADV: adenoma_status,
@@ -298,7 +298,10 @@ class DataCounter:
             yield k, cnt
 
 
-def process(data, truth=None, errors=None, output=None, outfile=None, preprocessing=None):
+def process(data, truth=None, errors=None, output=None, outfile=None, preprocessing=None,
+            cspy_precise_finding_version=False):
+    # how to parse cspy document
+    cspy_finding_version = FindingVersion.PRECISE if cspy_precise_finding_version else FindingVersion.BROAD
     score = defaultdict(lambda: [0, 0, 0, 0])  # TP, FP, FN, TN
     fps = defaultdict(list)
     fns = defaultdict(list)
@@ -316,7 +319,7 @@ def process(data, truth=None, errors=None, output=None, outfile=None, preprocess
                                    **dict(preprocessing.get('all', dict()), **preprocessing.get('path', dict())))
             cspy_text = preprocess(cspy_text,
                                    **dict(preprocessing.get('all', dict()), **preprocessing.get('cspy', dict())))
-        res = process_text(path_text, cspy_text)
+        res = process_text(path_text, cspy_text, cspy_finding_version=cspy_finding_version)
 
         if outfile and i == 0:
             header = ['row', 'identifier']  # header
@@ -450,6 +453,7 @@ def process_config():
             'outfile': {
                 'type': 'string'
             },
+            'cspy_precise_finding_version': {'type': 'boolean'}
         }
     }
     conf_fp = sys.argv[1]

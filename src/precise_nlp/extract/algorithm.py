@@ -1,6 +1,9 @@
 import re
 
+from loguru import logger
+
 from precise_nlp.extract.cspy import CspyManager
+from precise_nlp.extract.cspy.cspy import FindingVersion
 from precise_nlp.extract.path import PathManager
 from precise_nlp.const.enums import AdenomaCountMethod, Histology, Location
 
@@ -119,7 +122,6 @@ def get_adenoma_histology_simple(specimens):
     exclusion = re.compile(r'^(\W*\w+){0,4}\W*(bowel|stomach|gastric|(duoden|ile)(al|um))', re.IGNORECASE)
     tb, tbv, vl = 0, 0, 0
     for specimen in specimens:
-        # print('>> ', specimen)
         if not find_in_specimen(re.compile('colon'), specimen) and find_in_specimen(exclusion, specimen):
             continue
         tb_ = find_in_specimen(tubular, specimen)
@@ -253,7 +255,16 @@ def get_adenoma_unknown(pm: PathManager, greater_than=2, jar_count=False):
     return _get_adenoma_count(pm.get_adenoma_unknown_count, greater_than, jar_count)
 
 
-def has_large_adenoma(pm: PathManager, cm: CspyManager, min_size=10):
+def has_large_adenoma(pm: PathManager, cm: CspyManager, min_size=10, version=FindingVersion.BROAD):
+    if version == FindingVersion.BROAD:
+        return has_large_adenoma_broad(pm, cm, min_size)
+    elif version == FindingVersion.PRECISE:
+        return has_large_adenoma_broad(pm, cm, min_size)
+    else:
+        raise ValueError(f'Unexpected version: {version}')
+
+
+def has_large_adenoma_broad(pm: PathManager, cm: CspyManager, min_size=10):
     """
     Location has large polyp and an adenoma
     :param pm:
@@ -268,9 +279,51 @@ def has_large_adenoma(pm: PathManager, cm: CspyManager, min_size=10):
             s2.add(None)
         for loc in f.locations:
             s2.add(loc)
-    print(f'Adenoma locations: {[str(ss) for ss in s]}')
-    print(f'Large polyp locations: {s2}')
+    logger.info(f'Adenoma locations: {[str(ss) for ss in s]}')
+    logger.info(f'Large polyp locations: {s2}')
     return 1 if (s & s2  # both contain same location
                  or s2 and None in s  # unknown adenoma location and large polyp in cspy
                  or s and None in s2  # unknown large polyp location (cspy)
                  ) else 0
+
+
+def has_large_adenoma_precise(pm: PathManager, cm: CspyManager, min_size=10):
+    """
+    Adds option of 'maybe'
+
+    WARNING: Logic will break down if >= 3 jars with the same location
+    :param pm:
+    :param cm:
+    :param min_size:
+    :return: 1=large adenoma, 0=no large adenoma, 9=maybe large adenoma
+    """
+    if pm.get_locations_with_large_adenoma():
+        logger.info('Found size and adenoma-ness in pathology')
+        return 1  # early exit: we found size and adenoma-ness
+    path_adenoma = list(pm.get_locations_with_unknown_adenoma_size())
+    if not path_adenoma:
+        return 0  # early exit: no adenomas
+    path_small = set(pm.get_locations_with_size(max_size=min_size))
+    cspy_large = set()
+    cspy_small = set()
+    for f in cm.get_findings():
+        if f.size >= min_size:
+            for loc in f.locations_or_none():
+                cspy_large.add(loc)
+        else:
+            for loc in f.locations_or_none():
+                cspy_small.add(loc)
+    logger.info(f'Adenoma locations: {[str(ss) for ss in path_adenoma]}')
+    logger.info(f'Large polyp locations: {cspy_large}')
+
+    has_maybe = False
+    for aden_loc in path_adenoma:
+        if aden_loc in cspy_large:  # is large adenoma
+            if aden_loc in cspy_small:  # might be small
+                if aden_loc in path_small:  # here's the small one
+                    return 1
+                else:
+                    has_maybe = True
+            else:
+                return 1
+    return 9 if has_maybe else 0

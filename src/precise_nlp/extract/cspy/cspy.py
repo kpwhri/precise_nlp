@@ -2,11 +2,12 @@ import collections
 import enum
 from loguru import logger
 import re
+from typing import Iterable
 
 from precise_nlp.const import patterns
 from precise_nlp.const.patterns import INDICATION_DIAGNOSTIC, INDICATION_SURVEILLANCE, INDICATION_SCREENING, \
     PROCEDURE_EXTENT_COMPLETE, COLON_PREP_PRE, COLON_PREP_POST, PROCEDURE_EXTENT_INCOMPLETE
-from precise_nlp.extract.cspy.finding_builder import FindingBuilder
+from precise_nlp.extract.cspy.finding_builder import FindingBuilder, Finding
 from precise_nlp.extract.cspy.naive_finding import NaiveFinding
 from precise_nlp.extract.utils import Indication, Extent, \
     ColonPrep, Prep, IndicationPriority
@@ -39,7 +40,7 @@ class CspyManager:
         self.title = ''
         self.sections = {}
         self._get_sections()
-        self._findings = self.get_findings(version=version)
+        self._findings = self._get_findings(version=version)
         if self._findings:
             self.num_polyps = max(sum(f.count for f in self._findings[src]) for src in self._findings)
         else:
@@ -100,11 +101,11 @@ class CspyManager:
                 if sect:
                     yield sect
 
-    def get_findings(self, version=FindingVersion.BROAD):
+    def _get_findings(self, version=FindingVersion.BROAD):
         if version == FindingVersion.BROAD:
-            return self.get_findings_broad()
+            return self._get_findings_broad()
         elif version == FindingVersion.PRECISE:
-            return list(self.get_findings_precise())
+            return list(self._get_findings_precise())
         else:
             raise ValueError(f'Unrecognized Finding Version: {version}')
 
@@ -114,14 +115,14 @@ class CspyManager:
             if sect:
                 yield sect
 
-    def get_findings_precise(self):
+    def _get_findings_precise(self):
         for sect in self.get_sections_by_label(*self.LABELS[self.FINDINGS]):
             fb = FindingBuilder()
             for segment in self._deenumerate(sect):
                 fb.fsm(segment)
             yield from fb.split_findings2(fb.get_merged_findings())
 
-    def get_findings_broad(self):
+    def _get_findings_broad(self):
         findings = collections.defaultdict(list)
         for label in self.LABELS[self.FINDINGS]:
             if label in self.sections:
@@ -221,3 +222,6 @@ class CspyManager:
                 if f.size and f.size >= min_size:
                     res.append(f)
         return res
+
+    def get_findings(self) -> Iterable[Finding]:
+        yield from self._findings.values()

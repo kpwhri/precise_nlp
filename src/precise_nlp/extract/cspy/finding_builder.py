@@ -71,6 +71,12 @@ class Finding:
         else:
             yield self
 
+    def locations_or_none(self):
+        if self.locations:
+            yield from self.locations
+        else:
+            yield None
+
 
 class FindingBuilder:
 
