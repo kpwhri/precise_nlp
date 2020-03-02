@@ -125,7 +125,7 @@ def process_text(path_text='', cspy_text='', cspy_finding_version=FindingVersion
             SIMPLE_HIGHGRADE_DYSPLASIA: get_highgrade_dysplasia(specs),
             HIGHGRADE_DYSPLASIA: has_dysplasia(pm),
             ADENOMA_COUNT: get_adenoma_count(specs),
-            LARGE_ADENOMA: has_large_adenoma(pm, cm, cspy_finding_version),
+            LARGE_ADENOMA: has_large_adenoma(pm, cm, version=cspy_finding_version),
             ADENOMA_COUNT_ADV: adenoma_count,
             JAR_ADENOMA_COUNT_ADV: jar_adenoma_count,
             ADENOMA_STATUS_ADV: adenoma_status,
@@ -313,7 +313,7 @@ def process(data, truth=None, errors=None, output=None, outfile=None, preprocess
             ve = ValueError('Text cannot be missing/none')
             print(ve)
             continue
-        print(f'Starting: {identifier}')
+        logger.info(f'Starting: {identifier}')
         if preprocessing:
             path_text = preprocess(path_text,
                                    **dict(preprocessing.get('all', dict()), **preprocessing.get('path', dict())))
@@ -362,11 +362,11 @@ def process(data, truth=None, errors=None, output=None, outfile=None, preprocess
             res['identifier'] = identifier
             outfile.writerow(res)
     output_results(score, truth, fps, fns, **output if output else dict())
-    print(c)
+    logger.info(c)
     for k, cnt in c:
-        print(f'{k}\t{len(cnt)}')
+        logger.info(f'{k}\t{len(cnt)}')
         for v, count in cnt.most_common(10):
-            print(f'\t{v}\t{count}')
+            logger.info(f'\t{v}\t{count}')
     if outfile:
         fh.close()
 

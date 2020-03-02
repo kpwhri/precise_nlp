@@ -42,7 +42,7 @@ class CspyManager:
         self._get_sections()
         self._findings = self._get_findings(version=version)
         if self._findings:
-            self.num_polyps = max(sum(f.count for f in self._findings[src]) for src in self._findings)
+            self.num_polyps = max(f.count for f in self._findings)
         else:
             self.num_polyps = 0
         self._indication = self.get_indication()
@@ -120,7 +120,7 @@ class CspyManager:
             fb = FindingBuilder()
             for segment in self._deenumerate(sect):
                 fb.fsm(segment)
-            yield from fb.split_findings2(fb.get_merged_findings())
+            yield from fb.split_findings2(*fb.get_merged_findings())
 
     def _get_findings_broad(self):
         findings = collections.defaultdict(list)
@@ -217,11 +217,13 @@ class CspyManager:
         :return: location, size
         """
         res = []
-        for section, findings in self._findings.items():
+        for findings in self._findings:
             for f in findings:
                 if f.size and f.size >= min_size:
                     res.append(f)
         return res
 
     def get_findings(self) -> Iterable[Finding]:
-        yield from self._findings.values()
+        for finding in self._findings:
+            if finding.count > 0:
+                yield finding

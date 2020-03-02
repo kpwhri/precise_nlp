@@ -57,7 +57,7 @@ class Finding:
         return f
 
     def __len__(self):
-        return max((self.count, len(self.sizes), len(self.locations)))
+        return max((self.count, len(self.sizes), len(set(self.locations))))
 
     def split(self):
         if len(self) > 1:
@@ -134,6 +134,8 @@ class FindingBuilder:
         return f
 
     def get_merged_findings(self):
+        if not self._findings:
+            return tuple()
         new_findings = []
         prev_finding = self._findings[0]
         for finding in self._findings[1:]:

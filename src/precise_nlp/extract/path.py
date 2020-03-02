@@ -157,7 +157,7 @@ class PathManager:
 
     @jarreader
     def get_locations_with_large_adenoma(self):
-        return self.manager.get_locations_with_large_adenoma()
+        yield from self.manager.get_locations_with_large_adenoma()
 
     @jarreader
     def get_locations_with_unknown_adenoma_size(self):

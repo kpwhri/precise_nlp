@@ -255,11 +255,11 @@ def get_adenoma_unknown(pm: PathManager, greater_than=2, jar_count=False):
     return _get_adenoma_count(pm.get_adenoma_unknown_count, greater_than, jar_count)
 
 
-def has_large_adenoma(pm: PathManager, cm: CspyManager, min_size=10, version=FindingVersion.BROAD):
+def has_large_adenoma(pm: PathManager, cm: CspyManager, *, min_size=10, version=FindingVersion.BROAD):
     if version == FindingVersion.BROAD:
         return has_large_adenoma_broad(pm, cm, min_size)
     elif version == FindingVersion.PRECISE:
-        return has_large_adenoma_broad(pm, cm, min_size)
+        return has_large_adenoma_precise(pm, cm, min_size)
     else:
         raise ValueError(f'Unexpected version: {version}')
 
@@ -297,7 +297,7 @@ def has_large_adenoma_precise(pm: PathManager, cm: CspyManager, min_size=10):
     :param min_size:
     :return: 1=large adenoma, 0=no large adenoma, 9=maybe large adenoma
     """
-    if pm.get_locations_with_large_adenoma():
+    if len(list(pm.get_locations_with_large_adenoma())) > 0:
         logger.info('Found size and adenoma-ness in pathology')
         return 1  # early exit: we found size and adenoma-ness
     path_adenoma = list(pm.get_locations_with_unknown_adenoma_size())
