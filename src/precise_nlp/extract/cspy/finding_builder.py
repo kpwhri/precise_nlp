@@ -21,7 +21,7 @@ class FindingType(enum.Enum):
 class FindingState(enum.Enum):
     START = 0
     NONE = 1
-    COUNT = 2
+    POLYP = 2
     SIZE = 3
     NO_SIZE = 4
     SIZE_NO_DEPTH = 5
@@ -31,6 +31,7 @@ class FindingState(enum.Enum):
     LOCATION = 9
     NO_SIZES = 10
     REMOVED = 11
+    COUNT = 12
 
     # def __init__(self, name, accepting=False):
 
@@ -55,6 +56,9 @@ class Finding:
         f = Finding(count=1, sizes=self.sizes, removal=self.removal, depth=self.depth)
         f.locations = (location,)
         return f
+
+    def __bool__(self):
+        return self.count > 0
 
     def __len__(self):
         return max((self.count, len(self.sizes), len(set(self.locations))))
@@ -93,8 +97,8 @@ class FindingBuilder:
         accept_state = (None, None, None)
         self.TRANSITIONS = {
             # current state -> func, next_if_true, next_if_false
-            FindingState.START: (self.get_count, FindingState.COUNT, FindingState.LOCATION),
-            FindingState.COUNT: (self.extract_size1, FindingState.SIZE, FindingState.NO_SIZE),
+            FindingState.START: (self.exclude, FindingState.POLYP, FindingState.DONE),
+            FindingState.POLYP: (self.extract_size1, FindingState.SIZE, FindingState.NO_SIZE),
             FindingState.SIZE: (self.extract_depth1, FindingState.REMOVED, FindingState.SIZE_NO_DEPTH),
             FindingState.SIZE_NO_DEPTH: (self.extract_depth2, FindingState.REMOVED, FindingState.LOCATION),
             FindingState.NO_SIZE: (self.extract_depth1, FindingState.NO_SIZE_DEPTH, FindingState.NO_SIZE_NO_DEPTH),
@@ -102,7 +106,8 @@ class FindingBuilder:
             FindingState.NO_SIZE_NO_DEPTH: (self.extract_size2, FindingState.SIZE_NO_DEPTH, FindingState.NO_SIZES),
             FindingState.NO_SIZES: (self.extract_depth2, FindingState.REMOVED, FindingState.LOCATION),
             FindingState.LOCATION: (self.extract_location, FindingState.REMOVED, FindingState.REMOVED),
-            FindingState.REMOVED: (self.was_removed, FindingState.DONE, FindingState.DONE),  # TODO: not included
+            FindingState.REMOVED: (self.was_removed, FindingState.COUNT, FindingState.COUNT),
+            FindingState.COUNT: (self.get_count, FindingState.DONE, FindingState.DONE),
             FindingState.DONE: accept_state,
         }
 
@@ -115,7 +120,8 @@ class FindingBuilder:
                     return key, val
         return None, text
 
-    def can_merge_findings(self, f1: Finding, f2: Finding):
+    @classmethod
+    def can_merge_findings(cls, f1: Finding, f2: Finding):
         if f1.count != f2.count and f1.count > 1 and f2.count > 1:
             return False
         if f1.locations and f2.locations and f1.locations != f2.locations:
@@ -124,7 +130,8 @@ class FindingBuilder:
             return False
         return True
 
-    def merge_findings(self, f1: Finding, f2: Finding):
+    @classmethod
+    def merge_findings(cls, f1: Finding, f2: Finding):
         f = Finding()
         f.count = max((f1.count, f2.count))
         f.locations = f1.locations + f2.locations
@@ -151,7 +158,8 @@ class FindingBuilder:
         if not findings:
             findings = self._findings
         for finding in findings:
-            yield from finding.split()
+            if finding:
+                yield from finding.split()
 
     def split_findings(self, *findings):
         curr = []
@@ -179,6 +187,13 @@ class FindingBuilder:
             state = true_state if indicator else false_state
         self._findings.append(finding)
         return finding
+
+    def exclude(self, finding, text, key, **kwargs):
+        """Exclude common cases to shortcut the loop"""
+        excl = re.compile(r'(diverticulosis|normal|wnl|not evaluated)', re.I)
+        if (key and excl.search(key)) or excl.search(text):
+            return False, text
+        return True, text
 
     def was_removed(self, finding, text, **kwargs):
         finding.removal = 'remove' in text or 'retriev' in text

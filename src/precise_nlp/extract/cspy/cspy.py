@@ -42,7 +42,7 @@ class CspyManager:
         self._get_sections()
         self._findings = self._get_findings(version=version)
         if self._findings:
-            self.num_polyps = max(f.count for f in self._findings)
+            self.num_polyps = sum(f.count for f in self._findings)
         else:
             self.num_polyps = 0
         self._indication = self.get_indication()
@@ -116,11 +116,36 @@ class CspyManager:
                 yield sect
 
     def _get_findings_precise(self):
+        findings_by_section = []
         for sect in self.get_sections_by_label(*self.LABELS[self.FINDINGS]):
-            fb = FindingBuilder()
-            for segment in self._deenumerate(sect):
-                fb.fsm(segment)
-            yield from fb.split_findings2(*fb.get_merged_findings())
+            findings_by_section.append(list(self._get_findings_precise_section(sect)))
+        return self._merge_sections(findings_by_section)
+
+    def _get_findings_precise_section(self, sect):
+        fb = FindingBuilder()
+        for segment in self._deenumerate(sect):
+            fb.fsm(segment)
+        yield from fb.split_findings2(*fb.get_merged_findings())
+
+    def _merge_sections(self, findings_by_section):
+        if not findings_by_section:
+            return []
+        if len(findings_by_section) == 1:
+            return findings_by_section[0]
+        result_findings = []
+        for finding in findings_by_section[0]:
+            for i, section in enumerate(findings_by_section[1:]):
+                new_finding = None
+                for j, curr_finding in enumerate(section):
+                    if FindingBuilder.can_merge_findings(finding, curr_finding):
+                        new_finding = FindingBuilder.merge_findings(finding, curr_finding)
+                        break
+                if new_finding:
+                    section.pop(j)
+                    finding = new_finding
+            result_findings.append(finding)
+        # TODO: handle remaining section leftovers
+        return result_findings
 
     def _get_findings_broad(self):
         findings = collections.defaultdict(list)
