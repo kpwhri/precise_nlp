@@ -303,16 +303,16 @@ def has_large_adenoma_precise(pm: PathManager, cm: CspyManager, min_size=10):
     path_adenoma = list(pm.get_locations_with_unknown_adenoma_size())
     if not path_adenoma:
         return 0  # early exit: no adenomas
-    path_small = set(pm.get_locations_with_size(max_size=min_size))
-    cspy_large = set()
-    cspy_small = set()
+    path_small = list(pm.get_locations_with_size(max_size=min_size))
+    cspy_large = list()
+    cspy_small = list()
     for f in cm.get_findings():
         if f.size >= min_size:
             for loc in f.locations_or_none():
-                cspy_large.add(loc)
+                cspy_large.append(loc)
         else:
             for loc in f.locations_or_none():
-                cspy_small.add(loc)
+                cspy_small.append(loc)
     logger.info(f'Adenoma locations: {[str(ss) for ss in path_adenoma]}')
     logger.info(f'Large polyp locations: {cspy_large}')
 
