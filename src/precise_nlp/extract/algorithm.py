@@ -316,6 +316,9 @@ def has_large_adenoma_precise(pm: PathManager, cm: CspyManager, min_size=10):
     logger.info(f'Adenoma locations: {[str(ss) for ss in path_adenoma]}')
     logger.info(f'Large polyp locations: {cspy_large}')
 
+    if not cspy_large:
+        return 0  # no large polyp
+
     has_maybe = False
     for aden_loc in path_adenoma:
         if aden_loc in cspy_large:  # is large adenoma

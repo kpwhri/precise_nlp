@@ -33,7 +33,32 @@ class FindingState(enum.Enum):
     REMOVED = 11
     COUNT = 12
 
-    # def __init__(self, name, accepting=False):
+
+@dataclass(unsafe_hash=True)
+class Location:
+    label: str
+    location: tuple
+
+    def __init__(self, label, location=None):
+        self.label = label
+        if not location:
+            if isinstance(label, str):
+                location = StandardTerminology.standardize_location(label)
+            elif isinstance(label, (int, float)):
+                location = depth_to_location(label)
+            else:
+                raise ValueError(f'Unrecognized location designation: {label}; expected str, int, or float')
+        if isinstance(location, str):
+            self.location = (location,)
+        else:
+            self.location = tuple(location)
+
+    def __eq__(self, other):
+        if isinstance(other, Location):
+            return self.location == other.location
+        elif isinstance(other, str):
+            return other == self.label or other in self.location
+        return NotImplemented
 
 
 @dataclass
@@ -54,7 +79,7 @@ class Finding:
 
     def copy(self, location):
         f = Finding(count=1, sizes=self.sizes, removal=self.removal, depth=self.depth)
-        f.locations = (location,)
+        f.locations = (Location(location),)
         return f
 
     def __bool__(self):
@@ -202,14 +227,17 @@ class FindingBuilder:
     def extract_location(self, finding, text, key, **kwargs):
         locations = []
         key_length = len(key) if key else 0
-        for location, loc_pat in StandardTerminology.LOCATION_REGEX:
+        for standard_loc, location, loc_pat in StandardTerminology.LOCATION_REGEX:
             if key and (m := loc_pat.search(key)):
-                locations.append((location, m.start()))
+                index = m.start()
             elif not key and (m := loc_pat.search(text)):
                 logger.warning(f'Possible unrecognized finding separator in "{text}"')
-                locations.append((location, m.start() + key_length))
+                index = m.start() + key_length
+            else:
+                continue
+            locations.append((Location(location, standard_loc), index))
         if locations:
-            finding.locations = tuple(x[0] for x in sorted(locations, key=lambda x: x[1]))
+            finding.locations = tuple(x[0] for x in sorted(locations, key=lambda x: x[-1]))
         return len(locations) > 0, text
 
     def _extract_size(self, finding, pat, value):
@@ -264,7 +292,8 @@ class FindingBuilder:
         for m in pat.finditer(value):
             if 'size' in value[m.end():m.end() + 15]:
                 continue
-            locations += depth_to_location(float(m.group(1)))
+            depth = float(m.group(1))
+            locations.append(Location(depth, depth_to_location(depth)))
             new_value.append(value[end:m.start()])
             end = m.end()
         new_value.append(value[end:])

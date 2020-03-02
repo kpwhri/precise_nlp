@@ -61,8 +61,8 @@ class StandardTerminology:
         'anal': 'anus',
         'rectum': 'rectum',
         'rectal': 'rectum',
-        'rectosigmoid': ['rectum', 'sigmoid'],
-        'rectosig': ['rectum', 'sigmoid'],
+        'rectosigmoid': ('rectum', 'sigmoid'),
+        'rectosig': ('rectum', 'sigmoid'),
         'sigmoid': 'sigmoid',
         'sig': 'sigmoid',
         'sc': 'sigmoid',
@@ -88,8 +88,8 @@ class StandardTerminology:
         'ileocecal': 'cecum',
         'ileocecum': 'cecum',
         'ic': 'cecum',
-        'anorectum': ['anus', 'rectum'],
-        'anorectal': ['anus', 'rectum'],
+        'anorectum': ('anus', 'rectum'),
+        'anorectal': ('anus', 'rectum'),
         # small intestine
         'bowel': 'bowel',  # assume to be small
         'duodenum': 'duodenum',
@@ -105,7 +105,7 @@ class StandardTerminology:
         'random': 'random'
     }
 
-    LOCATION_REGEX = [(loc, re.compile(rf'\b{loc}\b', re.I)) for loc in LOCATIONS]
+    LOCATION_REGEX = [(term, loc, re.compile(rf'\b{loc}\b', re.I)) for loc, term in LOCATIONS.items()]
 
     COLON = {
         'anus',

@@ -119,7 +119,7 @@ class CspyManager:
         findings_by_section = []
         for sect in self.get_sections_by_label(*self.LABELS[self.FINDINGS]):
             findings_by_section.append(list(self._get_findings_precise_section(sect)))
-        return self._merge_sections(findings_by_section)
+        return self._merge_sections(sorted(findings_by_section, key=lambda x: -len(x)))
 
     def _get_findings_precise_section(self, sect):
         fb = FindingBuilder()
