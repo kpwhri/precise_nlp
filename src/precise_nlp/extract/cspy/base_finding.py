@@ -128,7 +128,9 @@ class BaseFinding:
         # there should only be one
         f._count = max(NumberConvert.contains(value, ['polyp', 'polyps'], 3,
                                               split_on_non_word=True) + [0])
-        f.removal = 'remove' in value or 'retriev' in value
+        f.removal = 'remove' in value or 'retriev' in value or 'biopsi' in value
+        if not f._count and f.removal:
+            f._count = 1
         return f
 
     def is_standalone(self, prev_locations):

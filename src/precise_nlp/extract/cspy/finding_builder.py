@@ -221,7 +221,7 @@ class FindingBuilder:
         return True, text
 
     def was_removed(self, finding, text, **kwargs):
-        finding.removal = 'remove' in text or 'retriev' in text
+        finding.removal = 'remove' in text or 'retriev' in text or 'biopsi' in text
         return finding.removal, text
 
     def extract_location(self, finding, text, key, **kwargs):
@@ -277,6 +277,8 @@ class FindingBuilder:
         if 'polyps' in text:
             lst.append(2)
         elif 'polyp' in text:
+            lst.append(1)
+        elif finding.removal:
             lst.append(1)
         else:
             return False, text
