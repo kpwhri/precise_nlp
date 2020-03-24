@@ -301,9 +301,11 @@ def has_large_adenoma_precise(pm: PathManager, cm: CspyManager, min_size=10):
         logger.info('Found size and adenoma-ness in pathology')
         return 1  # early exit: we found size and adenoma-ness
     path_adenoma = list(pm.get_locations_with_unknown_adenoma_size())
-    if not path_adenoma:
-        return 0  # early exit: no adenomas
+    # if not path_adenoma:
+    #     return 0  # early exit: no adenomas
     path_small = list(pm.get_locations_with_size(max_size=min_size))
+    # NOTE: small adenoma not reliable due to fragments
+    path_adenoma += path_small
     cspy_large = list()
     cspy_small = list()
     for f in cm.get_findings():
@@ -323,10 +325,11 @@ def has_large_adenoma_precise(pm: PathManager, cm: CspyManager, min_size=10):
     for aden_loc in path_adenoma:
         if aden_loc in cspy_large:  # is large adenoma
             if aden_loc in cspy_small:  # might be small
-                if aden_loc in path_small:  # here's the small one
-                    return 1
-                else:
-                    has_maybe = True
+                ## NOTE: small path is unreliable
+                # if aden_loc in path_small:  # here's the small one
+                #     return 1
+                # else:
+                has_maybe = True
             else:
                 return 1
     return 9 if has_maybe else 0

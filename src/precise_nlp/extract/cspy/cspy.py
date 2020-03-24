@@ -79,15 +79,13 @@ class CspyManager:
             elif (el.endswith(':') or 'Problem List' in el) and not prev_line_item:
                 curr = el[:-1]
                 if curr not in self.sections:
-                    self.sections[curr] = ''
+                    self.sections[curr] = []
             elif curr is None:
                 if not self.title:
                     self.title = el.strip()
                 continue
-            elif self.sections[curr]:  # spacing should already be included...just in case
-                self.sections[curr] += ' ' + el
             else:
-                self.sections[curr] += el
+                self.sections[curr].append(el)
             # TODO: only allow certain sections to contain these lists??
             prev_line_item = (
                     (el.strip()[-1] in ['·', '•', '-', '*'] and '----' not in el)
@@ -97,9 +95,9 @@ class CspyManager:
     def _get_section(self, category):
         for label in self.LABELS[category]:
             if label in self.sections:
-                sect = self.sections[label]
-                if sect:
-                    yield sect
+                for sect in self.sections[label]:
+                    if sect:
+                        yield sect
 
     def _get_findings(self, version=FindingVersion.BROAD):
         if version == FindingVersion.BROAD:
@@ -111,9 +109,9 @@ class CspyManager:
 
     def get_sections_by_label(self, *labels):
         for label in labels:
-            sect = self.sections.get(label, None)
-            if sect:
-                yield sect
+            for sect in self.sections.get(label, list()):
+                if sect:
+                    yield sect
 
     def _get_findings_precise(self):
         findings_by_section = []
@@ -151,11 +149,11 @@ class CspyManager:
         findings = collections.defaultdict(list)
         for label in self.LABELS[self.FINDINGS]:
             if label in self.sections:
-                sect = self.sections[label]
-                if not sect:  # empty string
-                    continue
-                sects = self._deenumerate(sect)
-                self._parse_sections(findings, label, sects)
+                for sect in self.sections[label]:
+                    if not sect:  # empty string
+                        continue
+                    sects = self._deenumerate(sect)
+                    self._parse_sections(findings, label, sects)
         return findings
 
     def _parse_sections(self, findings, label, sects):
