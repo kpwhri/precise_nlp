@@ -215,6 +215,8 @@ class FindingBuilder:
 
     def exclude(self, finding, text, key, **kwargs):
         """Exclude common cases to shortcut the loop"""
+        if 'polyp' in text:
+            return True, text
         excl = re.compile(r'(diverticulosis|normal|wnl|not evaluated)', re.I)
         if (key and excl.search(key)) or excl.search(text):
             return False, text

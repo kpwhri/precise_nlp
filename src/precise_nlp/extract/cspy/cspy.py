@@ -10,7 +10,7 @@ from precise_nlp.const.patterns import INDICATION_DIAGNOSTIC, INDICATION_SURVEIL
 from precise_nlp.extract.cspy.finding_builder import FindingBuilder, Finding
 from precise_nlp.extract.cspy.naive_finding import NaiveFinding
 from precise_nlp.extract.utils import Indication, Extent, \
-    ColonPrep, Prep, IndicationPriority
+    ColonPrep, Prep, IndicationPriority, StandardTerminology
 
 
 class FindingVersion(enum.Enum):
@@ -30,8 +30,9 @@ class CspyManager:
     NOT_FINDING_PATTERN = re.compile(r'\b(exam|lesion)', re.I)
     FINDINGS = 'FINDINGS'
     INDICATIONS = 'INDICATIONS'
+    LOCATION_SPECIFIED = 'LOCATION_SPECIFIED'
     LABELS = {
-        FINDINGS: ['Findings', 'Impression'],
+        FINDINGS: ['Findings', 'Impression', LOCATION_SPECIFIED],
         INDICATIONS: ['INDICATIONS', 'Indications'],
     }
 
@@ -85,7 +86,11 @@ class CspyManager:
                     self.title = el.strip()
                 continue
             else:
-                self.sections[curr].append(el)
+                if curr.lower() in StandardTerminology.LOCATIONS.values():
+                    self.sections[self.LOCATION_SPECIFIED] = self.sections.get(self.LOCATION_SPECIFIED, list())
+                    self.sections[self.LOCATION_SPECIFIED].append(f'{curr} - {el}')
+                else:
+                    self.sections[curr].append(el)
             # TODO: only allow certain sections to contain these lists??
             prev_line_item = (
                     (el.strip()[-1] in ['·', '•', '-', '*'] and '----' not in el)
