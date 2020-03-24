@@ -98,6 +98,7 @@ class StandardTerminology:
         'jejunal': 'jejunum',
         'ileum': 'ileum',
         'ileal': 'ileum',
+        'ti': 'ileum',
         # stomach
         'gastric': 'stomach',
         'stomach': 'stomach',
