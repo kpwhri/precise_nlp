@@ -303,7 +303,7 @@ def has_large_adenoma_precise(pm: PathManager, cm: CspyManager, min_size=10):
     path_adenoma = list(pm.get_locations_with_unknown_adenoma_size())
     # if not path_adenoma:
     #     return 0  # early exit: no adenomas
-    path_small = list(pm.get_locations_with_size(max_size=min_size))
+    path_small = list(pm.get_locations_with_adenoma_size(max_size=min_size))
     # NOTE: small adenoma not reliable due to fragments
     path_adenoma += path_small
     cspy_large = list()

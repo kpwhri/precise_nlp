@@ -164,6 +164,14 @@ class PathManager:
         return self.manager.get_locations_with_unknown_adenoma_size()
 
     @jarreader
+    def get_locations_with_adenoma_size(self, min_size=None, max_size=None):
+        if min_size is not None:
+            yield from self.manager.get_locations_with_adenoma_min_size(min_size)
+        if max_size is not None:
+            yield from self.manager.get_location_with_adenoma_max_size(max_size)
+
+
+    @jarreader
     def get_locations_with_size(self, min_size=None, max_size=None):
         if min_size is not None:
             yield from self.manager.get_locations_with_min_size(min_size)
@@ -352,7 +360,7 @@ class JarManager:
              ]
     FRAGMENTS = ['segments', 'fragments', 'pieces']
     FRAGMENT = ['segment', 'fragment', 'piece']
-    ADENOMA_NEGATION = {'no', 'history', 'hx', 'sessile', 'without'}
+    ADENOMA_NEGATION = {'no', 'history', 'hx', 'sessile', 'without', 'r/o'}
     HISTOLOGY_NEGATION = {'no', 'or'}
     HISTOLOGY_NEGATION_MOD = {'evidence', 'residual'}
     NUMBER = {'one', 'two', 'three', 'four', 'five', 'six',
@@ -709,6 +717,21 @@ class JarManager:
         """
         for jar in self.jars:
             if jar.has_max_size(max_size):
+                yield from jar.locations_or_none()
+
+    def get_locations_with_adenoma_min_size(self, min_size):
+        for jar in self.jars:
+            if jar.has_adenoma() and jar.has_min_size(min_size):
+                yield from jar.locations_or_none()
+
+    def get_location_with_adenoma_max_size(self, max_size):
+        """
+        Strictly less than (not equal to) max_size to be complement of `get_locations_with_min_size`
+        :param max_size:
+        :return:
+        """
+        for jar in self.jars:
+            if jar.has_adenoma() and jar.has_max_size(max_size):
                 yield from jar.locations_or_none()
 
     def extract_sizes(self, sections, jar_index):
