@@ -329,7 +329,10 @@ def has_large_adenoma_precise(pm: PathManager, cm: CspyManager, min_size=10):
                 # if aden_loc in path_small:  # here's the small one
                 #     return 1
                 # else:
-                has_maybe = True
+                if path_adenoma.count(aden_loc) < cspy_large.count(aden_loc) + cspy_small.count(aden_loc):
+                    has_maybe = True
+                else:
+                    return 1
             else:
                 return 1
     return 9 if has_maybe else 0

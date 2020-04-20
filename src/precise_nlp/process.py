@@ -413,7 +413,7 @@ def process_config():
                     'requires_cspy_text': {'type': 'boolean'},
                     'path_text': {'type': 'string'},
                     'text': {'type': 'string'},  # assumed to be path_text
-                    'limit': {'type': 'string'},
+                    'limit': {'type': 'array', 'items': {'type': 'string'}},
                     'count': {'type': 'number'},
                     'encoding': {'type': 'string'},
                 }
