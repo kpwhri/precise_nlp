@@ -217,7 +217,7 @@ class FindingBuilder:
         """Exclude common cases to shortcut the loop"""
         if 'polyp' in text:
             return True, text
-        excl = re.compile(r'(diverticulosis|normal|wnl|not evaluated)', re.I)
+        excl = re.compile(r'(diverticulosis|normal|wnl|not evaluated|ulcer)', re.I)
         if (key and excl.search(key)) or excl.search(text):
             return False, text
         return True, text
