@@ -42,7 +42,7 @@ class PathManager:
                 self.manager.find_locations(sections[1])
                 self.manager.check_dysplasia(sections[1])
             # extract polyp sizes
-            self.manager.extract_sizes(sections, i)
+            self.manager.extract_sizes(sections[0], i)
         # postprocessing all jars
         self._read_jars_postprocess()
         self._jars_read = True
