@@ -195,7 +195,7 @@ def get_data(filetype, path, identifier=None, path_text=None, cspy_text=None, en
                     identifier, cspy_file, path_file = line.split(',')
                     cspy_text = get_file_or_empty_string(path, cspy_file, encoding=encoding)
                     path_text = get_file_or_empty_string(path, path_file, encoding=encoding)
-                    yield identifier, cspy_text, path_text, None
+                    yield identifier, path_text, cspy_text, None
         elif filenames:
             for fn in filenames:
                 fp = os.path.join(path, fn)
