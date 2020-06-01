@@ -154,10 +154,24 @@ def process_text(path_text='', cspy_text=''):
     return data
 
 
+def get_file_or_empty_string(path, filename, encoding='utf8'):
+    fp = os.path.join(path, filename)
+    if not os.path.isfile(fp):
+        return ''
+    with open(fp, encoding=encoding) as fh:
+        return fh.read()
+
+
 def get_data(filetype, path, identifier=None, path_text=None, cspy_text=None, encoding='utf8',
-             limit=None, count=None, truth=None, text=None, filenames=None, requires_cspy_text=False):
+             limit=None, count=None, truth=None, text=None, filenames=None, lookup_table=None,
+             requires_cspy_text=False):
     """
 
+    :param encoding:
+    :param count:
+    :param filenames:
+    :param lookup_table:
+    :param requires_cspy_text:
     :param filetype:
     :param path:
     :param identifier:
@@ -175,7 +189,14 @@ def get_data(filetype, path, identifier=None, path_text=None, cspy_text=None, en
         path_text = text
 
     if path and os.path.isdir(path):
-        if filenames:
+        if lookup_table:
+            with open(lookup_table) as fh:
+                for line in fh:
+                    identifier, cspy_file, path_file = line.split(',')
+                    cspy_text = get_file_or_empty_string(path, cspy_file, encoding=encoding)
+                    path_text = get_file_or_empty_string(path, path_file, encoding=encoding)
+                    yield identifier, cspy_text, path_text, None
+        elif filenames:
             for fn in filenames:
                 fp = os.path.join(path, fn)
                 if not os.path.exists(fp):
@@ -413,6 +434,7 @@ def process_config():
                     'limit': {'type': 'string'},
                     'count': {'type': 'number'},
                     'encoding': {'type': 'string'},
+                    'lookup_table': {'type': 'string'},  # identifier,cspy_file,path_file
                 }
             },
             'preprocessing': {
