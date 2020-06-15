@@ -42,7 +42,7 @@ class PathManager:
                 self.manager.find_locations(sections[1])
                 self.manager.check_dysplasia(sections[1])
             # extract polyp sizes
-            self.manager.extract_sizes(sections, i)
+            self.manager.extract_sizes(sections[0], i)
         # postprocessing all jars
         self._read_jars_postprocess()
         self._jars_read = True
@@ -156,8 +156,27 @@ class PathManager:
         return self.manager.get_locations_with_adenoma()
 
     @jarreader
-    def get_locations_with_size(self, min_size):
-        return self.manager.get_locations_with_size(min_size)
+    def get_locations_with_large_adenoma(self):
+        yield from self.manager.get_locations_with_large_adenoma()
+
+    @jarreader
+    def get_locations_with_unknown_adenoma_size(self):
+        return self.manager.get_locations_with_unknown_adenoma_size()
+
+    @jarreader
+    def get_locations_with_adenoma_size(self, min_size=None, max_size=None):
+        if min_size is not None:
+            yield from self.manager.get_locations_with_adenoma_min_size(min_size)
+        if max_size is not None:
+            yield from self.manager.get_location_with_adenoma_max_size(max_size)
+
+
+    @jarreader
+    def get_locations_with_size(self, min_size=None, max_size=None):
+        if min_size is not None:
+            yield from self.manager.get_locations_with_min_size(min_size)
+        if max_size is not None:
+            yield from self.manager.get_location_with_max_size(max_size)
 
     @jarreader
     def get_histology(self, category, allow_maybe=False):
@@ -308,6 +327,25 @@ class Jar:
     def add_histology(self, histology):
         self.histologies.append(StandardTerminology.histology(histology))
 
+    def has_min_size(self, min_size):
+        return self.polyp_size and sorted(self.polyp_size, reverse=True)[0].get_max_dim() >= min_size
+
+    def has_max_size(self, max_size):
+        """Complement of `has_min_size` so max_size is exclusive"""
+        return self.polyp_size and sorted(self.polyp_size, reverse=True)[0].get_max_dim() < max_size
+
+    def has_unknown_size(self):
+        return not bool(self.polyp_size)
+
+    def has_adenoma(self):
+        return self.adenoma_count.gt(0) == 1
+
+    def locations_or_none(self):
+        if self.locations:
+            yield from StandardTerminology.filter_colon(self.locations)
+        else:
+            yield None
+
 
 class JarManager:
     POLYPS = ['polyps', 'biopsies', 'polyp']
@@ -322,7 +360,7 @@ class JarManager:
              ]
     FRAGMENTS = ['segments', 'fragments', 'pieces']
     FRAGMENT = ['segment', 'fragment', 'piece']
-    ADENOMA_NEGATION = {'no', 'history', 'hx', 'sessile', 'without'}
+    ADENOMA_NEGATION = {'no', 'history', 'hx', 'sessile', 'without', 'r/o'}
     HISTOLOGY_NEGATION = {'no', 'or'}
     HISTOLOGY_NEGATION_MOD = {'evidence', 'residual'}
     NUMBER = {'one', 'two', 'three', 'four', 'five', 'six',
@@ -379,7 +417,7 @@ class JarManager:
         :return:
         """
         return bool(set(jar.locations) and set(jar.locations) <= set(StandardTerminology.DISTAL_LOCATIONS)) \
-            or bool(jar.depth and 16 < jar.depth < 82)
+               or bool(jar.depth and 16 < jar.depth < 82)
 
     def maybe_distal(self, jar):
         """
@@ -406,7 +444,7 @@ class JarManager:
         :return:
         """
         return bool(set(jar.locations) and set(jar.locations) <= set(StandardTerminology.PROXIMAL_LOCATIONS)) \
-            or bool(jar.depth and jar.depth > 82)
+               or bool(jar.depth and jar.depth > 82)
 
     def maybe_proximal(self, jar):
         """
@@ -430,7 +468,7 @@ class JarManager:
         :return:
         """
         return bool(jar.locations and set(jar.locations) <= set(StandardTerminology.RECTAL_LOCATIONS)) \
-            or bool(jar.depth and 4 <= jar.depth <= 16)
+               or bool(jar.depth and 4 <= jar.depth <= 16)
 
     def maybe_rectal(self, jar):
         """
@@ -643,25 +681,58 @@ class JarManager:
                 count += 1 if jar.adenoma_unknown_count else 0
         return count
 
-    def get_locations_with_adenoma(self):
-        locations = []
+    def get_locations_with_large_adenoma(self, min_size=10):
+        """
+        All locations with a large adenoma using pathology report only
+        :return:
+        """
         for jar in self.jars:
-            if jar.adenoma_count.gt(0) == 1:
-                if len(jar.locations) > 0:
-                    locations += StandardTerminology.filter_colon(jar.locations)
-                else:
-                    locations.append(None)
-        return locations
+            if jar.has_adenoma() and jar.has_min_size(min_size):
+                yield from jar.locations_or_none()
 
-    def get_locations_with_size(self, min_size):
-        locations = []
+    def get_locations_with_unknown_adenoma_size(self):
+        """
+        All locations with adenoma and size is unknown (based on pathology report)
+        :return:
+        """
         for jar in self.jars:
-            if jar.polyp_size and sorted(jar.polyp_size, reverse=True)[0].get_max_dim() >= min_size:
-                if len(jar.locations) > 0:
-                    locations += StandardTerminology.filter_colon(jar.locations)
-                else:
-                    locations.append(None)
-        return locations
+            if jar.has_adenoma() and jar.has_unknown_size():
+                yield from jar.locations_or_none()
+
+    def get_locations_with_adenoma(self):
+        for jar in self.jars:
+            if jar.has_adenoma():
+                yield from jar.locations_or_none()
+
+    def get_locations_with_min_size(self, min_size):
+        for jar in self.jars:
+            if jar.has_min_size(min_size):
+                yield from jar.locations_or_none()
+
+    def get_location_with_max_size(self, max_size):
+        """
+        Strictly less than (not equal to) max_size to be complement of `get_locations_with_min_size`
+        :param max_size:
+        :return:
+        """
+        for jar in self.jars:
+            if jar.has_max_size(max_size):
+                yield from jar.locations_or_none()
+
+    def get_locations_with_adenoma_min_size(self, min_size):
+        for jar in self.jars:
+            if jar.has_adenoma() and jar.has_min_size(min_size):
+                yield from jar.locations_or_none()
+
+    def get_location_with_adenoma_max_size(self, max_size):
+        """
+        Strictly less than (not equal to) max_size to be complement of `get_locations_with_min_size`
+        :param max_size:
+        :return:
+        """
+        for jar in self.jars:
+            if jar.has_adenoma() and jar.has_max_size(max_size):
+                yield from jar.locations_or_none()
 
     def extract_sizes(self, sections, jar_index):
         for section in sections:

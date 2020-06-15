@@ -29,8 +29,8 @@ def test_villous_text(path, result):
 
 @pytest.mark.parametrize(('path', 'result', 'index'), [
     ('rectosig: villous', 0, 4),  # unknown
-    ('segment, sigmoid colon and rectum: villous adenoma', 0, 2),  # distal
-    ('designated "residual rectal polyp" fragments of mixed tubular and villiform adenoma', 0, 2),  # distal
+    ('segment, sigmoid colon and rectum: villous adenoma', 1, 2),  # distal
+    ('designated "residual rectal polyp" fragments of mixed tubular and villiform adenoma', 1, 2),  # distal
     ('prox transv colon & 35cm:tubulovil adenoma', 0, 1),  # proximal
     ('colon, cecum, biopsy: tubulovillous adenoma', 1, 1),  # proximal
 ])
