@@ -86,18 +86,19 @@ def parse_file(text):
         r'('
         r'(gender|sex|(procedure:\W*)?date(\W*of\W*birth)?'
         r'|mrn|\w+\W*md|medicines?|age|(patient\W*)name'
-        r'|images?|providers'
+        r'|images?|providers|\bto|\bpcp|\bnurse\(s\)'
         r')\W*?:'
         r'|\d{1,3}[-/)]\W*\d{1,3}\W*[/-]\W*\d{2,4}'  # phone number/date
         r')', re.IGNORECASE
     )
     word_pat = re.compile(r'[^a-z]', re.I)
-    header_pat = re.compile(r'[A-Z][A-Za-z]+:')
+    header_pat = re.compile(r'([A-Z][A-Za-z]+:|Colonoscopy)')
     md_pat = re.compile(r'\bM\W*D\b')
     page_pat = re.compile(r'page\W*\d', re.IGNORECASE)
     no_page_pat = re.compile(r'\W+\d{1,2}\W*')
     keywords = {'cecum', 'polyp', 'size', 'found', 'adenoma',
-                'colon'}
+                'colon', 'colonoscopy'}
+    keyword_pat = re.compile(f'({"|".join(keywords)})', re.I)
     lines = []
     found_start = False
     skip_mode = True
@@ -109,14 +110,14 @@ def parse_file(text):
             continue
         elif md_pat.search(line):
             continue  # skip lines containing ref to doc
-        elif skip_pat.search(line):
+        elif skip_pat.search(line) and not keyword_pat.search(line):
             skip_mode = True
         elif ((has_page and page_pat.search(line))
               or (not has_page and no_page_pat.match(line))):
             # page number
             found_start = False
             skip_mode = False
-        elif header_pat.match(line):
+        elif header_pat.search(line):
             skip_mode = False
             found_start = True
             lines.append(line)

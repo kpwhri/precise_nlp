@@ -193,6 +193,8 @@ def get_data(filetype, path, identifier=None, path_text=None, cspy_text=None, en
             with open(lookup_table) as fh:
                 for line in fh:
                     identifier, cspy_file, path_file = line.split(',')
+                    if limit and identifier not in limit:
+                        continue
                     cspy_text = get_file_or_empty_string(path, cspy_file, encoding=encoding)
                     path_text = get_file_or_empty_string(path, path_file, encoding=encoding)
                     yield identifier, path_text, cspy_text, None
