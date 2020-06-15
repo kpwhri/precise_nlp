@@ -113,15 +113,32 @@ class CspyManager:
             raise ValueError(f'Unrecognized Finding Version: {version}')
 
     def get_sections_by_label(self, *labels):
+        """
+        Semiheader portion handles multiple lines like:
+        "* Cecum: \n0.5cm polyp" -- these are read as separate units
+        :param labels:
+        :return:
+        """
         for label in labels:
+            semiheader = None  # portion separated by colon, expected to be part of subsequent line
             for sect in self.sections.get(label, list()):
                 if sect:
-                    yield sect
+                    if not semiheader and sect.strip().endswith(':') and len(sect) < 20:
+                        semiheader = sect.strip()
+                    elif semiheader:
+                        yield f'{semiheader} {sect}'
+                        semiheader = None
+                    else:
+                        yield sect
+            if semiheader:
+                yield semiheader
 
     def _get_findings_precise(self):
         findings_by_section = []
         for sect in self.get_sections_by_label(*self.LABELS[self.FINDINGS]):
-            findings_by_section.append(list(self._get_findings_precise_section(sect)))
+            res = [f for f in self._get_findings_precise_section(sect) if f]
+            if res:
+                findings_by_section.append(res)
         return self._merge_sections(sorted(findings_by_section, key=lambda x: -len(x)))
 
     def _get_findings_precise_section(self, sect):
@@ -136,6 +153,9 @@ class CspyManager:
         if len(findings_by_section) == 1:
             return findings_by_section[0]
         result_findings = []
+        # compare the first section against the other sections
+        # sections are different groups of section headers
+        # TODO: base section should be the most-documented (currently: first-appearing)
         for finding in findings_by_section[0]:
             for i, section in enumerate(findings_by_section[1:]):
                 new_finding = None
@@ -147,7 +167,7 @@ class CspyManager:
                     section.pop(j)
                     finding = new_finding
             result_findings.append(finding)
-        # TODO: handle remaining section leftovers
+        # TODO: handle remaining leftovers? or do comparison of total counts?
         return result_findings
 
     def _get_findings_broad(self):
@@ -159,7 +179,8 @@ class CspyManager:
                         continue
                     sects = self._deenumerate(sect)
                     self._parse_sections(findings, label, sects)
-        return findings
+        for section, values in findings.items():
+            yield from values
 
     def _parse_sections(self, findings, label, sects):
         prev_locations = None
@@ -223,7 +244,10 @@ class CspyManager:
         if len(sect) > 100:
             # look for sentence splitting
             if ':' in sect:
-                s = sect.split(':')[-1]
+                header, *s = sect.split(':')
+                s = ':'.join(s)  # HACK: capturing multiple colons; the other colons are likely other sections
+                if header.lower() in StandardTerminology.LOCATIONS.values():
+                    return [sect]
                 res = self._deenumerate(s)
                 if res:
                     return res

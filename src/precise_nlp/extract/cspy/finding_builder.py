@@ -32,6 +32,7 @@ class FindingState(enum.Enum):
     NO_SIZES = 10
     REMOVED = 11
     COUNT = 12
+    CONTINUED = 12
 
 
 @dataclass(unsafe_hash=True)
@@ -68,6 +69,7 @@ class Finding:
     locations: Tuple[str] = field(default_factory=tuple)
     removal: bool = False
     depth: int = 0
+    continued: bool = False
 
     @property
     def size(self):
@@ -131,7 +133,8 @@ class FindingBuilder:
             FindingState.NO_SIZE_NO_DEPTH: (self.extract_size2, FindingState.SIZE_NO_DEPTH, FindingState.NO_SIZES),
             FindingState.NO_SIZES: (self.extract_depth2, FindingState.REMOVED, FindingState.LOCATION),
             FindingState.LOCATION: (self.extract_location, FindingState.REMOVED, FindingState.REMOVED),
-            FindingState.REMOVED: (self.was_removed, FindingState.COUNT, FindingState.COUNT),
+            FindingState.REMOVED: (self.was_removed, FindingState.CONTINUED, FindingState.CONTINUED),
+            FindingState.CONTINUED: (self.is_continued, FindingState.COUNT, FindingState.COUNT),
             FindingState.COUNT: (self.get_count, FindingState.DONE, FindingState.DONE),
             FindingState.DONE: accept_state,
         }
@@ -210,7 +213,8 @@ class FindingBuilder:
                 break
             indicator, text = func(finding, text, key=key)
             state = true_state if indicator else false_state
-        self._findings.append(finding)
+        if finding:
+            self._findings.append(finding)
         return finding
 
     def exclude(self, finding, text, key, **kwargs):
@@ -288,6 +292,12 @@ class FindingBuilder:
                                            split_on_non_word=True) + lst)
         finding.count = count
         return count > 0, text
+
+    def is_continued(self, finding, text, **kwargs):
+        if 'the polyp' in text:
+            finding.continued = True
+            return True, text
+        return False, text
 
     def _extract_depth(self, finding, pat, value):
         new_value = []
