@@ -224,8 +224,12 @@ class CspyManager:
 
     def _get_indications_from_header(self):
         """Look at entire header section for indication language"""
-        m = re.compile('(last colonoscopy|limitations|procedure statement|findings)', re.I).search(
-            self.text)
+        m = re.compile(
+            '(asa grade'  # in text of procedure (frequent)
+            '|colonoscope'  # in text of procedure
+            '|propofol'  # common medication, usually listed after indications
+            '|ileum'  # text of procedure
+            ')', re.I).search(self.text)
         if m:
             return self._get_indications_from([self.text[:m.start()]])
 
