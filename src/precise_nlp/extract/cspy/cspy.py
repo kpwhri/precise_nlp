@@ -33,7 +33,9 @@ class CspyManager:
     LOCATION_SPECIFIED = 'LOCATION_SPECIFIED'
     LABELS = {
         FINDINGS: ['Findings', 'Impression', LOCATION_SPECIFIED],
-        INDICATIONS: ['INDICATIONS', 'Indications', 'Surveillance'],
+        INDICATIONS: ['INDICATIONS', 'Indications', 'Surveillance',
+                      'Colonoscopy Indications',
+                      ],
     }
 
     def __init__(self, text, version=FindingVersion.BROAD):
