@@ -97,7 +97,7 @@ def parse_file(text):
     page_pat = re.compile(r'page\W*\d', re.IGNORECASE)
     no_page_pat = re.compile(r'\W+\d{1,2}\W*')
     keywords = {'cecum', 'polyp', 'size', 'found', 'adenoma',
-                'colon', 'colonoscopy'}
+                'colon', 'colonoscopy', 'indications?'}
     keyword_pat = re.compile(f'({"|".join(keywords)})', re.I)
     lines = []
     found_start = False

@@ -33,7 +33,7 @@ class CspyManager:
     LOCATION_SPECIFIED = 'LOCATION_SPECIFIED'
     LABELS = {
         FINDINGS: ['Findings', 'Impression', LOCATION_SPECIFIED],
-        INDICATIONS: ['INDICATIONS', 'Indications'],
+        INDICATIONS: ['INDICATIONS', 'Indications', 'Surveillance'],
     }
 
     def __init__(self, text, version=FindingVersion.BROAD):
@@ -198,19 +198,44 @@ class CspyManager:
             findings[label].append(f)
         return list(set(f.locations))
 
-    def get_indication(self):
+    def _prioritize_indications(self, indications):
+        if indications:
+            for ind in IndicationPriority:
+                if ind in indications:
+                    return ind
+        return None
+
+    def _get_indications_from_indications_section(self):
+        return self._get_indications_from(self._get_section(self.INDICATIONS))
+
+    def _get_indications_from(self, iterator):
         indications = []
-        for sect in self._get_section(self.INDICATIONS):
+        for sect in iterator:
             if INDICATION_DIAGNOSTIC.matches(sect):
                 indications.append(Indication.DIAGNOSTIC)
             elif INDICATION_SURVEILLANCE.matches(sect):
                 indications.append(Indication.SURVEILLANCE)
             elif INDICATION_SCREENING.matches(sect):
                 indications.append(Indication.SCREENING)
-        if indications:
-            for ind in IndicationPriority:
-                if ind in indications:
-                    return ind
+        return self._prioritize_indications(indications)
+
+    def _get_indications_from_keys(self):
+        return self._get_indications_from(self.sections.keys())
+
+    def _get_indications_from_header(self):
+        """Look at entire header section for indication language"""
+        m = re.compile('(last colonoscopy|limitations|procedure statement|findings)', re.I).search(
+            self.text)
+        if m:
+            return self._get_indications_from([self.text[:m.start()]])
+
+    def get_indication(self):
+        if ind := self._get_indications_from_indications_section():
+            return ind
+        if ind := self._get_indications_from_keys():
+            return ind
+        if ind := self._get_indications_from_header():
+            return ind
         return Indication.UNKNOWN
 
     def get_extent(self):

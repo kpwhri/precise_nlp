@@ -61,6 +61,7 @@ suspect = r'suspect'
 colitis = r'colitis'
 divertic = r'divertic'
 perhx = r'(?<!family\W)(?<!family)(((h[ist]+ory|hx)\W*of)|h\/o)'
+personal_history = r'personal history'
 famhx = r'family|famhx|mother|father|sister|brother|\bFH\b'
 genetic = r'fap|lynch|hnpcc'
 followup = r'follow\W*-?\W*up|self\/u'
@@ -70,5 +71,5 @@ INDICATION_DIAGNOSTIC = Pattern(f'({occult}|{abnormal}|{blood}|{anemia}|{diarrhe
                                 f'|{constip}|{change1}|{change2}|{ibs}|{mass}'
                                 f'|{pain}|{weight}|{mets}|{suspect}|{divertic})')
 INDICATION_SURVEILLANCE = Pattern(f'({ibd}|{perhx}|{genetic}|{followup}'
-                                  f'|{surveil})')
+                                  f'|{surveil}|{personal_history})')
 INDICATION_SCREENING = Pattern(f'({screen}|{famhx})')
