@@ -66,11 +66,12 @@ personal_history = r'personal history'
 famhx = r'family|famhx|mother|father|sister|brother|\bFH\b'
 genetic = r'fap|lynch|hnpcc'
 followup = r'follow\W*-?\W*up|self\/u'
-ibd = r'(ibd|uc|ulcerative|crohn|inflammatory bowl pan colitis)'
+polyps = r'polyps'
+ibd = r'(ibd|\buc\b|ulcerative|crohn|inflammatory bowl pan colitis)'
 surveil = r'(surveillance|barrett)'
 INDICATION_DIAGNOSTIC = Pattern(f'({occult}|{occult2}|{abnormal}|{blood}|{anemia}|{diarrhea}'
                                 f'|{constip}|{change1}|{change2}|{ibs}|{mass}'
                                 f'|{pain}|{weight}|{mets}|{suspect}|{divertic})')
 INDICATION_SURVEILLANCE = Pattern(f'({ibd}|{perhx}|{genetic}|{followup}'
-                                  f'|{surveil}|{personal_history})')
+                                  f'|{surveil}|{personal_history}|{polyps})')
 INDICATION_SCREENING = Pattern(f'({screen}|{famhx})')
