@@ -170,7 +170,6 @@ class PathManager:
         if max_size is not None:
             yield from self.manager.get_location_with_adenoma_max_size(max_size)
 
-
     @jarreader
     def get_locations_with_size(self, min_size=None, max_size=None):
         if min_size is not None:
@@ -289,6 +288,7 @@ class Jar:
         self.polyp_size = []
         self.dysplasia = False
         self.depth = None
+        self.sessile_serrated_adenoma_count = 0
 
     def pprint(self):
         return '''Kinds: {}
@@ -346,6 +346,12 @@ class Jar:
         else:
             yield None
 
+    def add_ssa(self):
+        self.sessile_serrated_adenoma_count += 1
+
+    def add_ssp(self):
+        self.sessile_serrated_adenoma_count += 1
+
 
 class JarManager:
     POLYPS = ['polyps', 'biopsies', 'polyp']
@@ -397,6 +403,11 @@ class JarManager:
             return True
         elif section.has_before(self.HISTOLOGY_NEGATION,
                                 5) and section.has_before(self.HISTOLOGY_NEGATION_MOD, 4):
+            return True
+        return False
+
+    def _is_sessile_serrated(self, section):
+        if section.has_before('sessile', window=3) and section.has_before('serrated', window=2):
             return True
         return False
 
@@ -491,6 +502,7 @@ class JarManager:
                         and section.has_after(StandardTerminology.LOCATIONS, window=3)):
                     continue  # distal is descriptive of another location (e.g., distal transverse)
                 jar.add_location(word)
+
             elif word.matches(patterns.DEPTH_PATTERN) and 'cm' in word.word \
                     or word.matches(patterns.NUMBER_PATTERN) \
                     and section.has_after(['cm'], window=1):
@@ -502,6 +514,7 @@ class JarManager:
                         jar.set_polyp_size(num, cm=True)
                 else:  # must be >= 10cm
                     jar.set_depth(num)
+
             elif word.matches(patterns.DEPTH_PATTERN) and 'mm' in word.word \
                     or word.matches(patterns.NUMBER_PATTERN) \
                     and section.has_after(['mm'], window=1):
@@ -513,8 +526,12 @@ class JarManager:
                         jar.set_polyp_size(num, cm=True)
                 else:
                     jar.set_depth(num)
-            elif not found_polyp and word.isin(self.POLYPS):  # polyps/biopsies
-                if section.has_before(self.ADENOMA_NEGATION):
+
+            elif word.isin(self.POLYPS):  # polyps/biopsies
+                if self._is_sessile_serrated(section):
+                    jar.add_ssp()
+                    continue
+                elif found_polyp or section.has_before(self.ADENOMA_NEGATION):
                     continue
                 num = section.has_after(self.NUMBER, window=2)
                 if not num or section.has_after(self.FRAGMENTS, window=4):
@@ -524,11 +541,15 @@ class JarManager:
                 elif not word.isin(self.POLYP):
                     jar.polyp_count.greater_than = True
                 found_polyp = True
+
             elif (
                     word.isin(self.ADENOMAS) or
                     (word.isin(self.ADENOMA) and section.has_after(self.POLYPS, window=1))
             ):
-                if self._adenoma_negated(section):
+                if self._is_sessile_serrated(section):
+                    jar.add_ssa()
+                    continue
+                elif self._adenoma_negated(section):
                     continue
                 num = section.has_after(self.NUMBER, window=2)
                 has_frags = section.has_before(self.FRAGMENTS, window=4)
@@ -547,19 +568,22 @@ class JarManager:
                     self.add_count_to_jar(jar, 1, greater_than=True)
 
             elif word.isin(self.ADENOMA):
-                if not self._adenoma_negated(section):
+                if self._is_sessile_serrated(section):
+                    jar.add_ssa()
+                elif not self._adenoma_negated(section):
                     if section.has_before(self.FRAGMENTS, window=4):
                         self.add_count_to_jar(jar, 1, at_least=True)
                     else:
                         self.add_count_to_jar(jar, 1)
-                else:
-                    logger.debug('NEGATED!')
+
             elif word.isin(self.COLON):
                 jar.kinds.append('colon')
+
             elif word.isin(StandardTerminology.HISTOLOGY.keys()):
                 if self._histology_negated(section):
                     continue
                 jar.add_histology(word)
+
             elif word.isin(self.DYSPLASIA):
                 if section.has_before(self.HIGHGRADE_DYS, 2):
                     if section.has_before('no', 5) and section.has_before('evidence', 4):
