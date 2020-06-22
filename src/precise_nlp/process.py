@@ -24,12 +24,12 @@ from precise_nlp.const.path import HIGHGRADE_DYSPLASIA, ANY_VILLOUS, VILLOUS, TU
     ADENOMA_PROXIMAL_COUNT, ADENOMA_PROXIMAL, ADENOMA_RECTAL_COUNT, ADENOMA_RECTAL, ADENOMA_UNKNOWN_COUNT, \
     ADENOMA_UNKNOWN, PROXIMAL_VILLOUS, DISTAL_VILLOUS, RECTAL_VILLOUS, UNKNOWN_VILLOUS, SIMPLE_HIGHGRADE_DYSPLASIA, \
     JAR_ADENOMA_COUNT_ADV, JAR_ADENOMA_DISTAL_COUNT, JAR_ADENOMA_PROXIMAL_COUNT, JAR_ADENOMA_RECTAL_COUNT, \
-    JAR_ADENOMA_UNKNOWN_COUNT
+    JAR_ADENOMA_UNKNOWN_COUNT, JAR_SESSILE_SERRATED_ADENOMA_COUNT
 from precise_nlp.const.enums import Location
 from precise_nlp.doc_parser import parse_file
 from precise_nlp.extract.algorithm import get_adenoma_status, get_adenoma_histology, get_highgrade_dysplasia, \
     get_adenoma_count, has_large_adenoma, get_adenoma_count_advanced, get_adenoma_distal, get_adenoma_proximal, \
-    get_adenoma_rectal, get_adenoma_unknown, get_villous_histology, has_dysplasia
+    get_adenoma_rectal, get_adenoma_unknown, get_villous_histology, has_dysplasia, get_sessile_serrated_adenoma
 from precise_nlp.extract.cspy.cspy import CspyManager, FindingVersion
 from precise_nlp.extract.path import PathManager, MaybeCounter
 from loguru import logger
@@ -63,6 +63,7 @@ ITEMS = [
     ADENOMA_UNKNOWN,
     ADENOMA_UNKNOWN_COUNT,
     JAR_ADENOMA_UNKNOWN_COUNT,
+    JAR_SESSILE_SERRATED_ADENOMA_COUNT,
     INDICATION,
     NUM_POLYPS,
     BOWEL_PREP,
@@ -140,7 +141,8 @@ def process_text(path_text='', cspy_text='', cspy_finding_version=FindingVersion
             JAR_ADENOMA_RECTAL_COUNT: jar_ad_cnt_rect,
             ADENOMA_UNKNOWN: aden_unk_status,
             ADENOMA_UNKNOWN_COUNT: aden_unk_count,
-            JAR_ADENOMA_UNKNOWN_COUNT: jar_ad_cnt_unk
+            JAR_ADENOMA_UNKNOWN_COUNT: jar_ad_cnt_unk,
+            JAR_SESSILE_SERRATED_ADENOMA_COUNT: get_sessile_serrated_adenoma(pm, jar_count=True),
         })
     if cm:
         data.update({

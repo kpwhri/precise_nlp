@@ -74,6 +74,10 @@ class PathManager:
     def get_adenoma_unknown_count(self, method=AdenomaCountMethod.COUNT_IN_JAR):
         return self.manager.get_adenoma_unknown_count(method)
 
+    @jarreader
+    def get_sessile_serrated_count(self, jar_count=True):
+        return self.manager.get_sessile_serrated_count(jar_count=jar_count)
+
     @staticmethod
     def parse_jars(text):
         comment_pat = re.compile(r'comment(?:\W*\([A-Za-z]\))?:')
@@ -857,6 +861,15 @@ class JarManager:
             if jar.dysplasia:
                 return True
         return False
+
+    def get_sessile_serrated_count(self, jar_count=True):
+        if not jar_count:
+            raise NotImplementedError('jar_count is False')
+        count = 0
+        for jar in self.jars:
+            if jar.sessile_serrated_adenoma_count > 0:
+                count += 1
+        return count
 
 
 class PathSection:

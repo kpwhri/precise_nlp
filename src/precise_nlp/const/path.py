@@ -41,3 +41,5 @@ ADENOMA_COUNT = 'adenoma_count'
 ADENOMA_COUNT_ADV = 'adenoma_count_adv'
 # has adenoma >= X size
 LARGE_ADENOMA = 'large_adenoma'
+# sessile serrated adenoma/polyp; SSA/SSP
+JAR_SESSILE_SERRATED_ADENOMA_COUNT = 'jar_sessile_serrated_adenoma_count'
