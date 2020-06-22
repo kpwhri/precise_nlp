@@ -594,6 +594,12 @@ class JarManager:
                         pass  # don't make false in case something else
                     elif not section.has_before({'no', 'without', 'low'}, 3):
                         jar.dysplasia = True
+
+            elif word.isin({'ssp', 'ssps'}):
+                jar.add_ssp()
+            elif word.isin({'ssa', 'ssas'}):
+                jar.add_ssa()
+
         logger.info('Adenoma Count for Jar: {}'.format(jar.adenoma_count))
         self.jars.append(jar)
         self.curr_jar = len(self.jars) - 1
