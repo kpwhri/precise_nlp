@@ -74,7 +74,7 @@ INDICATION_DIAGNOSTIC = Pattern(f'({occult}|{occult2}|{abnormal}|{blood}|{anemia
                                 f'|{pain}|{weight}|{mets}|{suspect}|{divertic})')
 INDICATION_SURVEILLANCE = Pattern(f'({ibd}|{perhx}|{genetic}|{followup}'
                                   f'|{surveil}|{personal_history}|{polyps})',
-                                  negates=['not', 'no', 'father', 'mother', 'sister',
+                                  negates=['father', 'mother', 'sister',
                                            'parent', 'brother', 'son', 'daughter', 'family']
                                   )
 INDICATION_SCREENING = Pattern(f'({screen}|{famhx})')
