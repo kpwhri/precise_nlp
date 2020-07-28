@@ -78,6 +78,10 @@ class PathManager:
     def get_sessile_serrated_count(self, jar_count=True):
         return self.manager.get_sessile_serrated_count(jar_count=jar_count)
 
+    @jarreader
+    def get_carcinoma_count(self, jar_count=True):
+        return self.manager.get_carcinoma_count(jar_count=jar_count)
+
     @staticmethod
     def parse_jars(text):
         comment_pat = re.compile(r'comment(?:\W*\([A-Za-z]\))?:')
@@ -293,6 +297,7 @@ class Jar:
         self.dysplasia = False
         self.depth = None
         self.sessile_serrated_adenoma_count = 0
+        self.carcinomas = 0
 
     def pprint(self):
         return '''Kinds: {}
@@ -355,6 +360,9 @@ class Jar:
 
     def add_ssp(self):
         self.sessile_serrated_adenoma_count += 1
+
+    def add_carcinoma(self):
+        self.carcinomas += 1
 
 
 class JarManager:
@@ -599,6 +607,16 @@ class JarManager:
                 jar.add_ssp()
             elif word.isin({'ssa', 'ssas'}):
                 jar.add_ssa()
+            elif word.isin({'carcinoma', 'carcinomas', 'adenocarcinoma',
+                            'adenocarcinomas', 'cystadenocarcinoma', 'cystadenocarcinomas'}):
+                jar.add_carcinoma()
+            elif word.isin({'neoplasm', 'neoplasms'}):
+                if section.has_before({'malignant'}, 2):
+                    jar.add_carcinoma()
+            elif word.isin({'tumor', 'tumors'}):
+                if section.has_before({'adenomatoid', 'adenomatoidal'}):
+                    jar.add_carcinoma()
+
 
         logger.info('Adenoma Count for Jar: {}'.format(jar.adenoma_count))
         self.jars.append(jar)
@@ -874,6 +892,15 @@ class JarManager:
         count = 0
         for jar in self.jars:
             if jar.sessile_serrated_adenoma_count > 0:
+                count += 1
+        return count
+
+    def get_carcinoma_count(self, jar_count=True):
+        if not jar_count:
+            raise NotImplementedError('jar_count is False')
+        count = 0
+        for jar in self.jars:
+            if jar.carcinomas > 0:
                 count += 1
         return count
 

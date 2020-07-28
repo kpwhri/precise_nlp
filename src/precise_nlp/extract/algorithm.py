@@ -342,3 +342,7 @@ def has_large_adenoma_precise(pm: PathManager, cm: CspyManager, min_size=10):
 
 def get_sessile_serrated_adenoma(pm: PathManager, jar_count=True):
     return pm.get_sessile_serrated_count(jar_count=jar_count)
+
+
+def get_carcinomas(pm: PathManager, jar_count=True):
+    return pm.get_carcinoma_count(jar_count=jar_count)
