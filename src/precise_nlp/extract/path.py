@@ -603,10 +603,13 @@ class JarManager:
                     elif not section.has_before({'no', 'without', 'low'}, 3):
                         jar.dysplasia = True
 
+            # ssp/ssa
             elif word.isin({'ssp', 'ssps'}):
                 jar.add_ssp()
             elif word.isin({'ssa', 'ssas'}):
                 jar.add_ssa()
+
+            # carcinoma
             elif word.isin({'carcinoma', 'carcinomas', 'adenocarcinoma',
                             'adenocarcinomas', 'cystadenocarcinoma', 'cystadenocarcinomas'}):
                 jar.add_carcinoma()
@@ -616,7 +619,6 @@ class JarManager:
             elif word.isin({'tumor', 'tumors'}):
                 if section.has_before({'adenomatoid', 'adenomatoidal'}):
                     jar.add_carcinoma()
-
 
         logger.info('Adenoma Count for Jar: {}'.format(jar.adenoma_count))
         self.jars.append(jar)
