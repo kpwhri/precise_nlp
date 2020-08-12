@@ -42,14 +42,14 @@ COLON_PREP_PRE = Pattern(
 )
 COLON_PREP_POST = Pattern(r'((?P<prep>{})\w*) (\w+ ){{0,2}}prepared colon'.format(ColonPrep.REGEX))
 
-isayo = r'\W*is\W*a\W*\d{2,3}\W*year\W*old'
+isayo = r'\Wis\W*a\W*\d{2,3}\W*year\W*old'
 screen = r'(for|cancer)? screening'
 occult = r'positive\W*((hem)?[aeo]{1,2}cc?ult|\bfit\b|g?fobt)'
 occult2 = r'hem[aeo]{1,2}(cc?ult)? positive'
 abnormal = r'abnormal'
 blood = r'blood|bleed|brb|hematochezia|melena|tarry'
 anemia = r'anemi(a|c)'
-diarrhea = r'diarrho?ea|loose|watery'
+diarrhea = r'diarr?h\w+|loose|watery'
 constip = r'constipat'
 change1 = r'urgency|incontin|muco?us|irregular'
 change2 = r'altered\s*bowel|\bchange(s|d)?\W*(?:\w+\W*){0,2}?bowel\b'

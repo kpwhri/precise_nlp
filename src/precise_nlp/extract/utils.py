@@ -194,12 +194,13 @@ class ColonPrep:
     VALUES = {
         'excellent': Prep.ADEQUATE,
         'well': Prep.ADEQUATE,
-        'good': Prep.ADEQUATE,
+        'good': Prep.ADEQUATE,  # treat good/very good the same
         'moderate': Prep.ADEQUATE,
         'adequate': Prep.ADEQUATE,
         'optimal': Prep.ADEQUATE,
+        'ideal': Prep.ADEQUATE,
         'fair': Prep.INADEQUATE,
-        'poor': Prep.INADEQUATE,
+        'poor': Prep.INADEQUATE,  # handles 'very poor' as well
         'inadequate': Prep.INADEQUATE,
         'suboptimal': Prep.INADEQUATE,
     }
