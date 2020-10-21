@@ -610,14 +610,22 @@ class JarManager:
                 jar.add_ssa()
 
             # carcinoma
-            elif word.isin({'carcinoma', 'carcinomas', 'adenocarcinoma',
-                            'adenocarcinomas', 'cystadenocarcinoma', 'cystadenocarcinomas'}):
+            elif word.isin({
+                'carcinoma', 'carcinomas',
+                'adenocarcinoma', 'adenocarcinomas',
+                'cystadenocarcinoma', 'cystadenocarcinomas',
+                'carcinosarcoma', 'carcinosarcomas',
+                'sarcoma', 'sarcomas',
+                'melanoma', 'melanomas',
+            }):
                 jar.add_carcinoma()
             elif word.isin({'neoplasm', 'neoplasms'}):
                 if section.has_before({'malignant'}, 2):
                     jar.add_carcinoma()
             elif word.isin({'tumor', 'tumors'}):
                 if section.has_before({'adenomatoid', 'adenomatoidal'}):
+                    jar.add_carcinoma()
+                elif section.has_before({'carcinoid', 'carcinoidal'}):
                     jar.add_carcinoma()
 
         logger.info('Adenoma Count for Jar: {}'.format(jar.adenoma_count))
