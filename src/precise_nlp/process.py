@@ -222,6 +222,8 @@ def get_data(filetype, path, identifier=None, path_text=None, cspy_text=None, en
             df = filetype
         elif filetype == 'csv':
             df = pd.read_csv(path, encoding=encoding)
+        elif filetype == 'tab':
+            df = pd.read_csv(path, sep='\t', encoding=encoding)
         elif filetype == 'sas':
             df = pd.read_sas(path, encoding=encoding)
         elif filetype == 'h5':
