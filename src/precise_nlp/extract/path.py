@@ -948,7 +948,7 @@ class JarManager:
             raise NotImplementedError('jar_count is False')
         count = 0
         for jar in self.jars:
-            if jar.carcinomas > 0:
+            if self.is_colon(jar) and jar.carcinomas > 0 and self.not_only_colonic_sarcoma(jar):
                 count += 1
         return count
 
@@ -957,12 +957,21 @@ class JarManager:
             raise NotImplementedError('jar_count is False')
         count = 0
         for jar in self.jars:
-            if jar.carcinomas_maybe > 0:
+            if self.is_colon(jar) and jar.carcinomas_maybe > 0 and self.not_only_colonic_sarcoma(jar):
                 count += 1
         return count
 
-    def _exclude_colonic_sarcoma(self, jar: Jar):
-        return NotImplemented
+    def not_only_colonic_sarcoma(self, jar: Jar):
+        """
+        Disallow sarcoma in the colon, only allow in rectum
+        TODO: How to handle rectosigmoid?
+        """
+        if self.is_rectal(jar):
+            return True
+        for cancer, status in jar.carcinoma_list:
+            if 'sarcoma' not in cancer:
+                return True
+        return False
 
 
 class PathSection:
