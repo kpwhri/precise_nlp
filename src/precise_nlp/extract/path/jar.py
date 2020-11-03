@@ -94,3 +94,82 @@ class Jar:
                         AssertionStatus.IMPROBABLE}:
             self.carcinomas_maybe += 1
         self.carcinoma_list.append((term, status))
+
+    def is_colon(self):
+        return len(set(self.locations)) == len(set(StandardTerminology.filter_colon(self.locations)))
+
+    def maybe_colon(self):
+        return bool(set(StandardTerminology.filter_colon(self.locations)))
+
+    def is_distal(self):
+        """
+        Distal if location includes a distal_location keyword and no other locations
+        Cite for locations:
+            - https://www.cancer.gov/publications/dictionaries/cancer-terms/def/distal-colon
+            - http://cebp.aacrjournals.org/content/17/5/1144
+        Cite for distance: https://training.seer.cancer.gov/colorectal/anatomy/figure/figure1.html
+        :return:
+        """
+        return bool(set(self.locations) and set(self.locations) <= set(StandardTerminology.DISTAL_LOCATIONS)) \
+               or bool(self.depth and 16 < self.depth < 82)
+
+    def maybe_distal(self):
+        """
+        Maybe distal if location includes a distal_location keyword but also has non-distal in same self
+        Cite for locations:
+            - https://www.cancer.gov/publications/dictionaries/cancer-terms/def/distal-colon
+            - http://cebp.aacrjournals.org/content/17/5/1144
+        Cite for distance: https://training.seer.cancer.gov/colorectal/anatomy/figure/figure1.html
+        Proximal defn: https://www.ncbi.nlm.nih.gov/pubmedhealth/PMHT0022241/
+        :param self:
+        :return:
+        """
+        return bool(set(self.locations) & set(StandardTerminology.DISTAL_LOCATIONS))
+
+    def is_proximal(self):
+        """
+        Proximal if location includes a proximal_location keyword and no other locations
+        Cite for locations:
+            - https://www.cancer.gov/publications/dictionaries/cancer-terms/def/distal-colon
+            - http://cebp.aacrjournals.org/content/17/5/1144
+        Cite for distance: https://training.seer.cancer.gov/colorectal/anatomy/figure/figure1.html
+        Proximal defn: https://www.ncbi.nlm.nih.gov/pubmedhealth/PMHT0022241/
+        :param self:
+        :return:
+        """
+        return bool(set(self.locations) and set(self.locations) <= set(StandardTerminology.PROXIMAL_LOCATIONS)) \
+               or bool(self.depth and self.depth > 82)
+
+    def maybe_proximal(self):
+        """
+        Maybe proximal if location includes a proximal_location keyword but also has non-proximal in the same self
+        Cite for locations:
+            - https://www.cancer.gov/publications/dictionaries/cancer-terms/def/distal-colon
+            - http://cebp.aacrjournals.org/content/17/5/1144
+        Cite for distance: https://training.seer.cancer.gov/colorectal/anatomy/figure/figure1.html
+        Proximal defn: https://www.ncbi.nlm.nih.gov/pubmedhealth/PMHT0022241/
+        :return:
+        """
+        return bool(set(self.locations) & set(StandardTerminology.PROXIMAL_LOCATIONS))
+
+    def is_rectal(self):
+        """
+        Rectal if location only has rectum
+        Cite for distance: https://training.seer.cancer.gov/colorectal/anatomy/figure/figure1.html
+            * < 17cm since 17cm is also sigmoid (being conservative)
+        :param self:
+        :return:
+        """
+        return bool(self.locations and set(self.locations) <= set(StandardTerminology.RECTAL_LOCATIONS)) \
+               or bool(self.depth and 4 <= self.depth <= 16)
+
+    def maybe_rectal(self):
+        """
+        Maybe rectal if location includes a 'rectum' along with other location keywords
+        :param self:
+        :return:
+        """
+        return bool(set(self.locations) & set(StandardTerminology.RECTAL_LOCATIONS))
+
+    def add_adenoma_count(self, count=1, greater_than=False, at_least=False):
+        self.adenoma_count.add(count, greater_than, at_least)

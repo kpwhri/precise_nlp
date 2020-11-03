@@ -67,87 +67,6 @@ class JarManager:
             return True
         return False
 
-    def is_colon(self, jar):
-        return len(set(jar.locations)) == len(set(StandardTerminology.filter_colon(jar.locations)))
-
-    def maybe_colon(self, jar):
-        return bool(set(StandardTerminology.filter_colon(jar.locations)))
-
-    def is_distal(self, jar):
-        """
-        Distal if location includes a distal_location keyword and no other locations
-        Cite for locations:
-            - https://www.cancer.gov/publications/dictionaries/cancer-terms/def/distal-colon
-            - http://cebp.aacrjournals.org/content/17/5/1144
-        Cite for distance: https://training.seer.cancer.gov/colorectal/anatomy/figure/figure1.html
-        :param jar:
-        :return:
-        """
-        return bool(set(jar.locations) and set(jar.locations) <= set(StandardTerminology.DISTAL_LOCATIONS)) \
-               or bool(jar.depth and 16 < jar.depth < 82)
-
-    def maybe_distal(self, jar):
-        """
-        Maybe distal if location includes a distal_location keyword but also has non-distal in same jar
-        Cite for locations:
-            - https://www.cancer.gov/publications/dictionaries/cancer-terms/def/distal-colon
-            - http://cebp.aacrjournals.org/content/17/5/1144
-        Cite for distance: https://training.seer.cancer.gov/colorectal/anatomy/figure/figure1.html
-        Proximal defn: https://www.ncbi.nlm.nih.gov/pubmedhealth/PMHT0022241/
-        :param jar:
-        :return:
-        """
-        return bool(set(jar.locations) & set(StandardTerminology.DISTAL_LOCATIONS))
-
-    def is_proximal(self, jar):
-        """
-        Proximal if location includes a proximal_location keyword and no other locations
-        Cite for locations:
-            - https://www.cancer.gov/publications/dictionaries/cancer-terms/def/distal-colon
-            - http://cebp.aacrjournals.org/content/17/5/1144
-        Cite for distance: https://training.seer.cancer.gov/colorectal/anatomy/figure/figure1.html
-        Proximal defn: https://www.ncbi.nlm.nih.gov/pubmedhealth/PMHT0022241/
-        :param jar:
-        :return:
-        """
-        return bool(set(jar.locations) and set(jar.locations) <= set(StandardTerminology.PROXIMAL_LOCATIONS)) \
-               or bool(jar.depth and jar.depth > 82)
-
-    def maybe_proximal(self, jar):
-        """
-        Maybe proximal if location includes a proximal_location keyword but also has non-proximal in the same jar
-        Cite for locations:
-            - https://www.cancer.gov/publications/dictionaries/cancer-terms/def/distal-colon
-            - http://cebp.aacrjournals.org/content/17/5/1144
-        Cite for distance: https://training.seer.cancer.gov/colorectal/anatomy/figure/figure1.html
-        Proximal defn: https://www.ncbi.nlm.nih.gov/pubmedhealth/PMHT0022241/
-        :param jar:
-        :return:
-        """
-        return bool(set(jar.locations) & set(StandardTerminology.PROXIMAL_LOCATIONS))
-
-    def is_rectal(self, jar):
-        """
-        Rectal if location only has rectum
-        Cite for distance: https://training.seer.cancer.gov/colorectal/anatomy/figure/figure1.html
-            * < 17cm since 17cm is also sigmoid (being conservative)
-        :param jar:
-        :return:
-        """
-        return bool(jar.locations and set(jar.locations) <= set(StandardTerminology.RECTAL_LOCATIONS)) \
-               or bool(jar.depth and 4 <= jar.depth <= 16)
-
-    def maybe_rectal(self, jar):
-        """
-        Maybe rectal if location includes a 'rectum' along with other location keywords
-        :param jar:
-        :return:
-        """
-        return bool(set(jar.locations) & set(StandardTerminology.RECTAL_LOCATIONS))
-
-    def add_count_to_jar(self, jar, count=1, greater_than=False, at_least=False):
-        jar.adenoma_count.add(count, greater_than, at_least)
-
     def cursory_diagnosis_examination(self, section):
         jar = Jar()
         section = PathSection(section)
@@ -215,22 +134,22 @@ class JarManager:
                 if not num:
                     num = section.has_before(self.NUMBER, window=5)
                 if section.has_before(self.FRAGMENT, window=4):
-                    self.add_count_to_jar(jar, 1)
+                    jar.add_adenoma_count(1)
                 if num and has_frags:
-                    self.add_count_to_jar(jar, 1, at_least=True)
+                    jar.add_adenoma_count(1, at_least=True)
                 elif num:  # identified number
-                    self.add_count_to_jar(jar, self.NUMBER_CONVERT[str(num)])
+                    jar.add_adenoma_count(self.NUMBER_CONVERT[str(num)])
                 else:  # default case
-                    self.add_count_to_jar(jar, 1, greater_than=True)
+                    jar.add_adenoma_count(1, greater_than=True)
 
             elif word.isin(self.ADENOMA):
                 if self._is_sessile_serrated(section):
                     jar.add_ssa()
                 elif not self._adenoma_negated(section):
                     if section.has_before(self.FRAGMENTS, window=4):
-                        self.add_count_to_jar(jar, 1, at_least=True)
+                        jar.add_adenoma_count(1, at_least=True)
                     else:
-                        self.add_count_to_jar(jar, 1)
+                        jar.add_adenoma_count(1)
 
             elif word.isin(self.COLON):
                 jar.kinds.append('colon')
@@ -321,25 +240,25 @@ class JarManager:
         for jar in self.jars:
             counts = []
             # distal
-            if self.is_distal(jar):
+            if jar.is_distal():
                 jar.adenoma_distal_count = jar.adenoma_count
-            elif allow_maybe and self.maybe_distal(jar):  # be conservative
+            elif allow_maybe and jar.maybe_distal():  # be conservative
                 if jar.adenoma_count:
                     jar.adenoma_distal_count.add(0, at_least=True)
             else:
                 counts.append(0)
             # proximal
-            if self.is_proximal(jar):
+            if jar.is_proximal():
                 jar.adenoma_proximal_count = jar.adenoma_count
-            elif allow_maybe and self.maybe_proximal(jar):  # be conservative
+            elif allow_maybe and jar.maybe_proximal():  # be conservative
                 if jar.adenoma_count:
                     jar.adenoma_proximal_count.add(0, at_least=True)
             else:
                 counts.append(0)
             # rectal
-            if self.is_rectal(jar):
+            if jar.is_rectal():
                 jar.adenoma_rectal_count = jar.adenoma_count
-            elif allow_maybe and self.maybe_rectal(jar):  # be conservative
+            elif allow_maybe and jar.maybe_rectal():  # be conservative
                 if jar.adenoma_count:
                     jar.adenoma_rectal_count.add(0, at_least=True)
             else:
@@ -534,28 +453,28 @@ class JarManager:
         rectal = 0
         unknown = 0
         for jar in self.jars:
-            if not self.is_colon(jar):
+            if not jar.is_colon():
                 continue
             if category in jar.histologies:
                 counts = []
                 total += 1
-                if self.is_proximal(jar):
+                if jar.is_proximal():
                     proximal += 1
-                elif allow_maybe and self.maybe_proximal(jar):
+                elif allow_maybe and jar.maybe_proximal():
                     proximal += 1
                 else:
                     counts.append(0)
 
-                if self.is_distal(jar):
+                if jar.is_distal():
                     distal += 1
-                elif allow_maybe and self.maybe_distal(jar):
+                elif allow_maybe and jar.maybe_distal():
                     distal += 1
                 else:
                     counts.append(0)
 
-                if self.is_rectal(jar):
+                if jar.is_rectal():
                     rectal += 1
-                elif allow_maybe and self.maybe_rectal(jar):
+                elif allow_maybe and jar.maybe_rectal():
                     rectal += 1
                 else:
                     counts.append(0)
@@ -585,7 +504,7 @@ class JarManager:
             raise NotImplementedError('jar_count is False')
         count = 0
         for jar in self.jars:
-            if self.is_colon(jar) and jar.carcinomas > 0 and self.not_only_colonic_melanoma(jar):
+            if jar.is_colon() and jar.carcinomas > 0 and self.not_only_colonic_melanoma(jar):
                 count += 1
         return count
 
@@ -594,7 +513,7 @@ class JarManager:
             raise NotImplementedError('jar_count is False')
         count = 0
         for jar in self.jars:
-            if self.is_colon(jar) and jar.carcinomas_maybe > 0 and self.not_only_colonic_melanoma(jar):
+            if jar.is_colon() and jar.carcinomas_maybe > 0 and self.not_only_colonic_melanoma(jar):
                 count += 1
         return count
 
@@ -603,7 +522,7 @@ class JarManager:
         Disallow sarcoma in the colon, only allow in rectum
         TODO: How to handle rectosigmoid?
         """
-        if self.is_rectal(jar):
+        if jar.is_rectal():
             return True
         for cancer, status in jar.carcinoma_list:
             if 'melanoma' not in cancer:
