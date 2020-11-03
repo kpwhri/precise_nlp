@@ -4,7 +4,7 @@ from loguru import logger
 from collections import defaultdict
 
 from precise_nlp.const import patterns
-from precise_nlp.const.enums import AdenomaCountMethod, Histology
+from precise_nlp.const.enums import AdenomaCountMethod, Histology, AssertionStatus
 from precise_nlp.extract.utils import depth_to_location, StandardTerminology
 
 
@@ -298,6 +298,8 @@ class Jar:
         self.depth = None
         self.sessile_serrated_adenoma_count = 0
         self.carcinomas = 0
+        self.carcinoma_list = []  # (name, assertion status)
+        self.carcinomas_maybe = 0
 
     def pprint(self):
         return '''Kinds: {}
@@ -361,8 +363,13 @@ class Jar:
     def add_ssp(self):
         self.sessile_serrated_adenoma_count += 1
 
-    def add_carcinoma(self):
-        self.carcinomas += 1
+    def add_carcinoma(self, term=None, status=AssertionStatus.UNKNOWN):
+        if status in {AssertionStatus.UNKNOWN, AssertionStatus.DEFINITE}:
+            self.carcinomas += 1
+        elif status in {AssertionStatus.PROBABLE, AssertionStatus.POSSIBLE,
+                        AssertionStatus.IMPROBABLE}:
+            self.carcinomas_maybe += 1
+        self.carcinoma_list.append((term, status))
 
 
 class JarManager:
@@ -414,7 +421,7 @@ class JarManager:
                               window=1) and not section.has_after(self.ADENOMA + self.ADENOMAS, window=3):
             return True
         elif section.has_before(self.HISTOLOGY_NEGATION,
-                                5) and section.has_before(self.HISTOLOGY_NEGATION_MOD, 4):
+                                window=5) and section.has_before(self.HISTOLOGY_NEGATION_MOD, window=4):
             return True
         return False
 
@@ -597,10 +604,10 @@ class JarManager:
                 jar.add_histology(word)
 
             elif word.isin(self.DYSPLASIA):
-                if section.has_before(self.HIGHGRADE_DYS, 2):
-                    if section.has_before('no', 5) and section.has_before('evidence', 4):
+                if section.has_before(self.HIGHGRADE_DYS, window=2):
+                    if section.has_before('no', window=5) and section.has_before('evidence', window=4):
                         pass  # don't make false in case something else
-                    elif not section.has_before({'no', 'without', 'low'}, 3):
+                    elif not section.has_before({'no', 'without', 'low'}, window=3):
                         jar.dysplasia = True
 
             # ssp/ssa
@@ -610,28 +617,59 @@ class JarManager:
                 jar.add_ssa()
 
             # carcinoma
-            elif word.isin({
-                'carcinoma', 'carcinomas',
-                'adenocarcinoma', 'adenocarcinomas',
-                'cystadenocarcinoma', 'cystadenocarcinomas',
-                'carcinosarcoma', 'carcinosarcomas',
-                'sarcoma', 'sarcomas',
-                'melanoma', 'melanomas',
-            }):
-                jar.add_carcinoma()
-            elif word.isin({'neoplasm', 'neoplasms'}):
-                if section.has_before({'malignant'}, 2):
-                    jar.add_carcinoma()
-            elif word.isin({'tumor', 'tumors'}):
-                if section.has_before({'adenomatoid', 'adenomatoidal'}):
-                    jar.add_carcinoma()
-                elif section.has_before({'carcinoid', 'carcinoidal'}):
-                    jar.add_carcinoma()
+            elif self.is_cancer(word, section):
+                i = 0
+                for i, prev_word in enumerate(section.iter_prev_words()):
+                    if prev_word.isin({
+                        'malignant', 'cell', 'squamous', 'papillary',
+                        'small', 'giant', '&', 'and', 'spindle',
+                        'solid', 'bronchiolo', 'alveolar', 'bronchiolo-alveolar',
+                        'fibromatous', 'liposarcoma', 'stromal', 'myomatous',
+                        'nevi', 'amelanotic', 'nevus', 'epithelioid', 'medullary',
+                        'acinar', 'signet', 'ring', 'mucinous', 'adenosquamous',
+                        'mucoepidermoid', 'adenomatoid', 'adenomatoidal',
+                        'carinoid', 'carcinoidal',
+                    }):
+                        continue
+                    else:
+                        break
+                carcinoma = ' '.join(str(w) for w in section[section.curr - i: section.curr + 1])
+                if section.has_before({
+                    'suspicious', 'apparent', 'apparently', 'appears',
+                    'consistent', 'compatible', 'comparable', 'favor',
+                    'favors', 'or', 'appearing', 'likely', 'presumed',
+                    'probable', 'suspect', 'suspected', 'typical',
+                }, window=i + 3, offset=i):
+                    jar.add_carcinoma(carcinoma, AssertionStatus.POSSIBLE)
+                elif section.has_before({'no', 'not'}, window=i + 3, offset=i):
+                    jar.add_carcinoma(carcinoma, AssertionStatus.NEGATED)
+                else:
+                    jar.add_carcinoma(carcinoma, AssertionStatus.DEFINITE)
 
         logger.info('Adenoma Count for Jar: {}'.format(jar.adenoma_count))
         self.jars.append(jar)
         self.curr_jar = len(self.jars) - 1
         return self
+
+    def is_cancer(self, word, section):
+        if word.isin({
+            'carcinoma', 'carcinomas',
+            'adenocarcinoma', 'adenocarcinomas',
+            'adenoca', 'adenocas',
+            'cystadenocarcinoma', 'cystadenocarcinomas',
+            'carcinosarcoma', 'carcinosarcomas',
+            'sarcoma', 'sarcomas',
+            'melanoma', 'melanomas',  # TODO: only in rectum
+        }):
+            return True
+        elif word.isin({'neoplasm', 'neoplasms'}):
+            if section.has_before({'malignant'}, 2):
+                return True
+        elif word.isin({'tumor', 'tumors'}):
+            if section.has_before({'adenomatoid', 'adenomatoidal'}):
+                return True
+            elif section.has_before({'carcinoid', 'carcinoidal'}):
+                return True
 
     def get_current_jar(self):
         if self.curr_jar is not None:
@@ -914,6 +952,18 @@ class JarManager:
                 count += 1
         return count
 
+    def get_carcinoma_maybe_count(self, jar_count=True):
+        if not jar_count:
+            raise NotImplementedError('jar_count is False')
+        count = 0
+        for jar in self.jars:
+            if jar.carcinomas_maybe > 0:
+                count += 1
+        return count
+
+    def _exclude_colonic_sarcoma(self, jar: Jar):
+        return NotImplemented
+
 
 class PathSection:
     WORD_SPLIT_PATTERN = re.compile(r'([a-z]+|[0-9]+(?:\.[0-9]+)?)')
@@ -950,16 +1000,33 @@ class PathSection:
             self.curr = i
             yield section
 
-    def has_before(self, terms, window=5, allow_stop=True):
-        for word in reversed(self.section[max(self.curr - window, 0): self.curr]):
+    def __getitem__(self, item):
+        return self.section[item]
+
+    def iter_prev_words(self):
+        for word in reversed(self.section[0: self.curr]):
+            yield word
+
+    def has_before(self, terms, *, window=5, offset=0, allow_stop=True):
+        """
+        Example sentence: w0 w1 w2 w3 w4 w5
+        * If offset=2 and window=5, and current word is w5, we'll look at (w0, w1, and w2)
+
+        :param terms:
+        :param window: how far back to look
+        :param offset: skip this many
+        :param allow_stop:
+        :return:
+        """
+        for word in reversed(self.section[max(self.curr - window, 0): self.curr - offset]):
             if allow_stop and word.stop():
                 return False
             if word.isin(terms):
                 return word
         return False
 
-    def has_after(self, terms, window=5, allow_stop=True):
-        for word in self.section[self.curr + 1:min(self.curr + window + 1, len(self.section))]:
+    def has_after(self, terms, *, window=5, offset=0, allow_stop=True):
+        for word in self.section[self.curr + 1 + offset:min(self.curr + window + 1, len(self.section))]:
             if word.isin(terms):
                 return word
             if allow_stop and word.stop():  # punctuation after word

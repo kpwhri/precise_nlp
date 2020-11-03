@@ -18,3 +18,12 @@ class Location(Enum):
     DISTAL = 3
     RECTAL = 4
     UNKNOWN = 5
+
+
+class AssertionStatus(Enum):
+    UNKNOWN = -1
+    NEGATED = 0
+    IMPROBABLE = 1
+    POSSIBLE = 2
+    PROBABLE = 3
+    DEFINITE = 4
