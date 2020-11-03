@@ -82,6 +82,10 @@ class PathManager:
     def get_carcinoma_count(self, jar_count=True):
         return self.manager.get_carcinoma_count(jar_count=jar_count)
 
+    @jarreader
+    def get_carcinoma_maybe_count(self, jar_count=True):
+        return self.manager.get_carcinoma_maybe_count(jar_count=jar_count)
+
     @staticmethod
     def parse_jars(text):
         comment_pat = re.compile(r'comment(?:\W*\([A-Za-z]\))?:')

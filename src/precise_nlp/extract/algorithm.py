@@ -346,3 +346,7 @@ def get_sessile_serrated_adenoma(pm: PathManager, jar_count=True):
 
 def get_carcinomas(pm: PathManager, jar_count=True):
     return pm.get_carcinoma_count(jar_count=jar_count)
+
+
+def get_carcinomas_maybe(pm: PathManager, jar_count=True):
+    return pm.get_carcinoma_maybe_count(jar_count=jar_count)
