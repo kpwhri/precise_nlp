@@ -4,7 +4,7 @@ from loguru import logger
 
 from precise_nlp.extract.cspy import CspyManager
 from precise_nlp.extract.cspy.cspy import FindingVersion
-from precise_nlp.extract.path import PathManager
+from precise_nlp.extract.path.path_manager import PathManager
 from precise_nlp.const.enums import AdenomaCountMethod, Histology, Location
 
 

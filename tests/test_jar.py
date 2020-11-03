@@ -1,7 +1,5 @@
-import pytest
-
 from precise_nlp.const.enums import AssertionStatus
-from precise_nlp.extract.path import Jar, JarManager
+from precise_nlp.extract.path import JarManager
 
 
 def test_carcinoma_count():

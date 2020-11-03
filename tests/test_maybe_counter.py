@@ -1,6 +1,6 @@
 import pytest
 
-from precise_nlp.extract.path import MaybeCounter
+from precise_nlp.extract.maybe_counter import MaybeCounter
 
 
 def test_create_maybe():

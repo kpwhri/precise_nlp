@@ -32,7 +32,8 @@ from precise_nlp.extract.algorithm import get_adenoma_status, get_adenoma_histol
     get_adenoma_rectal, get_adenoma_unknown, get_villous_histology, has_dysplasia, get_sessile_serrated_adenoma, \
     get_carcinomas, get_carcinomas_maybe
 from precise_nlp.extract.cspy.cspy import CspyManager, FindingVersion
-from precise_nlp.extract.path import PathManager, MaybeCounter
+from precise_nlp.extract.path.path_manager import PathManager
+from precise_nlp.extract.maybe_counter import MaybeCounter
 from loguru import logger
 
 ITEMS = [
