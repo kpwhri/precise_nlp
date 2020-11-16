@@ -219,7 +219,7 @@ class JarManager:
         }):
             return True
         elif word.isin({'neoplasm', 'neoplasms'}):
-            if section.has_before({'malignant'}, 2):
+            if section.has_before({'malignant'}, window=2):
                 return True
         elif word.isin({'tumor', 'tumors'}):
             if section.has_before({'adenomatoid', 'adenomatoidal'}):

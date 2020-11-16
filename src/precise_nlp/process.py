@@ -13,7 +13,11 @@ except ModuleNotFoundError:
 
 import os
 
-import yaml
+try:
+    import yaml
+    YAML = True
+except ModuleNotFoundError:
+    YAML = False
 from collections import defaultdict, Counter
 from jsonschema import validate
 
@@ -493,11 +497,11 @@ def process_config():
         if conf_fp.endswith('json'):
             config = json.load(conf)
         elif conf_fp.endswith('yaml'):
+            if not YAML:
+                raise ValueError('Yaml package not available. Please install.')
             config = yaml.load(conf)
         else:
-            raise ValueError('Unrecognized config file type "{}". Expected "yaml" or "json".'.format(
-                os.path.splitext(conf_fp)[-1]
-            ))
+            raise ValueError(f'Unrecognized config file type "{os.path.splitext(conf_fp)[-1]}". Expected "yaml" or "json".')
     validate(config, schema)
     process(**config)
 
