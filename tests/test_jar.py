@@ -55,6 +55,9 @@ def test_carcinoma_count_non_colon():
 
 @pytest.mark.parametrize(('text', 'situ_count', 'maybe_situ_count'), [
     ('adenocarcinoma in situ', 1, 0),
+    ('possible adenocarcinoma in situ', 1, 0),  # not included in set of words
+    ('probable adenocarcinoma in situ', 0, 1),
+    ('probable adenocarcinoma in-situ', 0, 1),
 ])
 def test_carcinoma_in_situ(text, situ_count, maybe_situ_count):
     jm = JarManager()

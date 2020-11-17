@@ -20,13 +20,15 @@ class PathSection:
         pindex = 0
         section = self._preprocess(section)
         self.section = []
+        word_index = 0
         for m in self.WORD_SPLIT_PATTERN.finditer(self._preprocess(section)):
             if pword:  # get intervening punctuation
-                self.section.append(PathWord(pword, section[pindex:m.start()]))
+                self.section.append(PathWord(pword, word_index, section[pindex:m.start()]))
+                word_index += 1
             pword = section[m.start(): m.end()]
             pindex = m.end()
         if pword:
-            self.section.append(PathWord(pword, section[pindex:]))
+            self.section.append(PathWord(pword, word_index, section[pindex:]))
         self.curr = None
 
     def _preprocess(self, text):

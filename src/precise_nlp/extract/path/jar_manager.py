@@ -174,6 +174,7 @@ class JarManager:
 
             # carcinoma
             elif self.is_cancer(word, section):
+                is_in_situ = False
                 i = 0
                 for i, prev_word in enumerate(section.iter_prev_words()):
                     if prev_word.isin({  # other cancer terms
@@ -193,18 +194,22 @@ class JarManager:
                         continue
                     else:
                         break
-                carcinoma = ' '.join(str(w) for w in section[section.curr - i: section.curr + 1])
+                in_situ_incr = 0
+                if w := section.has_after({'situ', 'in-situ'}, window=2):
+                    is_in_situ = True
+                    in_situ_incr = w.index - section.curr
+                carcinoma = ' '.join(str(w) for w in section[section.curr - i: section.curr + 1 + in_situ_incr])
                 if section.has_before({
                     'suspicious', 'apparent', 'apparently', 'appears',
                     'consistent', 'compatible', 'comparable', 'favor',
                     'favors', 'or', 'appearing', 'likely', 'presumed',
                     'probable', 'suspect', 'suspected', 'typical',
                 }, window=i + 3, offset=i):  # enough to skip an 'of', 'for', or 'with'
-                    jar.add_carcinoma(carcinoma, AssertionStatus.POSSIBLE)
+                    jar.add_carcinoma(carcinoma, AssertionStatus.POSSIBLE, in_situ=is_in_situ)
                 elif section.has_before({'no', 'not'}, window=i + 3, offset=i):
-                    jar.add_carcinoma(carcinoma, AssertionStatus.NEGATED)
+                    jar.add_carcinoma(carcinoma, AssertionStatus.NEGATED, in_situ=is_in_situ)
                 else:
-                    jar.add_carcinoma(carcinoma, AssertionStatus.DEFINITE)
+                    jar.add_carcinoma(carcinoma, AssertionStatus.DEFINITE, in_situ=is_in_situ)
 
         logger.info('Adenoma Count for Jar: {}'.format(jar.adenoma_count))
         self.jars.append(jar)
@@ -546,7 +551,7 @@ class JarManager:
         """
         if jar.is_rectal():
             return True
-        for cancer, status in jar.carcinoma_list:
+        for cancer, status, in_situ in jar.carcinoma_list:
             if 'melanoma' not in cancer:
                 return True
         return False

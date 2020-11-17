@@ -4,9 +4,10 @@ import re
 class PathWord:
     STOP = re.compile(r'.*([:.]).*')
 
-    def __init__(self, word, spl=''):
+    def __init__(self, word, index, spl=''):
         self.word = word
         self.spl = spl  # not part of object itself
+        self.index = index
 
     def isin(self, lst):
         return self.word in lst

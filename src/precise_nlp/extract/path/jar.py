@@ -89,13 +89,19 @@ class Jar:
     def add_ssp(self):
         self.sessile_serrated_adenoma_count += 1
 
-    def add_carcinoma(self, term=None, status=AssertionStatus.UNKNOWN):
+    def add_carcinoma(self, term=None, status=AssertionStatus.UNKNOWN, in_situ=False):
         if status in {AssertionStatus.UNKNOWN, AssertionStatus.DEFINITE}:
-            self.carcinomas += 1
+            if in_situ:
+                self.carcinomas_in_situ += 1
+            else:
+                self.carcinomas += 1
         elif status in {AssertionStatus.PROBABLE, AssertionStatus.POSSIBLE,
                         AssertionStatus.IMPROBABLE}:
-            self.carcinomas_maybe += 1
-        self.carcinoma_list.append((term, status))
+            if in_situ:
+                self.carcinomas_in_situ_maybe += 1
+            else:
+                self.carcinomas_maybe += 1
+        self.carcinoma_list.append((term, status, in_situ))
 
     def is_colon(self):
         return len(set(self.locations)) == len(set(StandardTerminology.filter_colon(self.locations)))
