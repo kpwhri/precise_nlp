@@ -446,10 +446,10 @@ class JarManager:
         section = PathSection(section)
         for word in section:
             if word.isin(self.DYSPLASIA):
-                if section.has_before(self.HIGHGRADE_DYS, 2):
-                    if section.has_before('no', 5) and section.has_before('evidence', 4):
+                if section.has_before(self.HIGHGRADE_DYS, window=2):
+                    if section.has_before('no', window=5) and section.has_before('evidence', window=4):
                         pass  # don't make false in case something else
-                    elif not section.has_before({'no', 'without', 'low'}, 3):
+                    elif not section.has_before({'no', 'without', 'low'}, window=3):
                         jar.dysplasia = True
                         return
 
