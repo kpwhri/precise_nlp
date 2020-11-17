@@ -40,7 +40,7 @@ def test_multiple_locations():
     assert len(lst) == 3
     for f in lst:
         assert f.count == 1
-    assert not {loc for f in lst for loc in f.locations} - {'ascending', 'descending', 'cecum'}
+    assert {loc.location[0] for f in lst for loc in f.locations} == {'ascending', 'descending', 'cecum'}
 
 
 @pytest.mark.parametrize(('sections', 'expected_count'), [

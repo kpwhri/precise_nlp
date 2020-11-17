@@ -27,7 +27,7 @@ def test_hemoccult(text, exp):
     ('Indications: Something here  Patient Active Problem List: ',
      [' Something here  ']),
     ('COLONOSCOPY EXAM\n  \nIndications: Something here  Indications: More here',
-     [' Something here    More here']),
+     [' Something here  ', ' More here']),
 ])
 def test_indication_section(text, exp):
     assert list(CspyManager(text)._get_section(CspyManager.INDICATIONS)) == exp
