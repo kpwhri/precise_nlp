@@ -176,15 +176,19 @@ class JarManager:
             elif self.is_cancer(word, section):
                 i = 0
                 for i, prev_word in enumerate(section.iter_prev_words()):
-                    if prev_word.isin({
+                    if prev_word.isin({  # other cancer terms
                         'malignant', 'cell', 'squamous', 'papillary',
-                        'small', 'giant', '&', 'and', 'spindle',
+                        'small', 'giant', 'spindle',
                         'solid', 'bronchiolo', 'alveolar', 'bronchiolo-alveolar',
                         'fibromatous', 'liposarcoma', 'stromal', 'myomatous',
                         'nevi', 'amelanotic', 'nevus', 'epithelioid', 'medullary',
                         'acinar', 'signet', 'ring', 'mucinous', 'adenosquamous',
                         'mucoepidermoid', 'adenomatoid', 'adenomatoidal',
                         'carinoid', 'carcinoidal',
+                    }):
+                        continue
+                    elif prev_word.isin({  # stopwords
+                        '&', 'and', '/',
                     }):
                         continue
                     else:
@@ -195,7 +199,7 @@ class JarManager:
                     'consistent', 'compatible', 'comparable', 'favor',
                     'favors', 'or', 'appearing', 'likely', 'presumed',
                     'probable', 'suspect', 'suspected', 'typical',
-                }, window=i + 3, offset=i):
+                }, window=i + 3, offset=i):  # enough to skip an 'of', 'for', or 'with'
                     jar.add_carcinoma(carcinoma, AssertionStatus.POSSIBLE)
                 elif section.has_before({'no', 'not'}, window=i + 3, offset=i):
                     jar.add_carcinoma(carcinoma, AssertionStatus.NEGATED)
