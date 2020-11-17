@@ -46,3 +46,5 @@ JAR_SESSILE_SERRATED_ADENOMA_COUNT = 'jar_sessile_serrated_adenoma_cnt'
 # number of carcinomas
 CARCINOMA_COUNT = 'jar_carcinoma_count'
 CARCINOMA_MAYBE_COUNT = 'jar_carcinoma_maybe_count'
+CARCINOMA_IN_SITU_COUNT = 'jar_carcinoma_in_situ_count'
+CARCINOMA_IN_SITU_MAYBE_COUNT = 'jar_carcinoma_in_situ_maybe_cnt'

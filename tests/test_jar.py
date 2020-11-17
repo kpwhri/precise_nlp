@@ -1,3 +1,5 @@
+import pytest
+
 from precise_nlp.const.enums import AssertionStatus
 from precise_nlp.extract.path import JarManager
 
@@ -49,3 +51,13 @@ def test_carcinoma_count_non_colon():
     jm.cursory_diagnosis_examination(text)
     assert jm.get_carcinoma_maybe_count() == 0
     assert jm.get_carcinoma_count() == 0
+
+
+@pytest.mark.parametrize(('text', 'situ_count', 'maybe_situ_count'), [
+    ('adenocarcinoma in situ', 1, 0),
+])
+def test_carcinoma_in_situ(text, situ_count, maybe_situ_count):
+    jm = JarManager()
+    jm.cursory_diagnosis_examination(text)
+    assert jm.get_carcinoma_in_situ_count() == situ_count
+    assert jm.get_carcinoma_in_situ_maybe_count() == maybe_situ_count

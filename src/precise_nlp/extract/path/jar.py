@@ -24,6 +24,8 @@ class Jar:
         self.carcinomas = 0
         self.carcinoma_list = []  # (name, assertion status)
         self.carcinomas_maybe = 0
+        self.carcinomas_in_situ = 0
+        self.carcinomas_in_situ_maybe = 0
 
     def pprint(self):
         return '''Kinds: {}

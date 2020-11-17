@@ -521,6 +521,24 @@ class JarManager:
                 count += 1
         return count
 
+    def get_carcinoma_in_situ_count(self, jar_count=True):
+        if not jar_count:
+            raise NotImplementedError('jar_count is False')
+        count = 0
+        for jar in self.jars:
+            if jar.is_colon() and jar.carcinomas_in_situ > 0 and self.not_only_colonic_melanoma(jar):
+                count += 1
+        return count
+
+    def get_carcinoma_in_situ_maybe_count(self, jar_count=True):
+        if not jar_count:
+            raise NotImplementedError('jar_count is False')
+        count = 0
+        for jar in self.jars:
+            if jar.is_colon() and jar.carcinomas_in_situ_maybe > 0 and self.not_only_colonic_melanoma(jar):
+                count += 1
+        return count
+
     def not_only_colonic_melanoma(self, jar: Jar):
         """
         Disallow sarcoma in the colon, only allow in rectum
