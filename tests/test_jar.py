@@ -58,6 +58,11 @@ def test_carcinoma_count_non_colon():
     ('possible adenocarcinoma in situ', 1, 0),  # not included in set of words
     ('probable adenocarcinoma in situ', 0, 1),
     ('probable adenocarcinoma in-situ', 0, 1),
+    ('in-situ squamous cell carcinoma', 1, 0),
+    ('in situ squamous cell carcinoma', 1, 0),
+    # the next two are made up to ensure 'in' is not skipped
+    ('probable signet ring squamous cell in situ carcinoma', 0, 1),
+    ('probable signet ring squamous cell in-situ carcinoma', 0, 1),
 ])
 def test_carcinoma_in_situ(text, situ_count, maybe_situ_count):
     jm = JarManager()

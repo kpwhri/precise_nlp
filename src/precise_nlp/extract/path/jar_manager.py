@@ -190,8 +190,13 @@ class JarManager:
                         continue
                     elif prev_word.isin({  # stopwords
                         '&', 'and', '/',
+                        'in',  # 'in' is included for 'in situ'
                     }):
                         continue
+                    elif prev_word.isin({
+                        'situ', 'in-situ',
+                    }):
+                        is_in_situ = True
                     else:
                         break
                 in_situ_incr = 0
