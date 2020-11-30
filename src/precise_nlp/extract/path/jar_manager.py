@@ -2,6 +2,7 @@ from loguru import logger
 
 from precise_nlp.const import patterns
 from precise_nlp.const.enums import AssertionStatus, AdenomaCountMethod, Histology
+from precise_nlp.extract.path import terms
 from precise_nlp.extract.path.jar import Jar
 from precise_nlp.extract.path.polyp_size import PolypSize
 from precise_nlp.extract.maybe_counter import MaybeCounter
@@ -177,16 +178,7 @@ class JarManager:
                 is_in_situ = False
                 i = 0
                 for i, prev_word in enumerate(section.iter_prev_words()):
-                    if prev_word.isin({  # other cancer terms
-                        'malignant', 'cell', 'squamous', 'papillary',
-                        'small', 'giant', 'spindle',
-                        'solid', 'bronchiolo', 'alveolar', 'bronchiolo-alveolar',
-                        'fibromatous', 'liposarcoma', 'stromal', 'myomatous',
-                        'nevi', 'amelanotic', 'nevus', 'epithelioid', 'medullary',
-                        'acinar', 'signet', 'ring', 'mucinous', 'adenosquamous',
-                        'mucoepidermoid', 'adenomatoid', 'adenomatoidal',
-                        'carinoid', 'carcinoidal',
-                    }):
+                    if prev_word.isin(terms.OTHER_CANCER_TERMS):
                         continue
                     elif prev_word.isin({  # stopwords
                         '&', 'and', '/',
@@ -204,12 +196,8 @@ class JarManager:
                     is_in_situ = True
                     in_situ_incr = w.index - section.curr
                 carcinoma = ' '.join(str(w) for w in section[section.curr - i: section.curr + 1 + in_situ_incr])
-                if section.has_before({
-                    'suspicious', 'apparent', 'apparently', 'appears',
-                    'consistent', 'compatible', 'comparable', 'favor',
-                    'favors', 'or', 'appearing', 'likely', 'presumed',
-                    'probable', 'suspect', 'suspected', 'typical',
-                }, window=i + 3, offset=i):  # enough to skip an 'of', 'for', or 'with'
+                if section.has_before(terms.SEER_MAYBE, window=i + 3, offset=i):
+                    # enough of a window to skip an 'of', 'for', or 'with'
                     jar.add_carcinoma(carcinoma, AssertionStatus.POSSIBLE, in_situ=is_in_situ)
                 elif section.has_before({'no', 'not'}, window=i + 3, offset=i):
                     jar.add_carcinoma(carcinoma, AssertionStatus.NEGATED, in_situ=is_in_situ)
@@ -227,18 +215,23 @@ class JarManager:
             'adenocarcinoma', 'adenocarcinomas',
             'adenoca', 'adenocas',
             'cystadenocarcinoma', 'cystadenocarcinomas',
-            'carcinosarcoma', 'carcinosarcomas',
-            'sarcoma', 'sarcomas',
             'melanoma', 'melanomas',  # TODO: only in rectum
         }):
             return True
-        elif word.isin({'neoplasm', 'neoplasms'}):
-            if section.has_before({'malignant'}, window=2):
+        elif word.endswith('sarcoma', 'sarcomas', 'fibroma', 'fibromas'):
+            return True
+        elif word.isin({'neoplasm', 'neoplasms',
+                        'myoepithelioma', 'myoepitheliomas',
+                        'epithelioma', 'epitheliomas'}):
+            if section.has_before({'malignant'}, window=3):
                 return True
         elif word.isin({'tumor', 'tumors'}):
-            if section.has_before({'adenomatoid', 'adenomatoidal'}):
+            if section.has_before({
+                'adenomatoid', 'adenomatoidal',
+                'carcinoid', 'carcinoidal', 'cell',
+            }):
                 return True
-            elif section.has_before({'carcinoid', 'carcinoidal'}):
+            if section.has_before({'malignant'}, window=3):
                 return True
 
     def get_current_jar(self):

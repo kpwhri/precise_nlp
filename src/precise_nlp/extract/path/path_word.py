@@ -11,6 +11,9 @@ class PathWord:
 
     def isin(self, lst):
         return self.word in lst
+    
+    def endswith(self, *s: str):
+        return self.word.endswith(s)
 
     def matches(self, pattern):
         return pattern.match(self.word)
