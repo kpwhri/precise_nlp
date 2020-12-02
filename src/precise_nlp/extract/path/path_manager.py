@@ -81,16 +81,16 @@ class PathManager:
         return self.manager.get_carcinoma_count(jar_count=jar_count)
 
     @jarreader
-    def get_carcinoma_maybe_count(self, jar_count=True):
-        return self.manager.get_carcinoma_maybe_count(jar_count=jar_count)
+    def get_carcinoma_maybe_count(self, jar_count=True, probable_only=False):
+        return self.manager.get_carcinoma_maybe_count(jar_count=jar_count, probable_only=probable_only)
 
     @jarreader
     def get_carcinoma_in_situ_count(self, jar_count=True):
         return self.manager.get_carcinoma_in_situ_count(jar_count=jar_count)
 
     @jarreader
-    def get_carcinoma_in_situ_maybe_count(self, jar_count=True):
-        return self.manager.get_carcinoma_in_situ_maybe_count(jar_count=jar_count)
+    def get_carcinoma_in_situ_maybe_count(self, jar_count=True, probable_only=False):
+        return self.manager.get_carcinoma_in_situ_maybe_count(jar_count=jar_count, probable_only=probable_only)
 
     @staticmethod
     def parse_jars(text):

@@ -29,13 +29,14 @@ from precise_nlp.const.path import HIGHGRADE_DYSPLASIA, ANY_VILLOUS, VILLOUS, TU
     ADENOMA_UNKNOWN, PROXIMAL_VILLOUS, DISTAL_VILLOUS, RECTAL_VILLOUS, UNKNOWN_VILLOUS, SIMPLE_HIGHGRADE_DYSPLASIA, \
     JAR_ADENOMA_COUNT_ADV, JAR_ADENOMA_DISTAL_COUNT, JAR_ADENOMA_PROXIMAL_COUNT, JAR_ADENOMA_RECTAL_COUNT, \
     JAR_ADENOMA_UNKNOWN_COUNT, JAR_SESSILE_SERRATED_ADENOMA_COUNT, CARCINOMA_COUNT, CARCINOMA_MAYBE_COUNT, \
-    CARCINOMA_IN_SITU_MAYBE_COUNT, CARCINOMA_IN_SITU_COUNT
+    CARCINOMA_IN_SITU_MAYBE_COUNT, CARCINOMA_IN_SITU_COUNT, CARCINOMA_POSSIBLE_COUNT, CARCINOMA_IN_SITU_POSSIBLE_COUNT
 from precise_nlp.const.enums import Location
 from precise_nlp.doc_parser import parse_file
 from precise_nlp.extract.algorithm import get_adenoma_status, get_adenoma_histology, get_highgrade_dysplasia, \
     get_adenoma_count, has_large_adenoma, get_adenoma_count_advanced, get_adenoma_distal, get_adenoma_proximal, \
     get_adenoma_rectal, get_adenoma_unknown, get_villous_histology, has_dysplasia, get_sessile_serrated_adenoma, \
-    get_carcinomas, get_carcinomas_maybe, get_carcinomas_in_situ, get_carcinomas_in_situ_maybe
+    get_carcinomas, get_carcinomas_maybe, get_carcinomas_in_situ, get_carcinomas_in_situ_maybe, \
+    get_carcinomas_in_situ_possible, get_carcinomas_possible
 from precise_nlp.extract.cspy.cspy import CspyManager, FindingVersion
 from precise_nlp.extract.path.path_manager import PathManager
 from precise_nlp.extract.maybe_counter import MaybeCounter
@@ -152,8 +153,10 @@ def process_text(path_text='', cspy_text='', cspy_finding_version=FindingVersion
             JAR_SESSILE_SERRATED_ADENOMA_COUNT: get_sessile_serrated_adenoma(pm, jar_count=True),
             CARCINOMA_COUNT: get_carcinomas(pm, jar_count=True),
             CARCINOMA_MAYBE_COUNT: get_carcinomas_maybe(pm, jar_count=True),
+            CARCINOMA_POSSIBLE_COUNT: get_carcinomas_possible(pm, jar_count=True),
             CARCINOMA_IN_SITU_COUNT: get_carcinomas_in_situ(pm, jar_count=True),
             CARCINOMA_IN_SITU_MAYBE_COUNT: get_carcinomas_in_situ_maybe(pm, jar_count=True),
+            CARCINOMA_IN_SITU_POSSIBLE_COUNT: get_carcinomas_in_situ_possible(pm, jar_count=True),
         })
     if cm:
         data.update({

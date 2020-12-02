@@ -349,6 +349,10 @@ def get_carcinomas(pm: PathManager, jar_count=True):
 
 
 def get_carcinomas_maybe(pm: PathManager, jar_count=True):
+    return pm.get_carcinoma_maybe_count(jar_count=jar_count, probable_only=True)
+
+
+def get_carcinomas_possible(pm: PathManager, jar_count=True):
     return pm.get_carcinoma_maybe_count(jar_count=jar_count)
 
 
@@ -357,4 +361,8 @@ def get_carcinomas_in_situ(pm: PathManager, jar_count=True):
 
 
 def get_carcinomas_in_situ_maybe(pm: PathManager, jar_count=True):
+    return pm.get_carcinoma_in_situ_maybe_count(jar_count=jar_count, probable_only=True)
+
+
+def get_carcinomas_in_situ_possible(pm: PathManager, jar_count=True):
     return pm.get_carcinoma_in_situ_maybe_count(jar_count=jar_count)

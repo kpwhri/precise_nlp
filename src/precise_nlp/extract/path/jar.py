@@ -92,7 +92,6 @@ class Jar:
         self.sessile_serrated_adenoma_count += 1
 
     def add_carcinoma(self, term=None, status=AssertionStatus.UNKNOWN, in_situ=False):
-        print(term, status, in_situ)
         if status in {AssertionStatus.UNKNOWN, AssertionStatus.DEFINITE}:
             if in_situ:
                 self.carcinomas_in_situ += 1
