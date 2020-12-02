@@ -196,11 +196,13 @@ class JarManager:
                     is_in_situ = True
                     in_situ_incr = w.index - section.curr
                 carcinoma = ' '.join(str(w) for w in section[section.curr - i: section.curr + 1 + in_situ_incr])
-                if section.has_before(terms.SEER_MAYBE, window=i + 3, offset=i):
+                if section.has_before(terms.CANCER_SEER_MAYBE, window=i + 3, offset=i):
                     # enough of a window to skip an 'of', 'for', or 'with'
-                    jar.add_carcinoma(carcinoma, AssertionStatus.POSSIBLE, in_situ=is_in_situ)
-                elif section.has_before({'no', 'not'}, window=i + 3, offset=i):
+                    jar.add_carcinoma(carcinoma, AssertionStatus.PROBABLE, in_situ=is_in_situ)
+                elif section.has_before(terms.CANCER_NEGATION_TERMS, window=i + 3, offset=i):
                     jar.add_carcinoma(carcinoma, AssertionStatus.NEGATED, in_situ=is_in_situ)
+                elif section.has_before(terms.CANCER_MAYBE_TERMS, window=i + 3, offset=i):
+                    jar.add_carcinoma(carcinoma, AssertionStatus.POSSIBLE, in_situ=is_in_situ)
                 else:
                     jar.add_carcinoma(carcinoma, AssertionStatus.DEFINITE, in_situ=is_in_situ)
 
@@ -515,12 +517,16 @@ class JarManager:
                 count += 1
         return count
 
-    def get_carcinoma_maybe_count(self, jar_count=True):
+    def get_carcinoma_maybe_count(self, jar_count=True, probable_only=False):
         if not jar_count:
             raise NotImplementedError('jar_count is False')
         count = 0
         for jar in self.jars:
-            if jar.is_colon() and jar.carcinomas_maybe > 0 and self.not_only_colonic_melanoma(jar):
+            if not jar.is_colon() or not self.not_only_colonic_melanoma(jar):
+                continue
+            if jar.carcinomas_maybe:
+                count += 1
+            elif not probable_only and jar.carcinomas_possible > 0:
                 count += 1
         return count
 
@@ -533,12 +539,16 @@ class JarManager:
                 count += 1
         return count
 
-    def get_carcinoma_in_situ_maybe_count(self, jar_count=True):
+    def get_carcinoma_in_situ_maybe_count(self, jar_count=True, probable_only=False):
         if not jar_count:
             raise NotImplementedError('jar_count is False')
         count = 0
         for jar in self.jars:
-            if jar.is_colon() and jar.carcinomas_in_situ_maybe > 0 and self.not_only_colonic_melanoma(jar):
+            if not jar.is_colon() or not self.not_only_colonic_melanoma(jar):
+                continue
+            if jar.carcinomas_in_situ_maybe > 0:
+                count += 1
+            elif not probable_only and jar.carcinomas_in_situ_possible > 0:
                 count += 1
         return count
 

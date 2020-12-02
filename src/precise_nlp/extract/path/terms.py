@@ -31,7 +31,6 @@ OTHER_CANCER_TERMS = [
     'verrucous',
     'simplex',
     'composite',
-    'situ',
     'coli',
     'mucoepidermoid',
     'neuroendocrine',
@@ -74,7 +73,6 @@ OTHER_CANCER_TERMS = [
     'rhabdoid',
     'fibrosarcoma',
     'lg',
-    'in',
     'adenoma',
     'polyps',
     'mult',
@@ -145,9 +143,22 @@ OTHER_CANCER_TERMS = [
     'schneiderian',
 ]
 
-SEER_MAYBE = [
+CANCER_SEER_MAYBE = [
     'suspicious', 'apparent', 'apparently', 'appears',
     'consistent', 'compatible', 'comparable', 'favor',
-    'favors', 'or', 'appearing', 'likely', 'presumed',
-    'probable', 'suspect', 'suspected', 'typical',
+    'favors', 'or', 'appearing', 'likely', 'presumed', 'presumptive',
+    'presumably', 'presumedly', 'favored',  'suspecting',
+    'probable', 'suspect', 'suspected', 'typical', 'typically',
+]
+
+CANCER_NEGATION_TERMS = [
+    'no', 'not', 'unlikely', 'improbable', 'improbably',
+    'doubt', 'doubtful', 'doubted', 'unclear', 'preclude',
+    'precludes',
+]
+
+CANCER_MAYBE_TERMS = [  # identified with word embeddings of SEER terms
+    'possible', 'possibly', 'suggestive', 'versus',
+    'questionable', 'vs', 'v', 'surmise',
+    'suggesting', 'possibility',
 ]

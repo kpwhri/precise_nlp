@@ -24,8 +24,10 @@ class Jar:
         self.carcinomas = 0
         self.carcinoma_list = []  # (name, assertion status)
         self.carcinomas_maybe = 0
+        self.carcinomas_possible = 0
         self.carcinomas_in_situ = 0
         self.carcinomas_in_situ_maybe = 0
+        self.carcinomas_in_situ_possible = 0
 
     def pprint(self):
         return '''Kinds: {}
@@ -90,17 +92,22 @@ class Jar:
         self.sessile_serrated_adenoma_count += 1
 
     def add_carcinoma(self, term=None, status=AssertionStatus.UNKNOWN, in_situ=False):
+        print(term, status, in_situ)
         if status in {AssertionStatus.UNKNOWN, AssertionStatus.DEFINITE}:
             if in_situ:
                 self.carcinomas_in_situ += 1
             else:
                 self.carcinomas += 1
-        elif status in {AssertionStatus.PROBABLE, AssertionStatus.POSSIBLE,
-                        AssertionStatus.IMPROBABLE}:
+        elif status in {AssertionStatus.PROBABLE}:  # SEER maybe
             if in_situ:
                 self.carcinomas_in_situ_maybe += 1
             else:
                 self.carcinomas_maybe += 1
+        elif status in {AssertionStatus.POSSIBLE, AssertionStatus.IMPROBABLE}:
+            if in_situ:
+                self.carcinomas_in_situ_possible += 1
+            else:
+                self.carcinomas_possible += 1
         self.carcinoma_list.append((term, status, in_situ))
 
     def is_colon(self):

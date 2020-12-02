@@ -26,7 +26,7 @@ def test_carcinoma_value():
     jm.cursory_diagnosis_examination(text)
     jar = jm.get_current_jar()
     assert jar.carcinoma_list[0][0] == 'adenosquamous carcinoma'
-    assert jar.carcinoma_list[0][1] == AssertionStatus.POSSIBLE
+    assert jar.carcinoma_list[0][1] == AssertionStatus.PROBABLE
 
 
 def test_carcinoma_count_rectal_melanoma():
@@ -53,19 +53,20 @@ def test_carcinoma_count_non_colon():
     assert jm.get_carcinoma_count() == 0
 
 
-@pytest.mark.parametrize(('text', 'situ_count', 'maybe_situ_count'), [
-    ('adenocarcinoma in situ', 1, 0),
-    ('possible adenocarcinoma in situ', 1, 0),  # not included in set of words
-    ('probable adenocarcinoma in situ', 0, 1),
-    ('probable adenocarcinoma in-situ', 0, 1),
-    ('in-situ squamous cell carcinoma', 1, 0),
-    ('in situ squamous cell carcinoma', 1, 0),
+@pytest.mark.parametrize(('text', 'situ_count', 'maybe_situ_count', 'possible_situ_count'), [
+    ('adenocarcinoma in situ', 1, 0, 0),
+    ('possible adenocarcinoma in situ', 0, 0, 1),
+    ('probable adenocarcinoma in situ', 0, 1, 1),
+    ('probable adenocarcinoma in-situ', 0, 1, 1),
+    ('in-situ squamous cell carcinoma', 1, 0, 0),
+    ('in situ squamous cell carcinoma', 1, 0, 0),
     # the next two are made up to ensure 'in' is not skipped
-    ('probable signet ring squamous cell in situ carcinoma', 0, 1),
-    ('probable signet ring squamous cell in-situ carcinoma', 0, 1),
+    ('probable signet ring squamous cell in situ carcinoma', 0, 1, 1),
+    ('probable signet ring squamous cell in-situ carcinoma', 0, 1, 1),
 ])
-def test_carcinoma_in_situ(text, situ_count, maybe_situ_count):
+def test_carcinoma_in_situ(text, situ_count, maybe_situ_count, possible_situ_count):
     jm = JarManager()
     jm.cursory_diagnosis_examination(text)
     assert jm.get_carcinoma_in_situ_count() == situ_count
-    assert jm.get_carcinoma_in_situ_maybe_count() == maybe_situ_count
+    assert jm.get_carcinoma_in_situ_maybe_count(probable_only=True) == maybe_situ_count
+    assert jm.get_carcinoma_in_situ_maybe_count() == possible_situ_count
