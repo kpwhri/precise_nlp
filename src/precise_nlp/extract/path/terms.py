@@ -154,7 +154,7 @@ CANCER_SEER_MAYBE = [
 CANCER_NEGATION_TERMS = [
     'no', 'not', 'unlikely', 'improbable', 'improbably',
     'doubt', 'doubtful', 'doubted', 'unclear', 'preclude',
-    'precludes',
+    'precludes', 'cannot',
 ]
 
 CANCER_MAYBE_TERMS = [  # identified with word embeddings of SEER terms
