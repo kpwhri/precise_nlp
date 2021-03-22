@@ -4,6 +4,8 @@ import random
 import sys
 import warnings
 
+from precise_nlp.myio import fill_template
+
 try:
     import pandas as pd
 
@@ -186,7 +188,7 @@ def get_data(filetype, path, identifier=None, path_text=None, cspy_text=None, en
     :param encoding:
     :param count:
     :param filenames:
-    :param lookup_table:
+    :param lookup_table: csv file of identifier,cspyfile,pathfile
     :param requires_cspy_text:
     :param filetype:
     :param path:
@@ -208,7 +210,7 @@ def get_data(filetype, path, identifier=None, path_text=None, cspy_text=None, en
         if lookup_table:
             with open(lookup_table) as fh:
                 for line in fh:
-                    identifier, cspy_file, path_file = line.split(',')
+                    identifier, cspy_file, path_file = line.strip().split(',')
                     if limit and identifier not in limit:
                         continue
                     cspy_text = get_file_or_empty_string(path, cspy_file, encoding=encoding)
@@ -348,7 +350,7 @@ def process(data, truth=None, errors=None, output=None, outfile=None, preprocess
     fns = defaultdict(list)
     c = DataCounter()
     if outfile:
-        fh = open(outfile, 'w', newline='')
+        fh = open(fill_template(outfile), 'w', newline='')
     for i, (identifier, path_text, cspy_text, truth_values) in enumerate(get_data(**data, truth=truth)):
         if PANDAS and pd.isnull(path_text) or path_text is None:
             ve = ValueError('Text cannot be missing/none')
