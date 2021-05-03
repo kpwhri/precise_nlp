@@ -164,7 +164,7 @@ class JarManager:
                 if section.has_before(self.HIGHGRADE_DYS, window=2):
                     if section.has_before('no', window=5) and section.has_before('evidence', window=4):
                         pass  # don't make false in case something else
-                    elif not section.has_before({'no', 'without', 'low'}, window=3):
+                    elif not section.has_before({'no', 'without', 'low', 'negative'}, window=4):
                         jar.dysplasia = True
 
             # ssp/ssa
