@@ -213,13 +213,14 @@ class CspyManager:
 
     def _get_indications_from(self, iterator):
         indications = []
-        for sect in iterator:
-            if INDICATION_DIAGNOSTIC.matches(sect):
-                indications.append(Indication.DIAGNOSTIC)
-            elif INDICATION_SURVEILLANCE.matches(sect):
-                indications.append(Indication.SURVEILLANCE)
-            elif INDICATION_SCREENING.matches(sect):
-                indications.append(Indication.SCREENING)
+        for section in iterator:
+            for sect in re.split(r'\.\s+', section):  # sentence split for negation scope
+                if INDICATION_DIAGNOSTIC.matches(sect):
+                    indications.append(Indication.DIAGNOSTIC)
+                elif INDICATION_SURVEILLANCE.matches(sect):
+                    indications.append(Indication.SURVEILLANCE)
+                elif INDICATION_SCREENING.matches(sect):
+                    indications.append(Indication.SCREENING)
         return self._prioritize_indications(indications)
 
     def _get_indications_from_keys(self):

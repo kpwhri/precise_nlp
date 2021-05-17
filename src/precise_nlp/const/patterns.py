@@ -71,7 +71,10 @@ ibd = r'(ibd|\buc\b|ulcerative|crohn|inflammatory bowl pan colitis)'
 surveil = r'(surveillance|barrett)'
 INDICATION_DIAGNOSTIC = Pattern(f'({occult}|{occult2}|{abnormal}|{blood}|{anemia}|{diarrhea}'
                                 f'|{constip}|{change1}|{change2}|{ibs}|{mass}'
-                                f'|{pain}|{weight}|{mets}|{suspect})')
+                                f'|{pain}|{weight}|{mets}|{suspect})',
+                                negates=[r'\bno\b'])
 INDICATION_SURVEILLANCE = Pattern(f'({ibd}|{perhx}|{genetic}|{followup}'
-                                  f'|{surveil}|{personal_history})')
-INDICATION_SCREENING = Pattern(f'({screen}|{famhx})')
+                                  f'|{surveil}|{personal_history})',
+                                  negates=[r'\bno\b'])
+INDICATION_SCREENING = Pattern(f'({screen}|{famhx})',
+                               negates=[r'\bno\b'])
