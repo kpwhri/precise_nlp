@@ -60,7 +60,7 @@ weight = r'(weight|wt)\W*loss|anorexi'
 mets = r'metasta'
 suspect = r'suspect'
 colitis = r'colitis'
-divertic = r'divertic'
+# divertic = r'divertic'  # removed from diagnostic for internal inconsistency
 perhx = r'(?<!family\W)(?<!family)(((h[ist]+ory|hx)\W*of)|h\/o)'
 personal_history = r'personal history'
 famhx = r'family|famhx|mother|father|parent|sister|brother|son|daughter|\bFH\b'
@@ -71,10 +71,7 @@ ibd = r'(ibd|\buc\b|ulcerative|crohn|inflammatory bowl pan colitis)'
 surveil = r'(surveillance|barrett)'
 INDICATION_DIAGNOSTIC = Pattern(f'({occult}|{occult2}|{abnormal}|{blood}|{anemia}|{diarrhea}'
                                 f'|{constip}|{change1}|{change2}|{ibs}|{mass}'
-                                f'|{pain}|{weight}|{mets}|{suspect}|{divertic})')
+                                f'|{pain}|{weight}|{mets}|{suspect})')
 INDICATION_SURVEILLANCE = Pattern(f'({ibd}|{perhx}|{genetic}|{followup}'
-                                  f'|{surveil}|{personal_history})',
-                                  # negates=['father', 'mother', 'sister',
-                                  #          'parent', 'brother', 'son', 'daughter', 'family']
-                                  )
+                                  f'|{surveil}|{personal_history})')
 INDICATION_SCREENING = Pattern(f'({screen}|{famhx})')
