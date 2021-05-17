@@ -24,7 +24,14 @@ def test_prep(text, exp):
 
 @pytest.mark.parametrize(('text', 'exp'), [
     ('COLONOSCOPY     INDICATIONS: 2 adenomas found on screening flex sig    Procedure(s) performed: COLONOSCOPY    '
-     'Instrument: video colonoscope', Indication.SCREENING)
+     'Instrument: video colonoscope', Indication.SCREENING),
 ])
 def test_indication(text, exp):
     assert CspyManager(text).get_indication() == exp
+
+
+@pytest.mark.parametrize(('text', 'exp'), [
+    ('Screening for colonic neoplasia; diverticulitis of large intestine', Indication.SCREENING),
+])
+def test_indication_section(text, exp):
+    assert CspyManager(text)._get_indications_from([text]) == exp
