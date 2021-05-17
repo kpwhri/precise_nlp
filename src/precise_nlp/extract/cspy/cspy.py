@@ -22,7 +22,8 @@ class CspyManager:
     _Wn = r'[^\w\n]'
     TITLE_PATTERN = re.compile(
         rf'('
-        rf'[A-Z][a-z]+{_Wn}?(?:[A-Z][a-z]+{_Wn}?|and\s|of\s)*:'
+        rf'EGD Indications'
+        rf'|[A-Z][a-z]+{_Wn}?(?:[A-Z][a-z]+{_Wn}?|and\s|of\s)*:'
         rf'|[A-Z]+:'
         rf'|(?:Patient\W*)?(?:Active\W*)?\W*Problem List'
         rf')')
