@@ -8,16 +8,22 @@ NUMBER_PATTERN = re.compile(r'(\d{1,3}(?:\.\d{,2})?)', re.IGNORECASE)
 DEPTH_PATTERN = re.compile(r'(\d{1,3}(?:\.\d{,2})?)\W*[cm]m', re.IGNORECASE)
 # this should probably take the larger of the two options
 # instead of ignoring the second
-SIZE_PATTERN = re.compile(r'(?P<n1><?\d{1,3}(?:\.\d)?)'
-                          r'(?:\W*(x|to|-|and)\W*'
-                          r'(?P<n2>\d{1,3}(?:\.\d)?))?'
-                          r'\W*(?P<m>[cm]m)', re.IGNORECASE)
+SIZE_PATTERN = re.compile(
+    r'(?P<n1><?\d{1,3}(?:\.\d)?)'
+    r'(?:\W*(?:[cm]m))?'
+    r'(?:\W*(x|to|-|and)\W*'
+    r'(?P<n2>\d{1,3}(?:\.\d)?))?'
+    r'\W*(?P<m>[cm]m)',
+    re.IGNORECASE
+)
 IN_SIZE_PATTERN = re.compile(
-    r'(?:(?P<n1>\d{1,3}(?:\.\d)?)\W*(?:to|x|-|and)\W*)?(?P<n2>[<>]?\d{1,3}(?:\.\d)?)\W*(?P<m>[cm]m)\W*in\W*size',
+    r'(?:(?P<n1>\d{1,3}(?:\.\d)?)\W*(?:[cm]m)?\W*'
+    r'(?:to|x|-|and)\W*)?'
+    r'(?P<n2>[<>]?\d{1,3}(?:\.\d)?)\W*(?P<m>[cm]m)\W*in\W*size',
     re.IGNORECASE
 )
 AT_DEPTH_PATTERN = re.compile(
-    r'(?<!\d\W)(?<!\d\W\W)(?:at|@|to|from)'
+    r'(?<!\d\W)(?<!\d\W\W)(?<![cm]m\W)(?:at|@|to|from)'
     r'\W*(\d{1,3}(?:\.\d)?)\W*[cm]m(\W*(proximal\W*)?(from|to)\W*(the\W*)?an(al|us))?',
     re.IGNORECASE)
 CM_DEPTH_PATTERN = re.compile(r'(\d{2,3})\W*cm(\W*(proximal\W*)?(from|to)\W*(the\W*)?an(al|us))?', re.IGNORECASE)

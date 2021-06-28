@@ -3,6 +3,7 @@ import collections
 import pytest
 
 from precise_nlp.extract.cspy.finding_builder import FindingBuilder
+from precise_nlp.extract.cspy.naive_finding import NaiveFinding
 
 
 def test_single_polyp():
@@ -78,3 +79,14 @@ def test_merge_split_findings():
         assert finding.size == exp_size
         assert finding.location == exp_loc
         assert finding.removal
+
+
+@pytest.mark.parametrize(('text', 'size', 'locations'), [
+    ('Polyp (15 mm) in the descending colon at 50 cm', 15, ('descending', 'sigmoid')),
+    ('Polyp (5 mm) In the distal sigmoid colon', 5, ('sigmoid', 'distal')),
+    ('Polyps (2 mm to 4 mm) In the ascending colon (polyps) and rectum (polyps)', 4, ('ascending', 'rectum')),
+])
+def test_extract_wag_polyps(text, size, locations):
+    finding = NaiveFinding.parse_finding(text)
+    assert finding.size == size
+    assert set(finding.locations) == set(locations)
