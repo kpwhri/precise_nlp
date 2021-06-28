@@ -33,7 +33,7 @@ class CspyManager:
     INDICATIONS = 'INDICATIONS'
     LOCATION_SPECIFIED = 'LOCATION_SPECIFIED'
     LABELS = {
-        FINDINGS: ['Findings', 'Impression', LOCATION_SPECIFIED],
+        FINDINGS: ['Findings', 'Impression', 'Impressions', LOCATION_SPECIFIED],
         INDICATIONS: ['INDICATIONS', 'Indications', 'Surveillance',
                       'Colonoscopy Indications',
                       ],
@@ -44,7 +44,7 @@ class CspyManager:
         self.title = ''
         self.sections = {}
         self._get_sections()
-        self._findings = self._get_findings(version=version)
+        self._findings = list(self._get_findings(version=version))
         if self._findings:
             self.num_polyps = sum(f.count for f in self._findings)
         else:
