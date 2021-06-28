@@ -70,3 +70,15 @@ def test_carcinoma_in_situ(text, situ_count, maybe_situ_count, possible_situ_cou
     assert jm.get_carcinoma_in_situ_count() == situ_count
     assert jm.get_carcinoma_in_situ_maybe_count(probable_only=True) == maybe_situ_count
     assert jm.get_carcinoma_in_situ_maybe_count() == possible_situ_count
+
+
+@pytest.mark.parametrize('text', [
+    'melanosis coli',
+    'negative for neoplasm',
+    'previous colon cancer',
+    # 'History of malignant neoplasm',  # not going to handle this right now; from other section
+])
+def test_negatives(text):
+    jm = JarManager()
+    jm.cursory_diagnosis_examination(text)
+    assert jm.get_carcinoma_count() == 0

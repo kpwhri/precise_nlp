@@ -5,6 +5,7 @@ import sys
 import warnings
 
 from precise_nlp.myio import fill_template
+from precise_nlp.preprocess.cspy_ocr import fix_ocr_problems
 
 try:
     import pandas as pd
@@ -298,6 +299,7 @@ def add_identifier(identifier, d, label, errors, value='fp'):
 def preprocess(text, requires_cleaning=None, spell_correction=None):
     if requires_cleaning:
         text = parse_file(text)
+        text = fix_ocr_problems(text)
     if spell_correction:
         pass
     return text

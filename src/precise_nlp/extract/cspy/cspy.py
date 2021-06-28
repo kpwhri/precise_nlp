@@ -214,7 +214,7 @@ class CspyManager:
     def _get_indications_from(self, iterator):
         indications = []
         for section in iterator:
-            for sect in re.split(r'\.\s+', section):  # sentence split for negation scope
+            for sect in re.split(r'[.*:]\s+', section):  # sentence split for negation scope
                 if INDICATION_DIAGNOSTIC.matches(sect):
                     indications.append(Indication.DIAGNOSTIC)
                 elif INDICATION_SURVEILLANCE.matches(sect):
@@ -222,6 +222,17 @@ class CspyManager:
                 elif INDICATION_SCREENING.matches(sect):
                     indications.append(Indication.SCREENING)
         return self._prioritize_indications(indications)
+
+    def get_indications_from_text_debug(self, text, ignore_negation=False):
+        if m := INDICATION_DIAGNOSTIC.matches(text, ignore_negation=ignore_negation):
+            return Indication.DIAGNOSTIC, m
+        elif m := INDICATION_SURVEILLANCE.matches(text, ignore_negation=ignore_negation):
+            return Indication.SURVEILLANCE, m
+        elif m := INDICATION_SCREENING.matches(text, ignore_negation=ignore_negation):
+            return Indication.SCREENING, m
+        elif m := re.search(r'\bdiverti\w+', text, re.I):
+            return Indication.UNKNOWN, m
+        return Indication.UNKNOWN, None
 
     def _get_indications_from_keys(self):
         return self._get_indications_from(self.sections.keys())
