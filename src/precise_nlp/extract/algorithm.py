@@ -141,7 +141,7 @@ def get_highgrade_dysplasia(specimens):
     :return:
     """
     dysplasia = re.compile(r'(high(\s*|-)?grade|severe)(\W*\w+)?\W+dysplas\w*', re.IGNORECASE)
-    prenegation = {'no', 'without'}
+    prenegation = {'no', 'without', 'negative'}
     return inspect([dysplasia], specimens, prenegation=prenegation,
                    terminate_on_negation=True)
 
