@@ -31,6 +31,8 @@ class PathManager:
 
     def _read_jars(self, **kwargs):
         for i, (name, sections) in enumerate(self.specs_dict.items()):
+            if not sections:  # default 'a' value needs to be skipped if it contains no content
+                continue
             # first section is diagnosis
             self.manager.cursory_diagnosis_examination(sections[0])
             # remaining sections are treated as a unit
@@ -121,6 +123,10 @@ class PathManager:
                 specimens_dict[x].append(text)
                 if comment:
                     specimens_dict[x].append(comment)
+        # setup variables
+        spec_letters = sorted(specimens_dict.keys())
+        first_letter = spec_letters[0]
+        second_letter = spec_letters[1] if len(spec_letters) > 1 else None
         # special cases
         if 'b' in specimens_dict \
                 and len(specimens_dict['a']) > len(specimens_dict['b']) \
@@ -137,8 +143,8 @@ class PathManager:
             else:
                 # retain intro section
                 specimens_dict['a'] = [' '.join(specimens_dict['a'][:2])] + specimens_dict['a'][2:]
-        elif 'received' in specimens_dict['a'][0] and len(specimens_dict['a'][0]) < 30:
-            specimens_dict['a'] = specimens_dict['a'][1:]
+        elif 'received' in specimens_dict[first_letter][0] and len(specimens_dict[first_letter][0]) < 30:
+            specimens_dict[first_letter] = specimens_dict[first_letter][1:]
         specimens_combined = [' '.join(spec) for spec in specimens_dict.values()]
         return specimens, specimens_combined, specimens_dict
 
