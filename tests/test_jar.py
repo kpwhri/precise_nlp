@@ -82,3 +82,13 @@ def test_negatives(text):
     jm = JarManager()
     jm.cursory_diagnosis_examination(text)
     assert jm.get_carcinoma_count() == 0
+
+
+def test_adenoma_jar_gte():
+    text = 'COLON, DESCENDING POLYPS, POLYPECTOMY.\n- Tubular adenomas'
+    jm = JarManager()
+    jm.cursory_diagnosis_examination(text)
+    maybe_counter = jm.get_adenoma_count()
+    assert maybe_counter.at_least is True
+    assert maybe_counter.greater_than is False
+    assert maybe_counter.count == 2
