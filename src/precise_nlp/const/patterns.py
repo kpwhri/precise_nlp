@@ -50,8 +50,9 @@ COLON_PREP_POST = Pattern(r'((?P<prep>{})\w*) (\w+ ){{0,2}}prepared colon'.forma
 
 isayo = r'\Wis\W*a\W*\d{2,3}\W*year\W*old'
 screen = r'(for|cancer)? screening'
-occult = r'positive\W*((hem)?[aeo]{1,2}cc?ult|\bfit\b|g?fobt)'
-occult2 = r'hem[aeo]{1,2}(cc?ult)? positive'
+occult = r'positive\W*((hem)?[aeo]{1,2}cc?ult|fit\b|g?fobt)'
+occult2 = r'(hem[aeo]{1,2}(cc?ult)?|\bfit) positive'
+occult3 = r'\bfit\W*stool\b'  # no mention of positive (might be over-specific)
 abnormal = r'abnormal'
 blood = r'blood|bleed|brb|hematochezia|melena|tarry'
 anemia = r'anemi(a|c)'
@@ -75,7 +76,7 @@ followup = r'follow\W*-?\W*up|self\/u'
 polyps = r'polyps'  # for SURVEILLANCE with negation?
 ibd = r'(ibd|\buc\b|ulcerative|crohn|inflammatory bowl pan colitis)'
 surveil = r'(surveillance|barrett)'
-INDICATION_DIAGNOSTIC = Pattern(f'({occult}|{occult2}|{abnormal}|{blood}|{anemia}|{diarrhea}'
+INDICATION_DIAGNOSTIC = Pattern(f'({occult}|{occult2}|{occult3}|{abnormal}|{blood}|{anemia}|{diarrhea}'
                                 f'|{constip}|{change1}|{change2}|{ibs}|{mass}'
                                 f'|{pain}|{weight}|{mets}|{suspect})',
                                 negates=[r'\bno\b'])

@@ -15,7 +15,7 @@ def test_personal_history():
     ('Indications: presents for an EGD for GERD.'
      ' Indications:  presents for a colonoscopy for positive occult blood testing.'
      '  Indications:  presents for an endoscopy for GERD, and a colonoscopy for positive occult blood testing.',
-     Indication.DIAGNOSTIC)
+     Indication.DIAGNOSTIC),
 ])
 def test_hemoccult(text, exp):
     assert CspyManager(text).get_indication() == exp
@@ -38,6 +38,8 @@ def test_indication_section(text, exp):
      Indication.UNKNOWN),
     ('INDICATIONS: family members with a history of colon cancer or polyps',
      Indication.SURVEILLANCE),
+    ('Indications: FIT + stool: 792.1 - R19.5', Indication.DIAGNOSTIC),
+    ('Indications: FIT positive', Indication.DIAGNOSTIC),
 ])
-def test_negated_indication(text, exp):
+def test_indications(text, exp):
     assert CspyManager(text).get_indication() == exp
