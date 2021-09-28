@@ -16,7 +16,9 @@ def test_extent(text, exp):
 @pytest.mark.parametrize(('text', 'exp'), [
     ('video colonoscope was inserted into the rectum and advanced through a well prepared colon '
      'to the cecum, as determined by seeing the ileocecal valve and the cecal tip.     Extent of '
-     'Procedure: cecum', Prep.ADEQUATE)
+     'Procedure: cecum', Prep.ADEQUATE),
+    ('fair preparation', Prep.INADEQUATE),
+    ('suboptimal preparation', Prep.INADEQUATE),
 ])
 def test_prep(text, exp):
     assert CspyManager(text).get_prep() == exp
