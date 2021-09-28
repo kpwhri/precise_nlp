@@ -47,6 +47,7 @@ COLON_PREP_PRE = Pattern(
     r'(((colon|bowel) )?prep\w+ (visualization )?(was )?(very )?(?P<prep>{})\w*)'.format(ColonPrep.REGEX)
 )
 COLON_PREP_POST = Pattern(r'((?P<prep>{})\w*) (\w+ ){{0,2}}prepared colon'.format(ColonPrep.REGEX))
+COLON_PREPARATION = Pattern(r'(?P<prep>{}) preparation'.format(ColonPrep.REGEX))
 
 isayo = r'\Wis\W*a\W*\d{2,3}\W*year\W*old'
 screen = r'(for|cancer)? screening'

@@ -6,7 +6,7 @@ from typing import Iterable
 
 from precise_nlp.const import patterns
 from precise_nlp.const.patterns import INDICATION_DIAGNOSTIC, INDICATION_SURVEILLANCE, INDICATION_SCREENING, \
-    PROCEDURE_EXTENT_COMPLETE, COLON_PREP_PRE, COLON_PREP_POST, PROCEDURE_EXTENT_INCOMPLETE
+    PROCEDURE_EXTENT_COMPLETE, COLON_PREP_PRE, COLON_PREP_POST, PROCEDURE_EXTENT_INCOMPLETE, COLON_PREPARATION
 from precise_nlp.extract.cspy.finding_builder import FindingBuilder, Finding
 from precise_nlp.extract.cspy.naive_finding import NaiveFinding
 from precise_nlp.extract.utils import Indication, Extent, \
@@ -265,7 +265,10 @@ class CspyManager:
         return Extent.UNKNOWN
 
     def get_prep(self):
-        m = COLON_PREP_PRE.matches(self.text) or COLON_PREP_POST.matches(self.text)
+        m = (COLON_PREP_PRE.matches(self.text)
+             or COLON_PREP_POST.matches(self.text)
+             or COLON_PREPARATION.matches(self.text)
+             )
         if m:
             res = m.groupdict('prep').lower()
             return ColonPrep.VALUES[res]
