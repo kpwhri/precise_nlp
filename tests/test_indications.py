@@ -31,3 +31,13 @@ def test_hemoccult(text, exp):
 ])
 def test_indication_section(text, exp):
     assert list(CspyManager(text)._get_section(CspyManager.INDICATIONS)) == exp
+
+
+@pytest.mark.parametrize(('text', 'exp'), [
+    ('INDICATIONS: no family members with a history of colon cancer or polyps',
+     Indication.UNKNOWN),
+    ('INDICATIONS: family members with a history of colon cancer or polyps',
+     Indication.SURVEILLANCE),
+])
+def test_negated_indication(text, exp):
+    assert CspyManager(text).get_indication() == exp
