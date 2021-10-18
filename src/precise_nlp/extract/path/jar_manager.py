@@ -129,6 +129,7 @@ class JarManager:
                     continue
                 num = section.has_after(self.NUMBER, window=2)
                 has_frags = section.has_before(self.FRAGMENTS, window=4)
+                one_polyp = section.has_after(self.POLYP, window=1)
                 if num and not num.spl.startswith(')'):
                     if section.has_after(self.FRAGMENTS, window=4):
                         num = False
@@ -140,6 +141,8 @@ class JarManager:
                     jar.add_adenoma_count(1, at_least=True)
                 elif num:  # identified number
                     jar.add_adenoma_count(self.NUMBER_CONVERT[str(num)])
+                elif one_polyp:
+                    jar.add_adenoma_count(1)
                 else:  # default case
                     jar.add_adenoma_count(1, greater_than=True)
 

@@ -4,7 +4,7 @@ from precise_nlp.extract.path.path_word import PathWord
 
 
 class PathSection:
-    WORD_SPLIT_PATTERN = re.compile(r'([a-z]+|[0-9]+(?:\.[0-9]+)?)')
+    WORD_SPLIT_PATTERN = re.compile(r'([a-z]+|[0-9]+(?:\.[0-9]+)?)', re.I)
     PREPROCESS = {re.escape(k) if esc else k: v for k, v, esc in (
         # 1 to use regex escape, 0 if you want to use a regex
         ('tubularadenoma', 'tubular adenoma', 1),
@@ -21,7 +21,7 @@ class PathSection:
         section = self._preprocess(section)
         self.section = []
         word_index = 0
-        for m in self.WORD_SPLIT_PATTERN.finditer(self._preprocess(section)):
+        for m in self.WORD_SPLIT_PATTERN.finditer(section):
             if pword:  # get intervening punctuation
                 self.section.append(PathWord(pword, word_index, section[pindex:m.start()]))
                 word_index += 1

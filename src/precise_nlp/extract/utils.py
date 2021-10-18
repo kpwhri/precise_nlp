@@ -137,7 +137,7 @@ class StandardTerminology:
     @classmethod
     def standardize_location(cls, el, colon_only=False):
         try:
-            return cls.LOCATIONS[el]
+            return cls.LOCATIONS[el.lower()]
         except KeyError:
             raise ValueError(f'Unknown location: {el}')
 
@@ -153,7 +153,7 @@ class StandardTerminology:
     @classmethod
     def histology(cls, item):
         try:
-            return cls.HISTOLOGY[item]
+            return cls.HISTOLOGY[item.lower()]
         except KeyError:
             raise ValueError(f'Unknown histology: {item}')
 
