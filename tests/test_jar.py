@@ -88,6 +88,9 @@ def test_negatives_carcinoma(text):
     ('Adenomatous polyp not identified', 0),
     ('Adenomatous polyp', 1),
     ('Negative for diagnostic features of sessile serrated adenoma, dysplasia or invasive malignancy (see comment)', 0),
+    ('Negative for diagnostic features of adenoma, dysplasia or invasive malignancy (see comment)', 0),
+    ('Negative for diagnostic features of dysplasia, adenoma or invasive malignancy (see comment)', 0),
+    ('Negative for diagnostic features of dysplasia, malignancy or adenoma (see comment)', 0),
 ])
 def test_negatives_adenoma(text, exp):
     jm = JarManager()
