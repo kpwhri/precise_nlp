@@ -52,6 +52,8 @@ class JarManager:
             return True
         elif section.has_before('r', window=5) and section.has_before('o', window=4):
             return True
+        elif section.has_after(['not', 'none', 'no'], window=2):
+            return True
         return False
 
     def _histology_negated(self, section):
