@@ -99,11 +99,15 @@ def test_negatives_adenoma(text, exp):
     assert jm.get_adenoma_count().count == exp
 
 
-def test_adenoma_jar_gte():
-    text = 'COLON, DESCENDING POLYPS, POLYPECTOMY.\n- Tubular adenomas'
+@pytest.mark.parametrize('text, count', [
+    ('COLON, DESCENDING POLYPS, POLYPECTOMY.\n- Tubular adenomas', 2),
+    # chart abstraction has the below as 2, but I'm not clear anymore
+    ('ASCENDING POLYPS, POLYPECTOMY:\n - Tubular adenoma, 2 of fragments.', 2),
+])
+def test_adenoma_jar_gte(text, count):
     jm = JarManager()
     jm.cursory_diagnosis_examination(text)
     maybe_counter = jm.get_adenoma_count()
     assert maybe_counter.at_least is True
     assert maybe_counter.greater_than is False
-    assert maybe_counter.count == 2
+    assert maybe_counter.count == count
