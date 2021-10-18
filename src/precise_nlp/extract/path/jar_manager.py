@@ -23,7 +23,7 @@ class JarManager:
              ]
     FRAGMENTS = ['segments', 'fragments', 'pieces']
     FRAGMENT = ['segment', 'fragment', 'piece']
-    ADENOMA_NEGATION = {'no', 'history', 'hx', 'sessile', 'without', 'r/o'}
+    ADENOMA_NEGATION = {'no', 'history', 'hx', 'sessile', 'without', 'r/o', 'negative'}
     HISTOLOGY_NEGATION = {'no', 'or'}
     HISTOLOGY_NEGATION_MOD = {'evidence', 'residual'}
     NUMBER = {'one', 'two', 'three', 'four', 'five', 'six',
@@ -42,6 +42,11 @@ class JarManager:
         self.curr_jar = None
 
     def _adenoma_negated(self, section):
+        """
+        Handle negation cases when looking specifically at adenoma.
+        :param section:
+        :return:
+        """
         if section.has_before(self.ADENOMA_NEGATION
                               ) and not section.has_before(StandardTerminology.HISTOLOGY, window=4):
             return True
@@ -52,6 +57,12 @@ class JarManager:
             return True
         elif section.has_before('r', window=5) and section.has_before('o', window=4):
             return True
+        elif section.has_before('negative', window=8) and section.has_before('for', window=7):
+            return True
+        elif section.has_before('or', window=3) and section.has_before('negative', window=10) \
+                and section.has_before('for', window=9):
+            return True
+
         elif section.has_after(['not', 'none', 'no'], window=2):
             return True
         return False
