@@ -133,7 +133,8 @@ class JarManager:
 
             elif (
                     word.isin(self.ADENOMAS) or
-                    (word.isin(self.ADENOMA) and section.has_after(self.POLYPS, window=1))
+                    (word.isin(self.ADENOMA) and section.has_after(self.POLYPS, window=1)) or
+                    (word.isin(self.ADENOMA) and jar.polyp_count.gt(1) == 1)
             ):
                 if self._is_sessile_serrated(section):
                     jar.add_ssa()
