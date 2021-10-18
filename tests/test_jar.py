@@ -78,10 +78,21 @@ def test_carcinoma_in_situ(text, situ_count, maybe_situ_count, possible_situ_cou
     'previous colon cancer',
     # 'History of malignant neoplasm',  # not going to handle this right now; from other section
 ])
-def test_negatives(text):
+def test_negatives_carcinoma(text):
     jm = JarManager()
     jm.cursory_diagnosis_examination(text)
     assert jm.get_carcinoma_count() == 0
+
+
+@pytest.mark.parametrize('text, exp', [
+    ('Adenomatous polyp not identified', 0),
+    ('Adenomatous polyp', 1),
+    ('Negative for diagnostic features of sessile serrated adenoma, dysplasia or invasive malignancy (see comment)', 0),
+])
+def test_negatives_adenoma(text, exp):
+    jm = JarManager()
+    jm.cursory_diagnosis_examination(text)
+    assert jm.get_adenoma_count().count == exp
 
 
 def test_adenoma_jar_gte():

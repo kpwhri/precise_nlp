@@ -9,8 +9,15 @@ class PathWord:
         self.spl = spl  # not part of object itself
         self.index = index
 
+    @property
+    def word_lc(self):
+        return self.word.lower()
+
+    def lower(self):
+        return self.word_lc
+
     def isin(self, lst):
-        return self.word in lst
+        return self.word_lc in lst
     
     def endswith(self, *s: str):
         return self.word.endswith(s)
@@ -27,11 +34,11 @@ class PathWord:
     def __eq__(self, other):
         """Does not rely on punctuation"""
         if isinstance(other, PathWord):
-            return self.word == other.word
-        return self.word == other
+            return self.word_lc == other.word_lc
+        return self.word_lc == other.lower()
 
     def __contains__(self, other):
-        return other in self.word
+        return other.lower() in self.word_lc
 
     def __str__(self):
         return self.word
