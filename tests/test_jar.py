@@ -87,6 +87,7 @@ def test_negatives_carcinoma(text):
 @pytest.mark.parametrize('text, exp', [
     ('Adenomatous polyp not identified', 0),
     ('Adenomatous polyp', 1),
+    # the next one is negation by way of 'sessile serrated adenoma'
     ('Negative for diagnostic features of sessile serrated adenoma, dysplasia or invasive malignancy (see comment)', 0),
     ('Negative for diagnostic features of adenoma, dysplasia or invasive malignancy (see comment)', 0),
     ('Negative for diagnostic features of dysplasia, adenoma or invasive malignancy (see comment)', 0),
