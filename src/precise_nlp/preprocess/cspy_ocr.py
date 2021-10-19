@@ -1,13 +1,19 @@
 import re
 
+from loguru import logger
+
 from precise_nlp.extract.cspy import CspyManager
 from precise_nlp.extract.utils import Indication
 
 
 def fix_ocr_problems(cspy_text):
     cspy = CspyManager(cspy_text)
-    if new_text := column_separated_indications(cspy, cspy_text):
-        cspy_text = new_text
+    try:
+        if new_text := column_separated_indications(cspy, cspy_text):
+            return new_text
+    except ValueError as e:
+        logger.exception(e)
+        logger.error('Issue identifying indication section.')
     return cspy_text
 
 
