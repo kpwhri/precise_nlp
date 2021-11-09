@@ -110,7 +110,8 @@ class Jar:
         self.carcinoma_list.append((term, status, in_situ))
 
     def is_colon(self):
-        return len(set(self.locations)) == len(set(StandardTerminology.filter_colon(self.locations)))
+        return ('colon' in self.kinds
+                or len(set(self.locations)) == len(set(StandardTerminology.filter_colon(self.locations))))
 
     def maybe_colon(self):
         return bool(set(StandardTerminology.filter_colon(self.locations)))

@@ -4,12 +4,15 @@ from precise_nlp.const.enums import AssertionStatus
 from precise_nlp.extract.path import JarManager
 
 
-def test_carcinoma_count():
-    text = 'adenosquamous carcinoma'
+@pytest.mark.parametrize('text, exp, exp_maybe', [
+    ('C. COLON, ASCENDING MASS, BIOPSY:\n- Adenocarcinoma.', 1, 0),
+    ('adenosquamous carcinoma', 1, 0),
+])
+def test_carcinoma_count(text, exp, exp_maybe):
     jm = JarManager()
     jm.cursory_diagnosis_examination(text)
-    assert jm.get_carcinoma_maybe_count() == 0
-    assert jm.get_carcinoma_count() == 1
+    assert jm.get_carcinoma_maybe_count() == exp_maybe
+    assert jm.get_carcinoma_count() == exp
 
 
 def test_carcinoma_maybe_count():
