@@ -118,7 +118,8 @@ class JarManager:
 
             elif word.isin(self.POLYPS):  # polyps/biopsies
                 if self._is_sessile_serrated(section):
-                    jar.add_ssp()
+                    if not section.has_before(self.ADENOMA_NEGATION):
+                        jar.add_ssp()
                     continue
                 elif found_polyp or section.has_before(self.ADENOMA_NEGATION):
                     continue
@@ -136,11 +137,10 @@ class JarManager:
                     (word.isin(self.ADENOMA) and section.has_after(self.POLYPS, window=1)) or
                     (word.isin(self.ADENOMA) and jar.polyp_count.gt(1) == 1)
             ):
+                if self._adenoma_negated(section):
+                    continue
                 if self._is_sessile_serrated(section):
                     jar.add_ssa()
-                    continue
-                elif self._adenoma_negated(section):
-                    continue
                 num = section.has_after(self.NUMBER, window=2)
                 has_frags = section.has_before(self.FRAGMENTS, window=4)
                 one_polyp = section.has_after(self.POLYP, window=1)
@@ -161,10 +161,10 @@ class JarManager:
                     jar.add_adenoma_count(1, greater_than=True)
 
             elif word.isin(self.ADENOMA):
-                if self._is_sessile_serrated(section):
-                    jar.add_ssa()
-                elif not self._adenoma_negated(section):
-                    if section.has_before(self.FRAGMENTS, window=4):
+                if not self._adenoma_negated(section):
+                    if self._is_sessile_serrated(section):
+                        jar.add_ssa()
+                    elif section.has_before(self.FRAGMENTS, window=4):
                         jar.add_adenoma_count(1, at_least=True)
                     else:
                         jar.add_adenoma_count(1)

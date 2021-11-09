@@ -99,6 +99,16 @@ def test_negatives_adenoma(text, exp):
     assert jm.get_adenoma_count().count == exp
 
 
+@pytest.mark.parametrize('text, exp', [
+    ('Negative for diagnostic features of sessile serrated adenoma, dysplasia or invasive malignancy (see comment)', 0),
+
+])
+def test_negatives_ssp(text, exp):
+    jm = JarManager()
+    jm.cursory_diagnosis_examination(text)
+    assert jm.get_sessile_serrated_count() == exp
+
+
 @pytest.mark.parametrize('text, count', [
     ('COLON, DESCENDING POLYPS, POLYPECTOMY.\n- Tubular adenomas', 2),
     # chart abstraction has the below as 2, but I'm not clear anymore
