@@ -1,6 +1,7 @@
 from precise_nlp.const.enums import AssertionStatus
 from precise_nlp.extract.path.polyp_size import PolypSize
 from precise_nlp.extract.maybe_counter import MaybeCounter
+from precise_nlp.extract.polarity_counter import PolarityCounter
 from precise_nlp.extract.utils import depth_to_location, StandardTerminology
 
 
@@ -18,7 +19,7 @@ class Jar:
         self.locations = []
         self.histologies = []
         self.polyp_size = []
-        self.dysplasia = False
+        self.dysplasia = PolarityCounter()
         self.depth = None
         self.sessile_serrated_adenoma_count = 0
         self.carcinomas = 0
@@ -188,3 +189,6 @@ class Jar:
 
     def add_adenoma_count(self, count=1, greater_than=False, at_least=False):
         self.adenoma_count.add(count, greater_than, at_least)
+
+    def add_dysplasia(self, *, positive=0, negative=0):
+        self.dysplasia.add(positive=positive, negative=negative)

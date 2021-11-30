@@ -183,9 +183,12 @@ class JarManager:
             elif word.isin(self.DYSPLASIA):
                 if section.has_before(self.HIGHGRADE_DYS, window=2):
                     if section.has_before('no', window=5) and section.has_before('evidence', window=4):
+                        jar.add_dysplasia(negative=1)
                         pass  # don't make false in case something else
-                    elif not section.has_before({'no', 'without', 'low', 'negative'}, window=4):
-                        jar.dysplasia = True
+                    elif section.has_before({'no', 'without', 'low', 'negative'}, window=4):
+                        jar.add_dysplasia(negative=1)
+                    else:
+                        jar.add_dysplasia(positive=1)
 
             # ssp/ssa
             elif word.isin({'ssp', 'ssps'}):
@@ -513,9 +516,20 @@ class JarManager:
                     unknown += 1
         return total, proximal, distal, rectal, unknown
 
+    def get_any_dysplasia(self):
+        has_negative = False
+        for jar in self.jars:
+            if jar.dysplasia.positive > 0:
+                return 1
+            elif jar.dysplasia.negative > 0:
+                has_negative = True
+        if has_negative:
+            return 0
+        return 99
+
     def has_dysplasia(self):
         for jar in self.jars:
-            if jar.dysplasia:
+            if jar.dysplasia.positive > 0:
                 return True
         return False
 

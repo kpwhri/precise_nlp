@@ -225,3 +225,11 @@ class PathManager:
         :return: True if any jar contains dysplasia
         """
         return self.manager.has_dysplasia()
+
+    @jarreader
+    def get_dysplasia(self):
+        """
+        Get dysplasia value.
+        :return:
+        """
+        return self.manager.get_any_dysplasia()
