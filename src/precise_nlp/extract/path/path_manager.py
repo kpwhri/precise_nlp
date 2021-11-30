@@ -99,11 +99,18 @@ class PathManager:
         comment_pat = re.compile(r'comment(?:\W*\([A-Za-z]\))?:')
         specimens = [x.lower() for x in re.split(r'(?<!\()\W[A-Z]\)', text)]
         specimens_dict = defaultdict(list)
-        it = iter(['A'] + re.split(
+        str_split = re.split(  # split on parenthesis separator: 'A)'
             r'(?:^|[^a-zA-Z0-9_(])'
             r'([A-Z](?:\D?(?:and|-|,|&)\D?[A-Z])*)(?:\d(?:-\d)?)?\)',
             text
-        ))
+        )
+        if len(str_split) == 1:  # split on period separator: 'A.'
+            str_split = re.split(
+                r'(?:^|[^a-zA-Z0-9_(])'
+                r'([A-Z](?:\D?(?:and|-|,|&)\D?[A-Z])*)(?:\d(?:-\d)?)?\.',
+                text
+            )
+        it = iter(['A'] + str_split)
         for x in it:
             comment = None
             x = x.lower()
