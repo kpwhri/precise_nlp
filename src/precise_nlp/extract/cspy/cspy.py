@@ -209,18 +209,27 @@ class CspyManager:
         return None
 
     def _get_indications_from_indications_section(self):
+        """
+        2021-11-30: Adding keys as well
+        :return:
+        """
         return self._get_indications_from(self._get_section(self.INDICATIONS))
+
+    def _get_indications(self, section):
+        indications = []
+        for sect in re.split(r'[.*:]\s+', section):  # sentence split for negation scope
+            if INDICATION_DIAGNOSTIC.matches(sect):
+                indications.append(Indication.DIAGNOSTIC)
+            elif INDICATION_SURVEILLANCE.matches(sect):
+                indications.append(Indication.SURVEILLANCE)
+            elif INDICATION_SCREENING.matches(sect):
+                indications.append(Indication.SCREENING)
+        return indications
 
     def _get_indications_from(self, iterator):
         indications = []
         for section in iterator:
-            for sect in re.split(r'[.*:]\s+', section):  # sentence split for negation scope
-                if INDICATION_DIAGNOSTIC.matches(sect):
-                    indications.append(Indication.DIAGNOSTIC)
-                elif INDICATION_SURVEILLANCE.matches(sect):
-                    indications.append(Indication.SURVEILLANCE)
-                elif INDICATION_SCREENING.matches(sect):
-                    indications.append(Indication.SCREENING)
+            indications += self._get_indications(section)
         return self._prioritize_indications(indications)
 
     def get_indications_from_text_debug(self, text, ignore_negation=False):
@@ -235,7 +244,18 @@ class CspyManager:
         return Indication.UNKNOWN, None
 
     def _get_indications_from_keys(self):
-        return self._get_indications_from(self.sections.keys())
+        """
+        Get indications from section keys. If key is positive, the value will
+            be considered as well (but limit to 100 characters -- don't want full note).
+        :return:
+        """
+        indications = []
+        for key, value in self.sections.items():
+            curr_indications = self._get_indications(key)
+            if curr_indications:
+                curr_indications += self._get_indications(' '.join(value)[:100])
+            indications += curr_indications
+        return self._prioritize_indications(indications)
 
     def _get_indications_from_header(self):
         """Look at entire header section for indication language"""
@@ -249,10 +269,20 @@ class CspyManager:
             return self._get_indications_from([self.text[:m.start()]])
 
     def get_indication(self):
+        """
+        Find indications in 2 phases:
+        1. Look in indications section + headers
+            a. If header matches, look in associated value (section text) as well
+        2. Look in entire header section for relevant values.
+        :return:
+        """
+        indications = []
         if ind := self._get_indications_from_indications_section():
-            return ind
+            indications.append(ind)
         if ind := self._get_indications_from_keys():
-            return ind
+            indications.append(ind)
+        if indications:
+            return self._prioritize_indications(indications)
         if ind := self._get_indications_from_header():
             return ind
         return Indication.UNKNOWN
