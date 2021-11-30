@@ -13,7 +13,11 @@ B. COLON, TRANSVERSE POLYP, POLYPECTOMY:
 
 C. COLON, DESCENDING POLYP, POLYPECTOMY:
 - Tubular adenoma.''', 4
-     )
+     ),
+    ('A. COLON, TRANSVERSE POLYPS, POLYPECTOMY:\n- Tubular adenoma, 1 fragment.', 1),
+    ('A. COLON, TRANSVERSE POLYPS, POLYPECTOMY:\n- Tubular adenoma, | fragment.', 1),
+    ('POLYPS: adenoma', 1),
+    ('A. COLON, TRANSVERSE POLYPS, POLYPECTOMY:\n- Tubular adenoma, 1 of 5 fragments.', 1),
 ])
 def test_adenoma_count(text, exp):
     assert PathManager(text).get_adenoma_count().count == exp
