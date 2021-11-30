@@ -144,7 +144,8 @@ class JarManager:
                 num = section.has_after(self.NUMBER, window=2)
                 has_frags = section.has_before(self.FRAGMENTS, window=4)
                 one_polyp = section.has_after(self.POLYP, window=1)
-                if num and not num.spl.startswith(')'):
+                if num and not num.spl.startswith(')') and not num == '1':
+                    # `not num == 1` will allow 'tubular adenoma 1 of 5 fragments
                     if section.has_after(self.FRAGMENTS, window=4):
                         num = False
                 if not num:
@@ -157,6 +158,8 @@ class JarManager:
                     jar.add_adenoma_count(self.NUMBER_CONVERT[str(num)])
                 elif one_polyp:
                     jar.add_adenoma_count(1)
+                elif word.isin(self.ADENOMA) and jar.polyp_count.gt(1) == 1:
+                    jar.add_adenoma_count(1, at_least=True)
                 else:  # default case
                     jar.add_adenoma_count(1, greater_than=True)
 
