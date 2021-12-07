@@ -102,9 +102,10 @@ def split_maybe_counters(data):
     return res
 
 
-def process_text(path_text='', cspy_text='', cspy_finding_version=FindingVersion.BROAD):
+def process_text(path_text='', cspy_text='',
+                 cspy_finding_version=FindingVersion.BROAD, cspy_extent_search_all=False):
     pm = PathManager(path_text)
-    cm = CspyManager(cspy_text, version=cspy_finding_version)
+    cm = CspyManager(cspy_text, version=cspy_finding_version, cspy_extent_search_all=cspy_extent_search_all)
     data = {}
     if pm:
         specs, specs_combined, specs_dict = PathManager.parse_jars(path_text)
@@ -344,7 +345,7 @@ class DataCounter:
 
 
 def process(data, truth=None, errors=None, output=None, outfile=None, preprocessing=None,
-            cspy_precise_finding_version=False):
+            cspy_precise_finding_version=False, cspy_extent_search_all=False):
     # how to parse cspy document
     cspy_finding_version = FindingVersion.PRECISE if cspy_precise_finding_version else FindingVersion.BROAD
     score = defaultdict(lambda: [0, 0, 0, 0])  # TP, FP, FN, TN
@@ -364,7 +365,10 @@ def process(data, truth=None, errors=None, output=None, outfile=None, preprocess
                                    **dict(preprocessing.get('all', dict()), **preprocessing.get('path', dict())))
             cspy_text = preprocess(cspy_text,
                                    **dict(preprocessing.get('all', dict()), **preprocessing.get('cspy', dict())))
-        res = process_text(path_text, cspy_text, cspy_finding_version=cspy_finding_version)
+        res = process_text(path_text, cspy_text,
+                           cspy_finding_version=cspy_finding_version,
+                           cspy_extent_search_all=cspy_extent_search_all,
+                           )
 
         if outfile and i == 0:
             header = ['row', 'identifier']  # header
@@ -499,7 +503,8 @@ def process_config():
             'outfile': {
                 'type': 'string'
             },
-            'cspy_precise_finding_version': {'type': 'boolean'}
+            'cspy_precise_finding_version': {'type': 'boolean'},
+            'cspy_extent_search_all': {'type': 'boolean'}
         }
     }
     conf_fp = sys.argv[1]
@@ -511,7 +516,9 @@ def process_config():
                 raise ValueError('Yaml package not available. Please install.')
             config = yaml.load(conf)
         else:
-            raise ValueError(f'Unrecognized config file type "{os.path.splitext(conf_fp)[-1]}". Expected "yaml" or "json".')
+            raise ValueError(
+                f'Unrecognized config file type "{os.path.splitext(conf_fp)[-1]}". Expected "yaml" or "json".'
+            )
     validate(config, schema)
     process(**config)
 

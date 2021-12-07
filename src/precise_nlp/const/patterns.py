@@ -52,6 +52,9 @@ PROCEDURE_EXTENT_INCOMPLETE = Pattern(
     rf'|(cecum|term\w* ileum|ileum|ileal|ile\w+ cecal valve|append\w* orifice) ((was|were|is|are) )?not {visualized}'
     r')'
 )
+PROCEDURE_EXTENT_ALL = Pattern(
+    r'\b(cecum|term\w* ileum|ile\w+ cecal valve|append\w* orifi\w+)\b'
+)
 
 # COLON PREP PATTERNS
 COLON_PREP_PRE = Pattern(

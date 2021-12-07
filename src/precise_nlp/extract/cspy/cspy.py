@@ -7,7 +7,7 @@ from typing import Iterable
 from precise_nlp.const import patterns
 from precise_nlp.const.patterns import INDICATION_DIAGNOSTIC, INDICATION_SURVEILLANCE, INDICATION_SCREENING, \
     PROCEDURE_EXTENT_COMPLETE, COLON_PREP_PRE, COLON_PREP_POST, PROCEDURE_EXTENT_INCOMPLETE, COLON_PREPARATION, \
-    REMOVE_SCREENING, PROCEDURE_EXTENT_INCOMPLETE_PRE
+    REMOVE_SCREENING, PROCEDURE_EXTENT_INCOMPLETE_PRE, PROCEDURE_EXTENT_ALL
 from precise_nlp.extract.cspy.finding_builder import FindingBuilder, Finding
 from precise_nlp.extract.cspy.naive_finding import NaiveFinding
 from precise_nlp.extract.utils import Indication, Extent, \
@@ -40,7 +40,7 @@ class CspyManager:
                       ],
     }
 
-    def __init__(self, text, version=FindingVersion.BROAD):
+    def __init__(self, text, *, version=FindingVersion.BROAD, cspy_extent_search_all=False):
         self.text = text
         self.title = ''
         self.sections = {}
@@ -52,7 +52,7 @@ class CspyManager:
             self.num_polyps = 0
         self._indication = self.get_indication()
         self._prep = self.get_prep()
-        self._extent = self.get_extent()
+        self._extent = self.get_extent(cspy_extent_search_all=cspy_extent_search_all)
 
     @property
     def indication(self):
@@ -296,13 +296,16 @@ class CspyManager:
             return ind
         return Indication.UNKNOWN
 
-    def get_extent(self):
+    def get_extent(self, *, cspy_extent_search_all=False):
         if PROCEDURE_EXTENT_INCOMPLETE_PRE.matches(self.text):
             return Extent.INCOMPLETE
         elif PROCEDURE_EXTENT_COMPLETE.matches(self.text):
             return Extent.COMPLETE
         elif PROCEDURE_EXTENT_INCOMPLETE.matches(self.text):
             return Extent.INCOMPLETE
+        if cspy_extent_search_all:
+            if PROCEDURE_EXTENT_ALL.matches(self.text):
+                return Extent.COMPLETE
         return Extent.UNKNOWN
 
     def get_prep(self):
