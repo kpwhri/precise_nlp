@@ -21,3 +21,18 @@ from precise_nlp.extract.utils import Extent
 ])
 def test_extent(text, exp):
     assert CspyManager(text).get_extent() == exp
+
+
+@pytest.mark.parametrize(('text', 'exp'), [
+    ('appendiceal orifice', Extent.COMPLETE),
+    ('ileocecal valve', Extent.COMPLETE),
+    ('ileo-cecal valve', Extent.COMPLETE),
+    ('cecum', Extent.COMPLETE),
+    ('cecum not seen', Extent.INCOMPLETE),
+    ('terminal ileum not visualized', Extent.INCOMPLETE),
+    ('terminal ileum', Extent.COMPLETE),
+    ('did not visualize the ileocecal valve', Extent.INCOMPLETE),
+    ('did not visualize the appendiceal orifice', Extent.INCOMPLETE),
+])
+def test_extent_search_all(text, exp):
+    assert CspyManager(text).get_extent(cspy_extent_search_all=True) == exp
