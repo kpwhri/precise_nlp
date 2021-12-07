@@ -6,7 +6,8 @@ from typing import Iterable
 
 from precise_nlp.const import patterns
 from precise_nlp.const.patterns import INDICATION_DIAGNOSTIC, INDICATION_SURVEILLANCE, INDICATION_SCREENING, \
-    PROCEDURE_EXTENT_COMPLETE, COLON_PREP_PRE, COLON_PREP_POST, PROCEDURE_EXTENT_INCOMPLETE, COLON_PREPARATION
+    PROCEDURE_EXTENT_COMPLETE, COLON_PREP_PRE, COLON_PREP_POST, PROCEDURE_EXTENT_INCOMPLETE, COLON_PREPARATION, \
+    REMOVE_SCREENING
 from precise_nlp.extract.cspy.finding_builder import FindingBuilder, Finding
 from precise_nlp.extract.cspy.naive_finding import NaiveFinding
 from precise_nlp.extract.utils import Indication, Extent, \
@@ -218,11 +219,19 @@ class CspyManager:
     def _get_indications(self, section):
         indications = []
         for sect in re.split(r'[.*:]\s+', section):  # sentence split for negation scope
-            if INDICATION_DIAGNOSTIC.matches(sect):
+            if m := REMOVE_SCREENING.matches(sect):
+                logger.debug(f'INDICATIONS: Removing Screening {m.group()}.')
+                # remove these terms from further consideration
+                sect = REMOVE_SCREENING.sub('', sect)
+                indications.append(Indication.SCREENING)
+            if m := INDICATION_DIAGNOSTIC.matches(sect):
+                logger.debug(f'INDICATIONS: Found Diagnostic {m.group()}.')
                 indications.append(Indication.DIAGNOSTIC)
-            elif INDICATION_SURVEILLANCE.matches(sect):
+            elif m := INDICATION_SURVEILLANCE.matches(sect):
+                logger.debug(f'INDICATIONS: Found Surveillance {m.group()}.')
                 indications.append(Indication.SURVEILLANCE)
-            elif INDICATION_SCREENING.matches(sect):
+            elif m := INDICATION_SCREENING.matches(sect):
+                logger.debug(f'INDICATIONS: Found Screening {m.group()}.')
                 indications.append(Indication.SCREENING)
         return indications
 
