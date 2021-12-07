@@ -4,6 +4,7 @@ from regexify.pattern import Pattern
 
 from precise_nlp.extract.utils import ColonPrep
 
+# POLYP PATTERNS
 NUMBER_PATTERN = re.compile(r'(\d{1,3}(?:\.\d{,2})?)', re.IGNORECASE)
 DEPTH_PATTERN = re.compile(r'(\d{1,3}(?:\.\d{,2})?)\W*[cm]m', re.IGNORECASE)
 # this should probably take the larger of the two options
@@ -30,27 +31,36 @@ CM_DEPTH_PATTERN = re.compile(r'(\d{2,3})\W*cm(\W*(proximal\W*)?(from|to)\W*(the
 SSPLIT = re.compile(r'\.(?=\s)')
 NO_PERIOD_SENT = re.compile(r'\n\W*[A-Z0-9]')  # no ignorecase!
 
-visualized = r'(identif|reach|visuali|seen)\w*'
+# EXTENT PATTERNS
+visualized = r'(identif|reach|visuali|seen?)\w*'
+
+PROCEDURE_EXTENT_INCOMPLETE_PRE = Pattern(
+    rf'(failed to|unable to|not) {visualized} (the )?(cec[ua]|(term\w* )?ileum|ile[oa]|append\w* orifice)'
+)
 PROCEDURE_EXTENT_COMPLETE = Pattern(
     r'('
-    r'extent of (th(e|is) )?procedure ((the )?colon )?(cecum|term\w* ileum)'
-    rf'|(cecal location|cecum|(terminal )?ileum|append\w* orifice) ((was|were|is) )?{visualized}'
+    r'extent of (th(e|is) )?procedure (the )?(colon )?(cecum|term\w* ileum)'
+    rf'|(cecal \w+|cecum|(term\w* )?ileum|append\w* orifice) ((was|were|is|are) )?{visualized}'
     r'|to (the )?(\w+ )?cecum'
-    r'|advanced into the final \d{1,2} cm of the term\w* ileum'
+    r'|advanced into the final \d{1,2} cm of the (term\w* )?ileum'
     rf'|{visualized} (the )?(ileo[\w-]* valve|(terminal )?ileum|append\w+ orifice)'
     r')'
 )
 PROCEDURE_EXTENT_INCOMPLETE = Pattern(
     r'('
-    r'extent of procedure'
+    r'extent of (the )?procedure'
+    rf'|(cecum|term\w* ileum|ileum|ileal|ile\w+ cecal valve|append\w* orifice) ((was|were|is|are) )?not {visualized}'
     r')'
 )
+
+# COLON PREP PATTERNS
 COLON_PREP_PRE = Pattern(
     r'(((colon|bowel) )?prep\w+ (visualization )?(was )?(very )?(?P<prep>{})\w*)'.format(ColonPrep.REGEX)
 )
 COLON_PREP_POST = Pattern(r'((?P<prep>{})\w*) (\w+ ){{0,2}}prepared colon'.format(ColonPrep.REGEX))
 COLON_PREPARATION = Pattern(r'(?P<prep>{}) preparation'.format(ColonPrep.REGEX))
 
+# INDICATION PATTERNS
 isayo = r'\Wis\W*a\W*\d{2,3}\W*year\W*old'
 screen = r'(for|cancer)? screening'
 occult = r'positive\W*((hem)?[aeo]{1,2}cc?ult|fit\b|g?fobt)'

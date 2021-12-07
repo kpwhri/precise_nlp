@@ -7,7 +7,7 @@ from typing import Iterable
 from precise_nlp.const import patterns
 from precise_nlp.const.patterns import INDICATION_DIAGNOSTIC, INDICATION_SURVEILLANCE, INDICATION_SCREENING, \
     PROCEDURE_EXTENT_COMPLETE, COLON_PREP_PRE, COLON_PREP_POST, PROCEDURE_EXTENT_INCOMPLETE, COLON_PREPARATION, \
-    REMOVE_SCREENING
+    REMOVE_SCREENING, PROCEDURE_EXTENT_INCOMPLETE_PRE
 from precise_nlp.extract.cspy.finding_builder import FindingBuilder, Finding
 from precise_nlp.extract.cspy.naive_finding import NaiveFinding
 from precise_nlp.extract.utils import Indication, Extent, \
@@ -297,7 +297,9 @@ class CspyManager:
         return Indication.UNKNOWN
 
     def get_extent(self):
-        if PROCEDURE_EXTENT_COMPLETE.matches(self.text):
+        if PROCEDURE_EXTENT_INCOMPLETE_PRE.matches(self.text):
+            return Extent.INCOMPLETE
+        elif PROCEDURE_EXTENT_COMPLETE.matches(self.text):
             return Extent.COMPLETE
         elif PROCEDURE_EXTENT_INCOMPLETE.matches(self.text):
             return Extent.INCOMPLETE
