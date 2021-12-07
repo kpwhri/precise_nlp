@@ -224,4 +224,5 @@ IndicationPriority = (
 class Extent(Enum):
     COMPLETE = 0
     INCOMPLETE = 1
+    POSSIBLE_COMPLETE = 98
     UNKNOWN = 99

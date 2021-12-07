@@ -40,19 +40,27 @@ class CspyManager:
                       ],
     }
 
-    def __init__(self, text, *, version=FindingVersion.BROAD, cspy_extent_search_all=False):
+    def __init__(self, text, *, version=FindingVersion.BROAD, cspy_extent_search_all=False, test_skip_parse=False):
+        """
+
+        :param text:
+        :param version:
+        :param cspy_extent_search_all:
+        :param test_skip_parse: for testing: don't run all the algorithms (expected that one would be run manually)
+        """
         self.text = text
         self.title = ''
         self.sections = {}
         self._get_sections()
-        self._findings = list(self._get_findings(version=version))
-        if self._findings:
-            self.num_polyps = sum(f.count for f in self._findings)
-        else:
-            self.num_polyps = 0
-        self._indication = self.get_indication()
-        self._prep = self.get_prep()
-        self._extent = self.get_extent(cspy_extent_search_all=cspy_extent_search_all)
+        if not test_skip_parse:
+            self._findings = list(self._get_findings(version=version))
+            if self._findings:
+                self.num_polyps = sum(f.count for f in self._findings)
+            else:
+                self.num_polyps = 0
+            self._indication = self.get_indication()
+            self._prep = self.get_prep()
+            self._extent = self.get_extent(cspy_extent_search_all=cspy_extent_search_all)
 
     @property
     def indication(self):
@@ -303,9 +311,10 @@ class CspyManager:
             return Extent.COMPLETE
         elif PROCEDURE_EXTENT_INCOMPLETE.matches(self.text):
             return Extent.INCOMPLETE
-        if cspy_extent_search_all:
-            if PROCEDURE_EXTENT_ALL.matches(self.text):
+        if PROCEDURE_EXTENT_ALL.matches(self.text):
+            if cspy_extent_search_all:
                 return Extent.COMPLETE
+            return Extent.POSSIBLE_COMPLETE
         return Extent.UNKNOWN
 
     def get_prep(self):
