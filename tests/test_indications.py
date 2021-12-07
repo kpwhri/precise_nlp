@@ -46,6 +46,7 @@ def test_indication_section(text, exp):
     ('Indications: Ulcerative Proctitis: 556.2 - K51.20\nOccult blood in stool: 792.1 - R19.5', Indication.DIAGNOSTIC),
     ('Indications: Ulcerative Proctitis: 556.2 - K51.20\nOccult Blood: 792.1 - R19.5', Indication.DIAGNOSTIC),
     ('Indications: Ulcerative proctitis: 556.2 - K51.20\nOccult Blood: 792.1 - R19.5', Indication.DIAGNOSTIC),
+    ('Indications: Personal', Indication.UNKNOWN),
 ])
 def test_indications(text, exp):
     assert CspyManager(text).get_indication() == exp
