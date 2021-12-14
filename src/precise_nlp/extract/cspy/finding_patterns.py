@@ -5,9 +5,8 @@ from regexify.pattern import Pattern
 from precise_nlp.extract.cspy.finding_builder import Finding
 
 FINDING_PATTERNS = {
-    'POLYP_SIZE_IN_LOCATION': Pattern(
-        r'polyp (?P<size>\d+) mm in the (?P<location>\w+)'
-    )
+    'POLYP_SIZE_IN_LOCATION': Pattern(r'polyp (?P<size>\d+) mm in the (?P<location>\w+) colon'),
+    'POLYP_SIZE_3W_LOCATION': Pattern(r'polyp (?P<size>\d+) mm (\w+ ){0,3}(?P<location>\w+) colon'),
 }
 
 
