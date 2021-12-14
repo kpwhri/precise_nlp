@@ -86,7 +86,9 @@ class CspyManager:
         """
         curr = None
         prev_line_item = None
-        for el in self.TITLE_PATTERN.split(self.text):
+        # don't allow 'Polyp:' to create a new section
+        text = re.sub(r'(polyps?)\W*?:', r'\1 ', self.text, flags=re.I)
+        for el in self.TITLE_PATTERN.split(text):
             if not el.strip():  # skip empty lines
                 continue
             elif (el.endswith(':') or 'Problem List' in el) and not prev_line_item:
@@ -341,6 +343,8 @@ class CspyManager:
         elif sect[0] in ['1'] and sect[1] in ')-.':
             pat = r'\W\d' + re.escape(sect[1])
             return re.compile(pat).split(sect[2:])
+        elif '\n' in sect:
+            return sect.split('\n')
         if len(sect) > 100:
             # look for sentence splitting
             if ':' in sect:

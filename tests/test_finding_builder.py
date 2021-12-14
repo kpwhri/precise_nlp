@@ -2,6 +2,8 @@ import collections
 
 import pytest
 
+from precise_nlp.extract.cspy import CspyManager
+from precise_nlp.extract.cspy.cspy import FindingVersion
 from precise_nlp.extract.cspy.finding_builder import FindingBuilder
 from precise_nlp.extract.cspy.naive_finding import NaiveFinding
 
@@ -79,6 +81,19 @@ def test_merge_split_findings():
         assert finding.size == exp_size
         assert finding.location == exp_loc
         assert finding.removal
+
+
+@pytest.mark.parametrize(('text', 'size', 'locations'), [
+    # ('Polyp (15 mm) in the descending colon at 50 cm', 15, ('sigmoid',)),  # 'at 50 cm' caught before 'descending'
+    # ('Polyp (5 mm) In the distal sigmoid colon', 5, ('sigmoid', 'distal')),
+    # ('Polyps (2 mm to 4 mm) In the ascending colon (polyps) and rectum (polyps)', 4, ('ascending', 'rectum')),
+    ('Polyp (10 mm)-in the sigmoid colon. (Polypectomy)', 10, ('sigmoid',)),
+    # ('Polyp (10 mm) in the sigmoid colon. (Polypectomy)', 10, ('sigmoid',)),
+])
+def test_finding_builder(text, size, locations):
+    finding = FindingBuilder().fsm(text)
+    assert finding.size == size
+    assert set(ll for loc in finding.locations for ll in loc.location) == set(locations)
 
 
 @pytest.mark.parametrize(('text', 'size', 'locations'), [
