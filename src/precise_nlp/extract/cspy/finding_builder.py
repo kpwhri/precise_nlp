@@ -33,6 +33,7 @@ class FindingState(enum.Enum):
     REMOVED = 11
     COUNT = 12
     CONTINUED = 12
+    NO_SIZE_NO_DEPTH_2 = 13
 
 
 @dataclass(unsafe_hash=True)
@@ -130,7 +131,10 @@ class FindingBuilder:
             FindingState.SIZE_NO_DEPTH: (self.extract_depth2, FindingState.REMOVED, FindingState.LOCATION),
             FindingState.NO_SIZE: (self.extract_depth1, FindingState.NO_SIZE_DEPTH, FindingState.NO_SIZE_NO_DEPTH),
             FindingState.NO_SIZE_DEPTH: (self.extract_size2, FindingState.REMOVED, FindingState.REMOVED),
-            FindingState.NO_SIZE_NO_DEPTH: (self.extract_size2, FindingState.SIZE_NO_DEPTH, FindingState.NO_SIZES),
+            FindingState.NO_SIZE_NO_DEPTH: (self.extract_size2, FindingState.SIZE_NO_DEPTH,
+                                            FindingState.NO_SIZE_NO_DEPTH_2),
+            FindingState.NO_SIZE_NO_DEPTH_2: (self.extract_size3_key, FindingState.SIZE_NO_DEPTH,
+                                              FindingState.NO_SIZES),
             FindingState.NO_SIZES: (self.extract_depth2, FindingState.REMOVED, FindingState.LOCATION),
             FindingState.LOCATION: (self.extract_location, FindingState.REMOVED, FindingState.REMOVED),
             FindingState.REMOVED: (self.was_removed, FindingState.CONTINUED, FindingState.CONTINUED),
@@ -211,6 +215,7 @@ class FindingBuilder:
             func, true_state, false_state = self.TRANSITIONS[state]
             if func is None:
                 break
+            print(key, text, func, state, true_state, false_state)
             indicator, text = func(finding, text, key=key)
             state = true_state if indicator else false_state
         if finding:
@@ -236,7 +241,7 @@ class FindingBuilder:
         for standard_loc, location, loc_pat in StandardTerminology.LOCATION_REGEX:
             if key and (m := loc_pat.search(key)):
                 index = m.start()
-            elif not key and (m := loc_pat.search(text)):
+            elif m := loc_pat.search(text):
                 logger.warning(f'Possible unrecognized finding separator in "{text}"')
                 index = m.start() + key_length
             else:
@@ -246,7 +251,8 @@ class FindingBuilder:
             finding.locations = tuple(x[0] for x in sorted(locations, key=lambda x: x[-1]))
         return len(locations) > 0, text
 
-    def _extract_size(self, finding, pat, value):
+    def _extract_size(self, finding, pat, value, key=None):
+        target = key or value
         new_value = []
         end = 0
 
@@ -261,7 +267,7 @@ class FindingBuilder:
                 return float(s)
 
         sizes = []
-        for m in pat.finditer(value):
+        for m in pat.finditer(target):
             for curr_size in (get_size(m.group(n)) for n in ('n1', 'n2')):
                 if curr_size <= 0:
                     continue
@@ -270,11 +276,13 @@ class FindingBuilder:
                 if curr_size > 100:
                     continue
                 sizes.append(curr_size)
-            new_value.append(value[end:m.start()])
+            new_value.append(target[end:m.start()])
             end = m.end()
-        new_value.append(value[end:])
+        new_value.append(target[end:])
         if sizes:
             finding.sizes = tuple(sizes)
+        if key:
+            return bool(sizes), value
         return bool(sizes), ' '.join(new_value)
 
     def get_count(self, finding, text, **kwargs):
@@ -326,6 +334,11 @@ class FindingBuilder:
 
     def extract_size2(self, finding, text, **kwargs):
         return self._extract_size(finding, patterns.SIZE_PATTERN, text)
+
+    def extract_size3_key(self, finding, text, key, **kwargs):
+        if not key:
+            return False, text
+        return self._extract_size(finding, patterns.SIZE_PATTERN, text, key=key)
 
     def get_findings(self) -> Iterable[BaseFinding]:
         yield from self._findings

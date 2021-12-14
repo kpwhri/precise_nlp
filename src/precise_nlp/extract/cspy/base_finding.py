@@ -109,6 +109,8 @@ class BaseFinding:
         value = f.extract_depth(patterns.AT_DEPTH_PATTERN, value)
         if not f.size:
             value = f.extract_size(patterns.SIZE_PATTERN, value)
+        if not f.size and key:
+            f.extract_size(patterns.SIZE_PATTERN, key)
         if not f.locations:
             # without at, require 2 digits and "CM"
             value = f.extract_depth(patterns.CM_DEPTH_PATTERN, value)
