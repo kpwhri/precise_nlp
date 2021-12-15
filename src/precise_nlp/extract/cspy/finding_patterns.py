@@ -1,6 +1,7 @@
 from regexify.pattern import Pattern
 
 from precise_nlp.extract.cspy.finding_builder import Finding, FindingSource
+from precise_nlp.extract.utils import NumberConvert
 
 colon = r'(colon|flexure)'
 _size = lambda x='': r'(?P<size{}>\d+)'.format(x)
@@ -9,6 +10,7 @@ _location = lambda x='': r'(?P<location{}>\w+)'.format(x)
 _rectum = lambda x='': r'(?P<location_rectum{}>rect\w+)'.format(x)
 _location_or_rectum = lambda x='': f'(?:{_location(x)} {colon}|{_rectum(x)})'
 _word = lambda x='3': r'(\w+\W+){{0,{}}}'.format(x)
+_count = lambda x='': rf'(?P<count{{}}>{NumberConvert.NUMBER_PATTERN})'.format(x)
 
 FINDING_PATTERNS = {
     'POLYP_SIZE_IN_LOCATION': Pattern(
@@ -26,7 +28,14 @@ FINDING_PATTERNS = {
         rf'polyps {_size(1)} {_measure(1)}? (?:to|-)'
         rf' {_size(2)} {_measure(2)} {_word(3)}{_location_or_rectum()}'
     ),
+    f'NUM_SIZE_LOCATION': Pattern(
+        rf'{_count()} {_size()} {_measure()} polyps? {_word(3)}{_location_or_rectum()}'
+    )
 }
+
+
+def get_count(count):
+    return NumberConvert.convert(count)
 
 
 def get_size(size, measure, measure2=None):
@@ -76,6 +85,15 @@ def apply_finding_patterns(text, source: FindingSource = None) -> list[Finding]:
                         sizes=(
                             get_size(d['size1'], d['measure1'], d['measure2']),
                             get_size(d['size2'], d['measure2'], d['measure1']),
+                        ),
+                        locations=get_locations_from_groupdict(d),
+                        source=source,
+                    )
+                case ['count', 'location', 'location_rectum', 'measure', 'size']:
+                    yield Finding(
+                        count=get_count(d['count']),
+                        sizes=(
+                            get_size(d['size'], d['measure']),
                         ),
                         locations=get_locations_from_groupdict(d),
                         source=source,
