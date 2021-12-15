@@ -38,6 +38,10 @@ def get_size(size, measure, measure2=None):
     return size
 
 
+def get_locations_from_groupdict(d):
+    return get_locations(*(v for k, v in d.items() if k.startswith('location')))
+
+
 def get_locations(*locations):
     return tuple(location for location in locations if location)
 
@@ -52,7 +56,7 @@ def apply_finding_patterns(text, source: FindingSource = None) -> list[Finding]:
                     yield Finding(
                         count=1,
                         sizes=(get_size(d['size'], d['measure']),),
-                        locations=get_locations(d['location'], d['location_rectum']),
+                        locations=get_locations_from_groupdict(d),
                         source=source,
                     )
                 case ['location', 'location_rectum', 'measure1', 'measure2', 'size1', 'size2']:
@@ -62,7 +66,7 @@ def apply_finding_patterns(text, source: FindingSource = None) -> list[Finding]:
                             get_size(d['size1'], d['measure1'], d['measure2']),
                             get_size(d['size2'], d['measure2'], d['measure1']),
                         ),
-                        locations=get_locations(d['location'], d['location_rectum']),
+                        locations=get_locations_from_groupdict(d),
                         source=source,
                     )
                 case ['location1', 'location2', 'location_rectum1', 'location_rectum2',
@@ -73,8 +77,7 @@ def apply_finding_patterns(text, source: FindingSource = None) -> list[Finding]:
                             get_size(d['size1'], d['measure1'], d['measure2']),
                             get_size(d['size2'], d['measure2'], d['measure1']),
                         ),
-                        locations=get_locations(d['location1'], d['location2'],
-                                                d['location_rectum1'], d['location_rectum2']),
+                        locations=get_locations_from_groupdict(d),
                         source=source,
                     )
                 case other:
