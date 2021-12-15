@@ -168,6 +168,7 @@ class NumberConvert:
         'six': 6, 'seven': 7, 'eight': 8, 'nine': 9,
     }
     VALUES.update({str(i): i for i in range(10)})
+    NUMBER_PATTERN = f"(?:{'|'.join(VALUES.keys())})"
 
     @staticmethod
     def contains(text, followed_by=None, distance=0, split_on_non_word=False):
@@ -182,6 +183,10 @@ class NumberConvert:
             if not followed_by or set(followed_by) & set(text[start:start + distance]):
                 results.append(NumberConvert.VALUES[val])
         return results
+
+    @staticmethod
+    def convert(s):
+        return NumberConvert.VALUES[s.lower().strip()]
 
 
 class Prep(Enum):
