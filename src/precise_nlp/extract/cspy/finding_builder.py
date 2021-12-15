@@ -72,8 +72,8 @@ class Location:
 @dataclass
 class Finding:
     count: int = 0
-    sizes: Tuple[int] = field(default_factory=tuple)
-    locations: Tuple[str] = field(default_factory=tuple)
+    sizes: tuple[int, ...] = field(default_factory=tuple)
+    locations: tuple[str, ...] = field(default_factory=tuple)
     removal: bool = False
     depth: int = 0
     continued: bool = False
