@@ -17,11 +17,12 @@ FINDING_PATTERNS = {
     'POLYP_SIZE_3W_LOCATION': Pattern(
         rf'polyp {_size()} {_measure()} {_word(3)}{_location_or_rectum()}'
     ),
-    'POLYPS_SIZE_3W_LOCATION': Pattern(
-        rf'polyps {_size(1)} {_measure(1)}? (?:to|-)'
-        rf' {_size(2)} {_measure(2)} {_word(3)}{_location_or_rectum()}'
-    ),
     'POLYPS_SIZE_3W_LOCATIONS': Pattern(
+        rf'polyps {_size(1)} {_measure(1)}? (?:to|-)'
+        rf' {_size(2)} {_measure(2)} {_word(3)}'
+        rf'{_location_or_rectum(1)} {_word(3)}{_location_or_rectum(2)}'
+    ),
+    'POLYPS_SIZE_3W_LOCATION': Pattern(
         rf'polyps {_size(1)} {_measure(1)}? (?:to|-)'
         rf' {_size(2)} {_measure(2)} {_word(3)}{_location_or_rectum()}'
     ),
@@ -62,6 +63,18 @@ def apply_finding_patterns(text, source: FindingSource = None) -> list[Finding]:
                             get_size(d['size2'], d['measure2'], d['measure1']),
                         ),
                         locations=get_locations(d['location'], d['location_rectum']),
+                        source=source,
+                    )
+                case ['location1', 'location2', 'location_rectum1', 'location_rectum2',
+                      'measure1', 'measure2', 'size1', 'size2']:
+                    yield Finding(
+                        count=2,
+                        sizes=(
+                            get_size(d['size1'], d['measure1'], d['measure2']),
+                            get_size(d['size2'], d['measure2'], d['measure1']),
+                        ),
+                        locations=get_locations(d['location1'], d['location2'],
+                                                d['location_rectum1'], d['location_rectum2']),
                         source=source,
                     )
                 case other:
