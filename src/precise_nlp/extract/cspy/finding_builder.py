@@ -36,6 +36,12 @@ class FindingState(enum.Enum):
     NO_SIZE_NO_DEPTH_2 = 13
 
 
+class FindingSource(enum.Enum):
+    IMPRESSIONS = 0
+    FINDINGS = 1
+    OTHER = 9
+
+
 @dataclass(unsafe_hash=True)
 class Location:
     label: str
@@ -71,6 +77,7 @@ class Finding:
     removal: bool = False
     depth: int = 0
     continued: bool = False
+    source: FindingSource = None
 
     @property
     def size(self):
