@@ -4,7 +4,7 @@ from regexify.pattern import Pattern
 
 from precise_nlp.extract.cspy.finding_builder import Finding, FindingSource
 from precise_nlp.extract.cspy.polyps import POLYP_IDENTIFIERS, POLYP_IDENTIFIERS_PATTERN
-from precise_nlp.extract.utils import NumberConvert
+from precise_nlp.extract.utils import NumberConvert, StandardTerminology
 
 colon = r'(colon|flexure)'
 _to = r'(?:to|-)'
@@ -15,6 +15,7 @@ _size_qual = lambda x='': f'(?:{_size(x)} {_measure(x)}?|{_polyp_qual(x)})'
 _location = lambda x='': r'(?P<location{}>\w+)'.format(x)
 _location_terminal = lambda x='': r'(?P<location_rectum{}>(?:rect|cec)\w+)'.format(x)
 _location_or_rectum = lambda x='': f'(?:{_location(x)} {colon}|{_location_terminal(x)})'
+_location_all = lambda x='': r'(?P<location{}>{})( {})?'.format(x, StandardTerminology.LOCATION_PATTERN, colon)
 _word = lambda x='3': r'(\w+\W+){{0,{}}}'.format(x)
 _count = lambda x='': r'(?P<count{}>{})'.format(x, NumberConvert.NUMBER_PATTERN)
 
@@ -26,12 +27,12 @@ FINDING_PATTERNS = {
         rf'polyp {_size_qual()} {_word(3)}{_location_or_rectum()}'
     ),
     'POLYPS_SIZE_3W_LOCATIONS': Pattern(
-        rf'polyps {_size_qual(1)}? {_to}'
+        rf'polyps {_size_qual(1)} {_to}'
         rf' {_size_qual(2)} {_word(3)}'
         rf'{_location_or_rectum(1)} {_word(3)}{_location_or_rectum(2)}'
     ),
     'POLYPS_SIZE_3W_LOCATION': Pattern(
-        rf'polyps {_size_qual(1)}? {_to}'
+        rf'polyps {_size_qual(1)} {_to}'
         rf' {_size_qual(2)} {_word(3)}{_location_or_rectum()}'
     ),
     f'NUM_SIZE_LOCATION': Pattern(
@@ -39,6 +40,9 @@ FINDING_PATTERNS = {
     ),
     f'NUM_SIZES_LOCATION': Pattern(
         rf'{_count()} {_size_qual(1)} {_to} {_size_qual(2)} polyps? {_word(3)}{_location_or_rectum()}'
+    ),
+    f'POLYP_LOCATION_SIZE': Pattern(
+        rf'polyp location {_location_all()} size {_size_qual()}'
     )
 }
 
@@ -64,7 +68,7 @@ def get_locations_from_groupdict(d):
 
 
 def get_locations(*locations):
-    return tuple(location for location in locations if location)
+    return tuple(loc for location in locations for loc in StandardTerminology.convert_location(location) if location)
 
 
 def apply_finding_patterns(text, source: FindingSource = None) -> list[Finding]:
@@ -118,6 +122,15 @@ def apply_finding_patterns(text, source: FindingSource = None) -> list[Finding]:
                         sizes=(
                             get_size(d['size1'] or d['polyp_qual1'], d['measure1'], d['measure2']),
                             get_size(d['size2'] or d['polyp_qual2'], d['measure2'], d['measure1']),
+                        ),
+                        locations=get_locations_from_groupdict(d),
+                        source=source,
+                    )
+                case ['location', 'measure', 'polyp_qual', 'size']:
+                    yield Finding(
+                        count=1,
+                        sizes=(
+                            get_size(d['size'] or d['polyp_qual'], d['measure']),
                         ),
                         locations=get_locations_from_groupdict(d),
                         source=source,

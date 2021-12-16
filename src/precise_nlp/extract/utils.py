@@ -109,6 +109,7 @@ class StandardTerminology:
     }
 
     LOCATION_REGEX = [(term, loc, re.compile(rf'\b{loc}\b', re.I)) for loc, term in LOCATIONS.items()]
+    LOCATION_PATTERN = rf'\b({"|".join(LOCATIONS.keys())})\b'
 
     COLON = {
         'anus',
@@ -133,6 +134,17 @@ class StandardTerminology:
         'villous': Histology.VILLOUS,
         'villiform': Histology.VILLOUS,
     }
+
+    @classmethod
+    def convert_location(cls, el):
+        if el:
+            loc = cls.LOCATIONS.get(el.lower(), None)
+            if isinstance(loc, tuple):
+                for ll in loc:
+                    if ll is not None:
+                        yield from ll
+            elif loc is not None:
+                yield loc
 
     @classmethod
     def standardize_location(cls, el, colon_only=False):
