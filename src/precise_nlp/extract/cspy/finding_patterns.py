@@ -43,6 +43,9 @@ FINDING_PATTERNS = {
     ),
     f'POLYP_LOCATION_SIZE': Pattern(
         rf'polyp location {_location_all()} size {_size_qual()}'
+    ),
+    f'LOCATION_SIZE_POLYP': Pattern(
+        rf'{_location_all()} {_count()} {_size_qual()}'
     )
 }
 
@@ -80,7 +83,14 @@ def apply_finding_patterns(text, source: FindingSource = None) -> list[Finding]:
                 case ['location', 'location_rectum', 'measure', 'polyp_qual', 'size']:
                     yield Finding(
                         count=1,
-                        sizes=(get_size(d['size'], d['measure']),),
+                        sizes=(get_size(d['size'] or d['polyp_qual'], d['measure']),),
+                        locations=get_locations_from_groupdict(d),
+                        source=source,
+                    )
+                case ['count', 'location', 'measure', 'polyp_qual', 'size']:
+                    yield Finding(
+                        count=get_count(d['count']),
+                        sizes=(get_size(d['size'] or d['polyp_qual'], d['measure']),),
                         locations=get_locations_from_groupdict(d),
                         source=source,
                     )

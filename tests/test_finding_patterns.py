@@ -20,6 +20,8 @@ from precise_nlp.extract.cspy.finding_patterns import apply_finding_patterns
     ('One small polyp in the descending colon', 1, 1, {'descending'}),
     ('Four 3 to 5 mm polyps in the rectum', 4, 5, {'rectum'}),
     ('POLYP: Location: Descending colon. Size: 5 mm', 1, 5, {'descending'}),
+    ('Transverse Colon - one 5 mm sessile polyp(s) (removed with jumbo biopsy forceps)', 1, 5, {'transverse'}),
+    ('Sigmoid Colon - one 10 mm sessile polyp(s)', 1, 10, {'sigmoid'}),
 ])
 def test_finding_pattern(text, exp_count, exp_size, exp_locations):
     findings = list(apply_finding_patterns(text))
