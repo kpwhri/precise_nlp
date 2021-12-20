@@ -26,6 +26,8 @@ from precise_nlp.extract.cspy.finding_patterns import apply_finding_patterns
     ('Sigmoid Colon - two 15 mm pedunculated polyp(s)', 2, 15, {'sigmoid'}),
     ('Cecum - one 5 mm flat polyp(s)', 1, 5, {'cecum'}),
     ('Cecum - Large 1 cm polyp removed at the ileocecal valve with cautery snare', 1, 10, {'cecum'}),
+    ('Sigmoid Colon - one diminutive   sessile polyp', 1, 1, {'sigmoid'}),
+    ('Cecum - two dim polyp(s) ', 2, 1, {'cecum'}),
 ])
 def test_finding_pattern(text, exp_count, exp_size, exp_locations):
     findings = list(apply_finding_patterns(text))
