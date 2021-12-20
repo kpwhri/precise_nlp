@@ -13,6 +13,7 @@ _size = lambda x='': r'(?P<size{}>\d+)'.format(x)
 _measure = lambda x='': r'(?P<measure{}>[cm]m)'.format(x)
 _polyp_qual = lambda x='': r'(?P<polyp_qual{}>{})(?:ly)? (?:sized?)?'.format(x, POLYP_IDENTIFIERS_PATTERN)
 _size_qual = lambda x='': f'(?:{_size(x)} {_measure(x)}?|{_polyp_qual(x)})'
+_size_to_size_qual = lambda x='': f'{_size_qual(x or 1)} {_to} {_size_qual(x + 1 if x else 2)}'
 _location = lambda x='': r'(?P<location{}>\w+)'.format(x)
 _location_terminal = lambda x='': r'(?P<location_rectum{}>(?:rect|cec)\w+)'.format(x)
 _location_or_rectum = lambda x='': f'(?:{_location(x)} {colon}|{_location_terminal(x)})'
@@ -28,8 +29,7 @@ FINDING_PATTERNS = {
         rf'polyp {_size_qual()} {_word(3)}{_location_or_rectum()}'
     ),
     'POLYPS_SIZE_3W_LOCATIONS': Pattern(
-        rf'polyps {_size_qual(1)} {_to}'
-        rf' {_size_qual(2)} {_word(3)}'
+        rf'polyps {_size_to_size_qual()} {_word(3)}'
         rf'{_location_or_rectum(1)} {_word(3)}{_location_or_rectum(2)}'
     ),
     'POLYPS_SIZE_3W_LOCATION': Pattern(
@@ -48,9 +48,15 @@ FINDING_PATTERNS = {
     f'LOCATION_NUM_SIZE_POLYP': Pattern(
         rf'{_location_all()} {_count()} {_size_qual()} (?:(?:sessile|pedunc\w+|flat) )?polyp'
     ),
+    f'LOCATION_NUM_SIZES_POLYP': Pattern(
+        rf'{_location_all()} {_count()} {_size_to_size_qual()} (?:(?:sessile|pedunc\w+|flat) )?polyp'
+    ),
     f'LOCATION_SIZE_POLYP': Pattern(
-        rf'{_location_all()} {_polyp_qual(1)} {_size_qual()} polyp'
-    )
+        rf'{_location_all()} {_polyp_qual(9)} {_size_qual()} polyp'
+    ),
+    f'LOCATION_SIZES_POLYP': Pattern(
+        rf'{_location_all()} {_polyp_qual(9)} {_size_to_size_qual()} polyp'
+    ),
 }
 
 MISSING_PATTERNS = {  # these patterns might suggest something is missing in the above set
@@ -106,8 +112,11 @@ def apply_finding_patterns(text, source: FindingSource = None, *, debug=False) -
                         locations=get_locations_from_groupdict(d),
                         source=source,
                     )
-                case ['location', 'location_rectum', 'measure1', 'measure2',
-                      'polyp_qual1', 'polyp_qual2', 'size1', 'size2']:
+                case (
+                    ['location', 'location_rectum', 'measure1', 'measure2',
+                     'polyp_qual1', 'polyp_qual2', 'size1', 'size2']
+                    | ['count', 'location', 'measure1', 'measure2', 'polyp_qual1', 'polyp_qual2', 'size1', 'size2']
+                ):
                     yield Finding(
                         count=2,
                         sizes=(
@@ -149,7 +158,7 @@ def apply_finding_patterns(text, source: FindingSource = None, *, debug=False) -
                         source=source,
                     )
                 case (['location', 'measure', 'polyp_qual', 'size']
-                      | ['location', 'measure', 'polyp_qual', 'polyp_qual1', 'size']):
+                      | ['location', 'measure', 'polyp_qual', 'polyp_qual9', 'size']):
                     yield Finding(
                         count=1,
                         sizes=(
@@ -159,7 +168,7 @@ def apply_finding_patterns(text, source: FindingSource = None, *, debug=False) -
                         source=source,
                     )
                 case other:
-                    raise ValueError(f'Unrecognized: {other}')
+                    raise ValueError(f'Unrecognized for {name}: {other}')
             break
 
     if not found and debug:
