@@ -45,13 +45,16 @@ FINDING_PATTERNS = {
     f'POLYP_LOCATION_SIZE': Pattern(
         rf'polyp location {_location_all()} size {_size_qual()}'
     ),
-    f'LOCATION_SIZE_POLYP': Pattern(
+    f'LOCATION_NUM_SIZE_POLYP': Pattern(
         rf'{_location_all()} {_count()} {_size_qual()} (?:(?:sessile|pedunc\w+|flat) )?polyp'
+    ),
+    f'LOCATION_SIZE_POLYP': Pattern(
+        rf'{_location_all()} {_polyp_qual(1)} {_size_qual()} polyp'
     )
 }
 
 MISSING_PATTERNS = {  # these patterns might suggest something is missing in the above set
-    f'LOCATION_SIZE_POLYP_without_ending': Pattern(
+    f'LOCATION_NUM_SIZE_POLYP_without_ending': Pattern(
         rf'{_location_all()} {_count()} {_size_qual()}'
     )
 }
@@ -145,7 +148,8 @@ def apply_finding_patterns(text, source: FindingSource = None, *, debug=False) -
                         locations=get_locations_from_groupdict(d),
                         source=source,
                     )
-                case ['location', 'measure', 'polyp_qual', 'size']:
+                case (['location', 'measure', 'polyp_qual', 'size']
+                      | ['location', 'measure', 'polyp_qual', 'polyp_qual1', 'size']):
                     yield Finding(
                         count=1,
                         sizes=(
