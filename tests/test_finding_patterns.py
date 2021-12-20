@@ -70,7 +70,7 @@ def test_finding_pattern_in_location(text, exp_count, exp_size):
 
 
 @pytest.mark.parametrize('text, exp_findings_count, exp_count, exp_max_size', [
-
+    ('one 2-3 mm sessile polyp(s) (removed with biopsy forceps), one 6-7 mm sessile polyp', 2, 2, 7),
 ])
 def test_finding_pattern_in_location_on_multiple(text, exp_findings_count, exp_count, exp_max_size):
     location = 'sigmoid'  # just default to anything
@@ -78,4 +78,4 @@ def test_finding_pattern_in_location_on_multiple(text, exp_findings_count, exp_c
     print(findings)
     assert len(findings) == exp_findings_count, 'No findings found in text'
     assert sum(finding.count for finding in findings) == exp_count
-    assert max(finding.size for finding in findings) == exp_count
+    assert max(finding.size for finding in findings) == exp_max_size

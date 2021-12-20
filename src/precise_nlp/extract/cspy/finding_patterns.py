@@ -194,8 +194,10 @@ def apply_finding_patterns(text, source: FindingSource = None, *, debug=False) -
 
 
 def apply_finding_patterns_to_location(text, location, source: FindingSource = None, *, debug=False) -> list[Finding]:
+    found = False
     for name, pat in IN_LOCATION_FINDING_PATTERNS.items():
-        if m := pat.matches(text):
+        for m in pat.finditer(text):
+            found = True
             d = m.groupdict()
             logger.debug(f'Found pattern {name}: {d}')
             logger.debug(f'Matching case: {sorted(d.keys())}')
@@ -250,4 +252,5 @@ def apply_finding_patterns_to_location(text, location, source: FindingSource = N
                     )
                 case other:
                     raise ValueError(f'Unrecognized for {name}: {other}')
+        if found:
             break
