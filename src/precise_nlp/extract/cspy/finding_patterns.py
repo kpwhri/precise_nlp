@@ -46,7 +46,7 @@ FINDING_PATTERNS = {
         rf'polyp location {_location_all()} size {_size_qual()}'
     ),
     f'LOCATION_SIZE_POLYP': Pattern(
-        rf'{_location_all()} {_count()} {_size_qual()} (?:(?:sessile|pedunc\w+) )?polyp'
+        rf'{_location_all()} {_count()} {_size_qual()} (?:(?:sessile|pedunc\w+|flat) )?polyp'
     )
 }
 
@@ -158,7 +158,7 @@ def apply_finding_patterns(text, source: FindingSource = None, *, debug=False) -
                     raise ValueError(f'Unrecognized: {other}')
             break
 
-    if debug:
+    if not found and debug:
         for name, pat in MISSING_PATTERNS.items():
             if m := pat.matches(text):
                 logger.info(f'Missing pattern: {name} in {text[max(0, m.start() - 10): m.end() + 20]}')
