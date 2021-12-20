@@ -33,6 +33,7 @@ from precise_nlp.extract.cspy.finding_patterns import apply_finding_patterns, ap
     ('Descending:  4 sessile polyps.  The polyps were 6 mm in diameter', 4, 6, {'descending'}),
     ('Sigmoid:   Diverticulosis.  1 pedunculated polyp.  The polyp was 2.0 cm in diameter', 1, 2, {'sigmoid'}),
     ('Cecum - two 3 mm and 13 mm sessile polyp(s)Cecum - two 3 mm and 13 mm sessile polyp(s)', 2, 13, {'cecum'}),
+    ('Ascending Colon - three 3-5 mm sessile polyp(s)', 3, 5, {'ascending'}),
 ])
 def test_finding_pattern(text, exp_count, exp_size, exp_locations):
     findings = list(apply_finding_patterns(text))
@@ -57,6 +58,7 @@ def test_finding_pattern(text, exp_count, exp_size, exp_locations):
     ('4 sessile polyps.  The polyps were 6 mm in diameter', 4, 6),
     ('Diverticulosis.  1 pedunculated polyp.  The polyp was 2.0 cm in diameter', 1, 2),
     ('two 3 mm and 13 mm sessile polyp(s)', 2, 13),
+    ('three 3-5 mm sessile polyp(s)', 3, 5),
 ])
 def test_finding_pattern_in_location(text, exp_count, exp_size):
     location = 'sigmoid'  # just default to anything
