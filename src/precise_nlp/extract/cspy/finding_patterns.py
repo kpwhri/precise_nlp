@@ -23,7 +23,25 @@ _word = lambda x='3': r'(\w+\W+){{0,{}}}'.format(x)
 _word_space = lambda x='3': r'(\w+[\s\.]+){{0,{}}}'.format(x)
 _count = lambda x='': r'(?P<count{}>{})'.format(x, NumberConvert.NUMBER_PATTERN)
 
-FINDING_PATTERNS = {
+IN_LOCATION_FINDING_PATTERNS = {  # patterns that assume we are in a location section (i.e., we know location)
+    f'NUM_SIZES_POLYP': Pattern(
+        rf'{_count()} {_size_to_size_qual()} {_kind}?polyp'
+    ),
+    f'NUM_SIZE_POLYP': Pattern(
+        rf'{_count()} {_size_qual()} {_kind}?polyp'
+    ),
+    f'SIZES_POLYP': Pattern(
+        rf'{_polyp_qual(9)} {_size_to_size_qual()} polyp'
+    ),
+    f'SIZE_POLYP': Pattern(
+        rf'{_polyp_qual(9)} {_size_qual()} polyp'
+    ),
+    f'NUM_POLYP_SIZE': Pattern(
+        rf'{_count()} {_kind}? polyps? the polyps? (was|were) {_size_qual()}'
+    )
+}
+
+FINDING_PATTERNS = {  # for any findings, but particularly for 'Findings:' section
     'POLYP_SIZE_IN_LOCATION': Pattern(
         rf'polyp {_size_qual()} in the {_location_or_rectum()}'
     ),
@@ -173,3 +191,63 @@ def apply_finding_patterns(text, source: FindingSource = None, *, debug=False) -
         for name, pat in MISSING_PATTERNS.items():
             if m := pat.matches(text):
                 logger.info(f'Missing pattern: {name} in {text[max(0, m.start() - 10): m.end() + 20]}')
+
+
+def apply_finding_patterns_to_location(text, location, source: FindingSource = None, *, debug=False) -> list[Finding]:
+    for name, pat in IN_LOCATION_FINDING_PATTERNS.items():
+        if m := pat.matches(text):
+            d = m.groupdict()
+            logger.debug(f'Found pattern {name}: {d}')
+            logger.debug(f'Matching case: {sorted(d.keys())}')
+            match sorted(list(d.keys())):
+                case ['measure', 'polyp_qual', 'size']:
+                    yield Finding(
+                        count=get_count(d.get('count', 1)),
+                        sizes=(get_size(d['size'] or d['polyp_qual'], d['measure']),),
+                        locations=location,
+                        source=source,
+                    )
+                case ['count', 'measure', 'polyp_qual', 'size']:
+                    yield Finding(
+                        count=get_count(d['count']),
+                        sizes=(get_size(d['size'] or d['polyp_qual'], d['measure']),),
+                        locations=location,
+                        source=source,
+                    )
+                case (
+                    ['measure1', 'measure2', 'polyp_qual1', 'polyp_qual2', 'size1', 'size2'] |
+                    ['count', 'measure1', 'measure2', 'polyp_qual1', 'polyp_qual2', 'size1', 'size2'] |
+                    ['measure1', 'measure2', 'polyp_qual1', 'polyp_qual2', 'size1', 'size2']
+                ):
+                    yield Finding(
+                        count=get_count(d.get('count', 2)),
+                        sizes=(
+                            get_size(d['size1'] or d['polyp_qual1'], d['measure1'], d['measure2']),
+                            get_size(d['size2'] or d['polyp_qual2'], d['measure2'], d['measure1']),
+                        ),
+                        locations=location,
+                        source=source,
+                    )
+                case ['count', 'measure1', 'measure2', 'polyp_qual1', 'polyp_qual2', 'size1', 'size2']:
+                    yield Finding(
+                        count=get_count(d['count']),
+                        sizes=(
+                            get_size(d['size1'] or d['polyp_qual1'], d['measure1'], d['measure2']),
+                            get_size(d['size2'] or d['polyp_qual2'], d['measure2'], d['measure1']),
+                        ),
+                        locations=location,
+                        source=source,
+                    )
+                case (['measure', 'polyp_qual', 'size']
+                      | ['measure', 'polyp_qual', 'polyp_qual9', 'size']):
+                    yield Finding(
+                        count=get_count(d.get('count', 1)),
+                        sizes=(
+                            get_size(d['size'] or d['polyp_qual'], d['measure']),
+                        ),
+                        locations=location,
+                        source=source,
+                    )
+                case other:
+                    raise ValueError(f'Unrecognized for {name}: {other}')
+            break
