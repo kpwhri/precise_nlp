@@ -1,5 +1,6 @@
 POLYP_IDENTIFIERS = {
     'diminutive': 1,
+    'dim': 1,
     'small': 1,
     'medium': 5,
     'moderate': 5,
