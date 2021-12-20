@@ -8,7 +8,7 @@ from precise_nlp.extract.cspy.polyps import POLYP_IDENTIFIERS, POLYP_IDENTIFIERS
 from precise_nlp.extract.utils import NumberConvert, StandardTerminology
 
 colon = r'(colon|flexure)'
-_to = r'(?:to|-)'
+_to = r'(?:to|-|and)'
 _kind = r'(?:(?:sessile|pedunc\w+|flat) )'
 _size = lambda x='': r'(?P<size{}>\d+)'.format(x)
 _measure = lambda x='': r'(?P<measure{}>[cm]m)'.format(x)
