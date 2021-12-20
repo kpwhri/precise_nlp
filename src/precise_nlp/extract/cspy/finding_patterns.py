@@ -45,7 +45,7 @@ FINDING_PATTERNS = {
         rf'polyp location {_location_all()} size {_size_qual()}'
     ),
     f'LOCATION_SIZE_POLYP': Pattern(
-        rf'{_location_all()} {_count()} {_size_qual()} (sessile )?polyp'
+        rf'{_location_all()} {_count()} {_size_qual()} (?:(?:sessile|pedunc\w+) )?polyp'
     )
 }
 
