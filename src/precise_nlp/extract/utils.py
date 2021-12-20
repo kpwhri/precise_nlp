@@ -142,7 +142,7 @@ class StandardTerminology:
             if isinstance(loc, tuple):
                 for ll in loc:
                     if ll is not None:
-                        yield from ll
+                        yield ll
             elif loc is not None:
                 yield loc
 
@@ -198,7 +198,7 @@ class NumberConvert:
 
     @staticmethod
     def convert(s):
-        return NumberConvert.VALUES[s.lower().strip()]
+        return NumberConvert.VALUES[str(s).lower().strip()]
 
 
 class Prep(Enum):
