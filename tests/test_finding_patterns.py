@@ -1,7 +1,7 @@
 import pytest
 
 from precise_nlp.extract.cspy import CspyManager
-from precise_nlp.extract.cspy.finding_patterns import apply_finding_patterns
+from precise_nlp.extract.cspy.finding_patterns import apply_finding_patterns, apply_finding_patterns_to_location
 
 
 @pytest.mark.parametrize('text, exp_count, exp_size, exp_locations', [
@@ -40,3 +40,26 @@ def test_finding_pattern(text, exp_count, exp_size, exp_locations):
     assert findings[0].count == exp_count
     assert findings[0].size == exp_size
     assert set(findings[0].locations) == set(exp_locations)
+
+
+@pytest.mark.parametrize('text, exp_count, exp_size', [
+    ('one 5 mm sessile polyp(s) (removed with jumbo biopsy forceps)', 1, 5),
+    ('one 10 mm sessile polyp(s)', 1, 10),
+    ('two 2 mm sessile polyp(s)', 2, 2),
+    ('two 15 mm pedunculated polyp(s)', 2, 15),
+    ('one 5 mm flat polyp(s)', 1, 5),
+    ('Large 1 cm polyp removed at the ileocecal valve with cautery snare', 1, 10),
+    ('one diminutive   sessile polyp', 1, 1),
+    ('two dim polyp(s) ', 2, 1),
+    ('two 3-4 mm sessile polyp(s)', 2, 4),
+    ('three 3-4 mm sessile polyp', 3, 4),
+    ('4 sessile polyps.  The polyps were 6 mm in diameter', 4, 6),
+    ('Diverticulosis.  1 pedunculated polyp.  The polyp was 2.0 cm in diameter', 1, 2),
+])
+def test_finding_pattern_in_location(text, exp_count, exp_size):
+    location = 'sigmoid'   # just default to anything
+    findings = list(apply_finding_patterns_to_location(text, location))
+    print(findings)
+    assert len(findings) == 1, 'No findings found in text'
+    assert findings[0].count == exp_count
+    assert findings[0].size == exp_size
