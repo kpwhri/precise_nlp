@@ -32,6 +32,7 @@ from precise_nlp.extract.cspy.finding_patterns import apply_finding_patterns, ap
     ('Anorectum - three 3-4 mm sessile polyp', 3, 4, {'anus', 'rectum'}),
     ('Descending:  4 sessile polyps.  The polyps were 6 mm in diameter', 4, 6, {'descending'}),
     ('Sigmoid:   Diverticulosis.  1 pedunculated polyp.  The polyp was 2.0 cm in diameter', 1, 2, {'sigmoid'}),
+    ('Cecum - two 3 mm and 13 mm sessile polyp(s)Cecum - two 3 mm and 13 mm sessile polyp(s)', 2, 13, {'cecum'}),
 ])
 def test_finding_pattern(text, exp_count, exp_size, exp_locations):
     findings = list(apply_finding_patterns(text))
@@ -55,11 +56,24 @@ def test_finding_pattern(text, exp_count, exp_size, exp_locations):
     ('three 3-4 mm sessile polyp', 3, 4),
     ('4 sessile polyps.  The polyps were 6 mm in diameter', 4, 6),
     ('Diverticulosis.  1 pedunculated polyp.  The polyp was 2.0 cm in diameter', 1, 2),
+    ('two 3 mm and 13 mm sessile polyp(s)', 2, 13),
 ])
 def test_finding_pattern_in_location(text, exp_count, exp_size):
-    location = 'sigmoid'   # just default to anything
+    location = 'sigmoid'  # just default to anything
     findings = list(apply_finding_patterns_to_location(text, location))
     print(findings)
     assert len(findings) == 1, 'No findings found in text'
     assert findings[0].count == exp_count
     assert findings[0].size == exp_size
+
+
+@pytest.mark.parametrize('text, exp_findings_count, exp_count, exp_max_size', [
+
+])
+def test_finding_pattern_in_location_on_multiple(text, exp_findings_count, exp_count, exp_max_size):
+    location = 'sigmoid'  # just default to anything
+    findings = list(apply_finding_patterns_to_location(text, location))
+    print(findings)
+    assert len(findings) == exp_findings_count, 'No findings found in text'
+    assert sum(finding.count for finding in findings) == exp_count
+    assert max(finding.size for finding in findings) == exp_count
