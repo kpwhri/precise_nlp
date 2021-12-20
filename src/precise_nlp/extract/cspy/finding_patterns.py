@@ -1,6 +1,7 @@
 import re
 
 from regexify.pattern import Pattern
+from loguru import logger
 
 from precise_nlp.extract.cspy.finding_builder import Finding, FindingSource
 from precise_nlp.extract.cspy.polyps import POLYP_IDENTIFIERS, POLYP_IDENTIFIERS_PATTERN
@@ -49,6 +50,12 @@ FINDING_PATTERNS = {
     )
 }
 
+MISSING_PATTERNS = {  # these patterns might suggest something is missing in the above set
+    f'LOCATION_SIZE_POLYP_without_ending': Pattern(
+        rf'{_location_all()} {_count()} {_size_qual()}'
+    )
+}
+
 
 def get_count(count):
     return NumberConvert.convert(count)
@@ -74,10 +81,12 @@ def get_locations(*locations):
     return tuple(loc for location in locations for loc in StandardTerminology.convert_location(location) if location)
 
 
-def apply_finding_patterns(text, source: FindingSource = None) -> list[Finding]:
+def apply_finding_patterns(text, source: FindingSource = None, *, debug=False) -> list[Finding]:
+    found = False
     for name, pat in FINDING_PATTERNS.items():
         if m := pat.matches(text):
             d = m.groupdict()
+            found = True
             print(name, d)
             match sorted(list(d.keys())):
                 case ['location', 'location_rectum', 'measure', 'polyp_qual', 'size']:
@@ -148,3 +157,8 @@ def apply_finding_patterns(text, source: FindingSource = None) -> list[Finding]:
                 case other:
                     raise ValueError(f'Unrecognized: {other}')
             break
+
+    if debug:
+        for name, pat in MISSING_PATTERNS.items():
+            if m := pat.matches(text):
+                logger.info(f'Missing pattern: {name} in {text[max(0, m.start() - 10): m.end() + 20]}')
