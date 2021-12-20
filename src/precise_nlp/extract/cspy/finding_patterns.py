@@ -96,11 +96,12 @@ def apply_finding_patterns(text, source: FindingSource = None, *, debug=False) -
         if m := pat.matches(text):
             d = m.groupdict()
             found = True
-            print(name, d)
+            logger.debug(f'Found pattern {name}: {d}')
+            logger.debug(f'Matching case: {sorted(d.keys())}')
             match sorted(list(d.keys())):
                 case ['location', 'location_rectum', 'measure', 'polyp_qual', 'size']:
                     yield Finding(
-                        count=1,
+                        count=get_count(d.get('count', 1)),
                         sizes=(get_size(d['size'] or d['polyp_qual'], d['measure']),),
                         locations=get_locations_from_groupdict(d),
                         source=source,
@@ -114,22 +115,13 @@ def apply_finding_patterns(text, source: FindingSource = None, *, debug=False) -
                     )
                 case (
                     ['location', 'location_rectum', 'measure1', 'measure2',
-                     'polyp_qual1', 'polyp_qual2', 'size1', 'size2']
-                    | ['count', 'location', 'measure1', 'measure2', 'polyp_qual1', 'polyp_qual2', 'size1', 'size2']
+                     'polyp_qual1', 'polyp_qual2', 'size1', 'size2'] |
+                    ['count', 'location', 'measure1', 'measure2', 'polyp_qual1', 'polyp_qual2', 'size1', 'size2'] |
+                    ['location1', 'location2', 'location_rectum1', 'location_rectum2',
+                     'measure1', 'measure2', 'polyp_qual1', 'polyp_qual2', 'size1', 'size2']
                 ):
                     yield Finding(
-                        count=2,
-                        sizes=(
-                            get_size(d['size1'] or d['polyp_qual1'], d['measure1'], d['measure2']),
-                            get_size(d['size2'] or d['polyp_qual2'], d['measure2'], d['measure1']),
-                        ),
-                        locations=get_locations_from_groupdict(d),
-                        source=source,
-                    )
-                case ['location1', 'location2', 'location_rectum1', 'location_rectum2',
-                      'measure1', 'measure2', 'polyp_qual1', 'polyp_qual2', 'size1', 'size2']:
-                    yield Finding(
-                        count=2,
+                        count=get_count(d.get('count', 2)),
                         sizes=(
                             get_size(d['size1'] or d['polyp_qual1'], d['measure1'], d['measure2']),
                             get_size(d['size2'] or d['polyp_qual2'], d['measure2'], d['measure1']),
@@ -160,7 +152,7 @@ def apply_finding_patterns(text, source: FindingSource = None, *, debug=False) -
                 case (['location', 'measure', 'polyp_qual', 'size']
                       | ['location', 'measure', 'polyp_qual', 'polyp_qual9', 'size']):
                     yield Finding(
-                        count=1,
+                        count=get_count(d.get('count', 1)),
                         sizes=(
                             get_size(d['size'] or d['polyp_qual'], d['measure']),
                         ),
