@@ -9,6 +9,7 @@ from precise_nlp.extract.utils import NumberConvert, StandardTerminology
 
 colon = r'(colon|flexure)'
 _to = r'(?:to|-)'
+_kind = r'(?:(?:sessile|pedunc\w+|flat) )'
 _size = lambda x='': r'(?P<size{}>\d+)'.format(x)
 _measure = lambda x='': r'(?P<measure{}>[cm]m)'.format(x)
 _polyp_qual = lambda x='': r'(?P<polyp_qual{}>{})(?:ly)? (?:sized?)?'.format(x, POLYP_IDENTIFIERS_PATTERN)
@@ -19,6 +20,7 @@ _location_terminal = lambda x='': r'(?P<location_rectum{}>(?:rect|cec)\w+)'.form
 _location_or_rectum = lambda x='': f'(?:{_location(x)} {colon}|{_location_terminal(x)})'
 _location_all = lambda x='': r'(?P<location{}>{})( {})?'.format(x, StandardTerminology.LOCATION_PATTERN, colon)
 _word = lambda x='3': r'(\w+\W+){{0,{}}}'.format(x)
+_word_space = lambda x='3': r'(\w+[\s\.]+){{0,{}}}'.format(x)
 _count = lambda x='': r'(?P<count{}>{})'.format(x, NumberConvert.NUMBER_PATTERN)
 
 FINDING_PATTERNS = {
@@ -46,10 +48,10 @@ FINDING_PATTERNS = {
         rf'polyp location {_location_all()} size {_size_qual()}'
     ),
     f'LOCATION_NUM_SIZE_POLYP': Pattern(
-        rf'{_location_all()} {_count()} {_size_qual()} (?:(?:sessile|pedunc\w+|flat) )?polyp'
+        rf'{_location_all()} {_count()} {_size_qual()} {_kind}?polyp'
     ),
     f'LOCATION_NUM_SIZES_POLYP': Pattern(
-        rf'{_location_all()} {_count()} {_size_to_size_qual()} (?:(?:sessile|pedunc\w+|flat) )?polyp'
+        rf'{_location_all()} {_count()} {_size_to_size_qual()} {_kind}?polyp'
     ),
     f'LOCATION_SIZE_POLYP': Pattern(
         rf'{_location_all()} {_polyp_qual(9)} {_size_qual()} polyp'
@@ -57,6 +59,10 @@ FINDING_PATTERNS = {
     f'LOCATION_SIZES_POLYP': Pattern(
         rf'{_location_all()} {_polyp_qual(9)} {_size_to_size_qual()} polyp'
     ),
+    f'LOCATION_NUM_POLYP_SIZE': Pattern(
+        rf'{_location_all()} {_word_space(3)} {_count()} {_kind}? polyps? '
+        rf'the polyps? (was|were) {_size_qual()}'
+    )
 }
 
 MISSING_PATTERNS = {  # these patterns might suggest something is missing in the above set
@@ -114,11 +120,11 @@ def apply_finding_patterns(text, source: FindingSource = None, *, debug=False) -
                         source=source,
                     )
                 case (
-                    ['location', 'location_rectum', 'measure1', 'measure2',
-                     'polyp_qual1', 'polyp_qual2', 'size1', 'size2'] |
-                    ['count', 'location', 'measure1', 'measure2', 'polyp_qual1', 'polyp_qual2', 'size1', 'size2'] |
-                    ['location1', 'location2', 'location_rectum1', 'location_rectum2',
-                     'measure1', 'measure2', 'polyp_qual1', 'polyp_qual2', 'size1', 'size2']
+                ['location', 'location_rectum', 'measure1', 'measure2',
+                 'polyp_qual1', 'polyp_qual2', 'size1', 'size2'] |
+                ['count', 'location', 'measure1', 'measure2', 'polyp_qual1', 'polyp_qual2', 'size1', 'size2'] |
+                ['location1', 'location2', 'location_rectum1', 'location_rectum2',
+                 'measure1', 'measure2', 'polyp_qual1', 'polyp_qual2', 'size1', 'size2']
                 ):
                     yield Finding(
                         count=get_count(d.get('count', 2)),
