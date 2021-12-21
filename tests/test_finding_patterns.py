@@ -2,7 +2,7 @@ import pytest
 
 from precise_nlp.extract.cspy import CspyManager
 from precise_nlp.extract.cspy.finding_patterns import apply_finding_patterns, apply_finding_patterns_to_location, \
-    remove_finding_patterns
+    remove_finding_patterns, regex_strip
 
 
 @pytest.mark.parametrize('text, exp_count, exp_size, exp_locations', [
@@ -32,7 +32,7 @@ from precise_nlp.extract.cspy.finding_patterns import apply_finding_patterns, ap
     ('Sigmoid Colon - two 3-4 mm sessile polyp(s)', 2, 4, {'sigmoid'}),
     ('Anorectum - three 3-4 mm sessile polyp', 3, 4, {'anus', 'rectum'}),
     ('Descending:  4 sessile polyps.  The polyps were 6 mm in diameter', 4, 6, {'descending'}),
-    ('Sigmoid:   Diverticulosis.  1 pedunculated polyp.  The polyp was 2.0 cm in diameter', 1, 2, {'sigmoid'}),
+    ('Sigmoid:   Diverticulosis.  1 pedunculated polyp.  The polyp was 2.0 cm in diameter', 1, 20, {'sigmoid'}),
     ('Cecum - two 3 mm and 13 mm sessile polyp(s)', 2, 13, {'cecum'}),
     ('Ascending Colon - three 3-5 mm sessile polyp(s)', 3, 5, {'ascending'}),
 ])
@@ -57,7 +57,7 @@ def test_finding_pattern(text, exp_count, exp_size, exp_locations):
     ('two 3-4 mm sessile polyp(s)', 2, 4),
     ('three 3-4 mm sessile polyp', 3, 4),
     ('4 sessile polyps.  The polyps were 6 mm in diameter', 4, 6),
-    ('Diverticulosis.  1 pedunculated polyp.  The polyp was 2.0 cm in diameter', 1, 2),
+    ('Diverticulosis.  1 pedunculated polyp.  The polyp was 2.0 cm in diameter', 1, 20),
     ('two 3 mm and 13 mm sessile polyp(s)', 2, 13),
     ('three 3-5 mm sessile polyp(s)', 3, 5),
 ])
@@ -136,3 +136,14 @@ def test_split_by_location(text, exp, exp_normal):
 def test_remove_finding_patterns(text, exp):
     new_text = remove_finding_patterns(text)
     assert new_text == exp
+
+
+@pytest.mark.parametrize('text, exp', [
+    ('.te.rm', 'te.rm'),
+    ('..te.rm', 'te.rm'),
+    ('te.rm.', 'te.rm'),
+    ('te.rm..', 'te.rm'),
+    (' .te.rm.', 'te.rm'),
+])
+def test_regex_strip(text, exp):
+    assert regex_strip(text) == exp

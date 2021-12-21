@@ -10,7 +10,7 @@ from precise_nlp.extract.utils import NumberConvert, StandardTerminology
 colon = r'(colon|flexure)'
 _to = r'(?:to|-|and)'
 _kind = r'(?:(?:sessile|pedunc\w+|flat) )'
-_size = lambda x='': r'(?P<size{}>\d+)'.format(x)
+_size = lambda x='': r'(?P<size{}>\d+\.?\d*|\d*\.\d+)'.format(x)
 _measure = lambda x='': r'(?P<measure{}>[cm]m)'.format(x)
 _polyp_qual = lambda x='': r'(?P<polyp_qual{}>{})(?:ly)? (?:sized?)?'.format(x, POLYP_IDENTIFIERS_PATTERN)
 _size_qual = lambda x='': f'(?:{_size(x)} {_measure(x)}?|{_polyp_qual(x)})'
@@ -92,6 +92,19 @@ MISSING_PATTERNS = {  # these patterns might suggest something is missing in the
 
 def get_count(count):
     return NumberConvert.convert(count)
+
+
+def regex_strip(term, remove=r'\W'):
+    for i, letter in enumerate(term):
+        if not re.match(remove, letter):
+            term = term[i:]
+            break
+    for i, letter, in enumerate(reversed(term)):
+        if not re.match(remove, letter):
+            if i > 0:
+                term = term[:-i]
+            break
+    return term
 
 
 def get_size(size, measure, measure2=None):
@@ -223,9 +236,9 @@ def apply_finding_patterns_to_location(text, location, source: FindingSource = N
                         source=source,
                     )
                 case (
-                    ['measure1', 'measure2', 'polyp_qual1', 'polyp_qual2', 'size1', 'size2'] |
-                    ['count', 'measure1', 'measure2', 'polyp_qual1', 'polyp_qual2', 'size1', 'size2'] |
-                    ['measure1', 'measure2', 'polyp_qual1', 'polyp_qual2', 'size1', 'size2']
+                ['measure1', 'measure2', 'polyp_qual1', 'polyp_qual2', 'size1', 'size2'] |
+                ['count', 'measure1', 'measure2', 'polyp_qual1', 'polyp_qual2', 'size1', 'size2'] |
+                ['measure1', 'measure2', 'polyp_qual1', 'polyp_qual2', 'size1', 'size2']
                 ):
                     yield Finding(
                         count=get_count(d.get('count', 2)),
