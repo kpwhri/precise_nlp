@@ -11,8 +11,8 @@ from precise_nlp.extract.path import PathManager
         - Two tubulovillous adenomas; see Comment.
         - One tubular adenoma; see Comment.''',
         '''Impressions: Polyp: (4mm) in the descending colon. (Polypectomy).
-        Polyp (10 mm)-in the sigmold colon. (Polypectomy).
-        Polyp. (14 mm) in the sigmoid colon. (Polypectomiy).''',
+        Polyp (10 mm)-in the sigmoid colon. (Polypectomy).
+        Polyp. (14 mm) in the sigmoid colon. (Polypectomy).''',
         1
     ),
 ])

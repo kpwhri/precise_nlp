@@ -109,7 +109,7 @@ class StandardTerminology:
     }
 
     LOCATION_REGEX = [(term, loc, re.compile(rf'\b{loc}\b', re.I)) for loc, term in LOCATIONS.items()]
-    LOCATION_PATTERN = rf'\b({"|".join(LOCATIONS.keys())})\b'
+    LOCATION_PATTERN = rf'\b(?:{"|".join(LOCATIONS.keys())})\b'
 
     COLON = {
         'anus',
