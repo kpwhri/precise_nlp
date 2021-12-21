@@ -24,6 +24,7 @@ class JarManager:
     FRAGMENTS = ['segments', 'fragments', 'pieces']
     FRAGMENT = ['segment', 'fragment', 'piece']
     ADENOMA_NEGATION = {'no', 'history', 'hx', 'sessile', 'without', 'r/o', 'negative'}
+    ADENOMA_NEGATION_WITHOUT_SESSILE = ADENOMA_NEGATION - {'sessile'}
     HISTOLOGY_NEGATION = {'no', 'or'}
     HISTOLOGY_NEGATION_MOD = {'evidence', 'residual'}
     NUMBER = {'one', 'two', 'three', 'four', 'five', 'six',
@@ -41,16 +42,17 @@ class JarManager:
         self.jars = []
         self.curr_jar = None
 
-    def _adenoma_negated(self, section):
+    def _adenoma_negated(self, section, allow_sessile=False):
         """
         Handle negation cases when looking specifically at adenoma.
         :param section:
         :return:
         """
-        if section.has_before(self.ADENOMA_NEGATION
+        negation = self.ADENOMA_NEGATION_WITHOUT_SESSILE if allow_sessile else self.ADENOMA_NEGATION
+        if section.has_before(negation
                               ) and not section.has_before(StandardTerminology.HISTOLOGY, window=4):
             return True
-        elif section.has_before('or', window=3) and section.has_before(self.ADENOMA_NEGATION, window=7):
+        elif section.has_before('or', window=3) and section.has_before(negation, window=7):
             return True
         elif section.has_before(['no', 'without'], window=5) and section.has_before(['evidence', 'hx', 'history'],
                                                                                     window=4):
@@ -118,7 +120,7 @@ class JarManager:
 
             elif word.isin(self.POLYPS):  # polyps/biopsies
                 if self._is_sessile_serrated(section):
-                    if not section.has_before(self.ADENOMA_NEGATION):
+                    if not section.has_before(self.ADENOMA_NEGATION_WITHOUT_SESSILE):
                         jar.add_ssp()
                     continue
                 elif found_polyp or section.has_before(self.ADENOMA_NEGATION):
@@ -137,10 +139,11 @@ class JarManager:
                     (word.isin(self.ADENOMA) and section.has_after(self.POLYPS, window=1)) or
                     (word.isin(self.ADENOMA) and jar.polyp_count.gt(1) == 1)
             ):
-                if self._adenoma_negated(section):
+                if self._adenoma_negated(section, allow_sessile=True):
                     continue
                 if self._is_sessile_serrated(section):
                     jar.add_ssa()
+                    continue
                 num = section.has_after(self.NUMBER, window=2)
                 has_frags = section.has_before(self.FRAGMENTS, window=4)
                 one_polyp = section.has_after(self.POLYP, window=1)
@@ -164,7 +167,7 @@ class JarManager:
                     jar.add_adenoma_count(1, greater_than=True)
 
             elif word.isin(self.ADENOMA):
-                if not self._adenoma_negated(section):
+                if not self._adenoma_negated(section, allow_sessile=True):
                     if self._is_sessile_serrated(section):
                         jar.add_ssa()
                     elif section.has_before(self.FRAGMENTS, window=4):
