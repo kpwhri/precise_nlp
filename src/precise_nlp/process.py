@@ -514,7 +514,7 @@ def process_config():
         elif conf_fp.endswith('yaml'):
             if not YAML:
                 raise ValueError('Yaml package not available. Please install.')
-            config = yaml.load(conf)
+            config = yaml.safe_load(conf)
         else:
             raise ValueError(
                 f'Unrecognized config file type "{os.path.splitext(conf_fp)[-1]}". Expected "yaml" or "json".'
