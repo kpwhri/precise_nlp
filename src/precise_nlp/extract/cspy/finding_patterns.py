@@ -16,9 +16,10 @@ _polyp_qual = lambda x='': r'(?P<polyp_qual{}>{})(?:ly)? (?:sized?)?'.format(x, 
 _size_qual = lambda x='': f'(?:{_size(x)} {_measure(x)}?|{_polyp_qual(x)})'
 _size_to_size_qual = lambda x='': f'{_size_qual(x or 1)} {_to} {_size_qual(x + 1 if x else 2)}'
 _location = lambda x='': r'(?P<location{}>\w+)'.format(x)
+_location_at = lambda x='': r'(?:at|@)? (?P<location_at{}>\d+) cm'.format(x)
 _location_terminal = lambda x='': r'(?P<location_rectum{}>(?:rect|cec)\w+)'.format(x)
-_location_or_rectum = lambda x='': f'(?:{_location(x)} {colon}|{_location_terminal(x)})'
-_location_all = lambda x='': r'(?P<location{}>{})( {})?'.format(x, StandardTerminology.LOCATION_PATTERN, colon)
+_location_or_rectum = lambda x='': f'(?:{_location(x)} {colon}|{_location_terminal(x)}|{colon}? {_location_at(x)})'
+_location_all = lambda x='': r'(?P<location{}>{})(?: {})?'.format(x, StandardTerminology.LOCATION_PATTERN, colon)
 _word = lambda x='3': r'(\w+\W+){{0,{}}}'.format(x)
 _word_space = lambda x='3': r'(\w+[\s\.]+){{0,{}}}'.format(x)
 _count = lambda x='': r'(?P<count{}>{})'.format(x, NumberConvert.NUMBER_PATTERN)
@@ -142,7 +143,7 @@ def apply_finding_patterns(text, source: FindingSource = None, *, debug=False) -
             logger.debug(f'Found pattern {name}: {d}')
             logger.debug(f'Matching case: {sorted(d.keys())}')
             match sorted(list(d.keys())):
-                case ['location', 'location_rectum', 'measure', 'polyp_qual', 'size']:
+                case ['location', 'location_at', 'location_rectum', 'measure', 'polyp_qual', 'size']:
                     yield Finding(
                         count=get_count(d.get('count', 1)),
                         sizes=(get_size(d['size'] or d['polyp_qual'], d['measure']),),
@@ -157,10 +158,10 @@ def apply_finding_patterns(text, source: FindingSource = None, *, debug=False) -
                         source=source,
                     )
                 case (
-                ['location', 'location_rectum', 'measure1', 'measure2',
+                ['location', 'location_at', 'location_rectum', 'measure1', 'measure2',
                  'polyp_qual1', 'polyp_qual2', 'size1', 'size2'] |
                 ['count', 'location', 'measure1', 'measure2', 'polyp_qual1', 'polyp_qual2', 'size1', 'size2'] |
-                ['location1', 'location2', 'location_rectum1', 'location_rectum2',
+                ['location1', 'location2', 'location_at1', 'location_at2', 'location_rectum1', 'location_rectum2',
                  'measure1', 'measure2', 'polyp_qual1', 'polyp_qual2', 'size1', 'size2']
                 ):
                     yield Finding(
@@ -172,7 +173,7 @@ def apply_finding_patterns(text, source: FindingSource = None, *, debug=False) -
                         locations=get_locations_from_groupdict(d),
                         source=source,
                     )
-                case ['count', 'location', 'location_rectum', 'measure', 'polyp_qual', 'size']:
+                case ['count', 'location', 'location_at', 'location_rectum', 'measure', 'polyp_qual', 'size']:
                     yield Finding(
                         count=get_count(d['count']),
                         sizes=(
@@ -181,7 +182,7 @@ def apply_finding_patterns(text, source: FindingSource = None, *, debug=False) -
                         locations=get_locations_from_groupdict(d),
                         source=source,
                     )
-                case ['count', 'location', 'location_rectum', 'measure1', 'measure2',
+                case ['count', 'location', 'location_at', 'location_rectum', 'measure1', 'measure2',
                       'polyp_qual1', 'polyp_qual2', 'size1', 'size2']:
                     yield Finding(
                         count=get_count(d['count']),
