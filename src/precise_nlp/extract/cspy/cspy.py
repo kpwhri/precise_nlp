@@ -40,7 +40,7 @@ class CspyManager:
                       ],
     }
 
-    def __init__(self, text, *, version=FindingVersion.BROAD, cspy_extent_search_all=False, test_skip_parse=False):
+    def __init__(self, text, *, version=FindingVersion.PRECISE, cspy_extent_search_all=False, test_skip_parse=False):
         """
 
         :param text:
@@ -60,7 +60,7 @@ class CspyManager:
         if not test_skip_parse:
             self.parse_sections(version=version, cspy_extent_search_all=cspy_extent_search_all)
 
-    def parse_sections(self, *, version=FindingVersion.BROAD, cspy_extent_search_all=False):
+    def parse_sections(self, *, version=FindingVersion.PRECISE, cspy_extent_search_all=False):
         self._findings = list(self._get_findings(version=version))
         if self._findings:
             self.num_polyps = sum(f.count for f in self._findings)
@@ -126,7 +126,7 @@ class CspyManager:
                     if sect:
                         yield sect
 
-    def _get_findings(self, version=FindingVersion.BROAD):
+    def _get_findings(self, version=FindingVersion.PRECISE):
         if version == FindingVersion.BROAD:
             return self._get_findings_broad()
         elif version == FindingVersion.PRECISE:
