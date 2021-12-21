@@ -222,7 +222,6 @@ class FindingBuilder:
             func, true_state, false_state = self.TRANSITIONS[state]
             if func is None:
                 break
-            print(key, text, func, state, true_state, false_state)
             indicator, text = func(finding, text, key=key)
             state = true_state if indicator else false_state
         if finding:
@@ -295,9 +294,9 @@ class FindingBuilder:
     def get_count(self, finding, text, **kwargs):
         # there should only be one
         lst = [0]
-        if 'polyps' in text:
+        if re.search(r'\bpolyps\b', text):
             lst.append(2)
-        elif 'polyp' in text:
+        elif re.search(r'\bpolyp\b', text):
             lst.append(1)
         elif finding.removal:
             lst.append(1)
