@@ -145,6 +145,13 @@ class StandardTerminology:
                         yield ll
             elif loc is not None:
                 yield loc
+            else:
+                try:
+                    el = int(el)
+                except ValueError:
+                    pass
+                else:
+                    yield from depth_to_location(el)
 
     @classmethod
     def standardize_location(cls, el, colon_only=False):
