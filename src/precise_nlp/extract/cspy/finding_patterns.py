@@ -108,10 +108,10 @@ def regex_strip(term, remove=r'\W'):
 
 
 def get_size(size, measure, measure2=None):
-    size = re.sub(r'\W+', ' ', size)
+    size = regex_strip(size)
     if size in POLYP_IDENTIFIERS:
         return POLYP_IDENTIFIERS[size]
-    size = int(size)
+    size = float(size)
     if measure and measure.lower().strip() == 'cm':
         size *= 10
     elif not measure and measure2 and measure2.lower().strip() == 'cm':
