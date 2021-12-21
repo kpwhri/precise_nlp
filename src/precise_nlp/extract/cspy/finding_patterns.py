@@ -114,6 +114,12 @@ def get_locations(*locations):
     return tuple(loc for location in locations for loc in StandardTerminology.convert_location(location) if location)
 
 
+def remove_finding_patterns(text):
+    for pat in FINDING_PATTERNS.values():
+        text = pat.sub(' ', text)
+    return text.strip()
+
+
 def apply_finding_patterns(text, source: FindingSource = None, *, debug=False) -> list[Finding]:
     found = False
     for name, pat in FINDING_PATTERNS.items():

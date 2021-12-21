@@ -9,6 +9,8 @@ from precise_nlp.const.patterns import INDICATION_DIAGNOSTIC, INDICATION_SURVEIL
     PROCEDURE_EXTENT_COMPLETE, COLON_PREP_PRE, COLON_PREP_POST, PROCEDURE_EXTENT_INCOMPLETE, COLON_PREPARATION, \
     REMOVE_SCREENING, PROCEDURE_EXTENT_INCOMPLETE_PRE, PROCEDURE_EXTENT_ALL
 from precise_nlp.extract.cspy.finding_builder import FindingBuilder, Finding
+from precise_nlp.extract.cspy.finding_patterns import apply_finding_patterns_to_location, apply_finding_patterns, \
+    remove_finding_patterns
 from precise_nlp.extract.cspy.naive_finding import NaiveFinding
 from precise_nlp.extract.utils import Indication, Extent, \
     ColonPrep, Prep, IndicationPriority, StandardTerminology
@@ -163,7 +165,18 @@ class CspyManager:
             1. text without the found terms for additional parsing
             2. list of current findings
         """
-        return sect, []
+        locations = self.split_by_location(sect)
+        findings = []
+        if len(locations.keys()) > 4:
+            for location, location_text in locations.items():
+                for finding in apply_finding_patterns_to_location(location_text, location):
+                    findings.append(finding)
+            if len(findings) > 0:
+                return '', findings
+        findings = list(apply_finding_patterns(sect))
+        if len(findings) > 0:
+            sect = remove_finding_patterns(sect)
+        return sect, findings
 
     def split_by_location(self, text):
         """

@@ -1,7 +1,8 @@
 import pytest
 
 from precise_nlp.extract.cspy import CspyManager
-from precise_nlp.extract.cspy.finding_patterns import apply_finding_patterns, apply_finding_patterns_to_location
+from precise_nlp.extract.cspy.finding_patterns import apply_finding_patterns, apply_finding_patterns_to_location, \
+    remove_finding_patterns
 
 
 @pytest.mark.parametrize('text, exp_count, exp_size, exp_locations', [
@@ -97,3 +98,41 @@ def test_split_by_location(text, exp, exp_normal):
     assert locations == exp
     normal_locations = {el for key, value in locations_dict.items() for el in key if 'normal' in value.lower()}
     assert normal_locations == exp_normal
+
+
+@pytest.mark.parametrize('text, exp', [
+    ('Polyp (15 mm) in the descending colon', ''),
+    ('Polyp (10 mm)-in the sigmoid colon. (Polypectomy)', '. (Polypectomy)'),
+    ('Polyp (10 mm)-in the distal sigmoid colon. (Polypectomy)', '. (Polypectomy)'),
+    ('Polyp (12 mm) in the splenic flexure. (Polypectomy)', '. (Polypectomy)'),
+    ('Polyps (2 mm to 4 mm) In the ascending colon (polyps)', '(polyps)'),
+    ('Polyps (2 mm to 4 mm) In the rectum (polyps)', '(polyps)'),
+    ('Polyps (2 mm to 4 mm) In the ascending colon (polyps) and rectum (polyps)', '(polyps)'),
+    ('One 3 mm polyp in the descending colon', ''),
+    ('One diminutive polyp in the cecum', ''),
+    ('Two medium sized polyps in the cecum', ''),
+    ('Three moderately-sized polyps in the cecum', ''),
+    ('Ten large polyps in the cecum', ''),
+    ('One small polyp in the descending colon', ''),
+    ('Four 3 to 5 mm polyps in the rectum', ''),
+    ('POLYP: Location: Descending colon. Size: 5 mm', ''),
+    ('Transverse Colon - one 5 mm sessile polyp(s) (removed with jumbo biopsy forceps)',
+     '(s) (removed with jumbo biopsy forceps)'),
+    ('Sigmoid Colon - one 10 mm sessile polyp(s)', '(s)'),
+    ('Rectum - two 2 mm sessile polyp(s)', '(s)'),
+    ('Sigmoid Colon - two 15 mm pedunculated polyp(s)', '(s)'),
+    ('Cecum - one 5 mm flat polyp(s)', '(s)'),
+    ('Cecum - Large 1 cm polyp removed at the ileocecal valve with cautery snare',
+     'removed at the ileocecal valve with cautery snare'),
+    ('Sigmoid Colon - one diminutive   sessile polyp', ''),
+    ('Cecum - two dim polyp(s) ', '(s)'),
+    ('Sigmoid Colon - two 3-4 mm sessile polyp(s)', '(s)'),
+    ('Anorectum - three 3-4 mm sessile polyp', ''),
+    ('Descending:  4 sessile polyps.  The polyps were 6 mm in diameter', 'in diameter'),
+    ('Sigmoid:   Diverticulosis.  1 pedunculated polyp.  The polyp was 2.0 cm in diameter', 'in diameter'),
+    ('Cecum - two 3 mm and 13 mm sessile polyp(s)', '(s)'),
+    ('Ascending Colon - three 3-5 mm sessile polyp(s)', '(s)'),
+])
+def test_remove_finding_patterns(text, exp):
+    new_text = remove_finding_patterns(text)
+    assert new_text == exp
