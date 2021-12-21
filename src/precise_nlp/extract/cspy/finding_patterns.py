@@ -136,7 +136,7 @@ def remove_finding_patterns(text):
 def apply_finding_patterns(text, source: FindingSource = None, *, debug=False) -> list[Finding]:
     found = False
     for name, pat in FINDING_PATTERNS.items():
-        if m := pat.matches(text):
+        for m in pat.finditer(text):
             d = m.groupdict()
             found = True
             logger.debug(f'Found pattern {name}: {d}')
@@ -204,7 +204,7 @@ def apply_finding_patterns(text, source: FindingSource = None, *, debug=False) -
                     )
                 case other:
                     raise ValueError(f'Unrecognized for {name}: {other}')
-            break
+        text = pat.sub(' ', text).strip()
 
     if not found and debug:
         for name, pat in MISSING_PATTERNS.items():
