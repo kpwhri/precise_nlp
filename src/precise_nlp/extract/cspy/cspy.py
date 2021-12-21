@@ -52,15 +52,23 @@ class CspyManager:
         self.title = ''
         self.sections = {}
         self._get_sections()
+        self._findings = None
+        self.num_polyps = None
+        self._indication = None
+        self._prep = None
+        self._extent = None
         if not test_skip_parse:
-            self._findings = list(self._get_findings(version=version))
-            if self._findings:
-                self.num_polyps = sum(f.count for f in self._findings)
-            else:
-                self.num_polyps = 0
-            self._indication = self.get_indication()
-            self._prep = self.get_prep()
-            self._extent = self.get_extent(cspy_extent_search_all=cspy_extent_search_all)
+            self.parse_sections(version=version, cspy_extent_search_all=cspy_extent_search_all)
+
+    def parse_sections(self, *, version=FindingVersion.BROAD, cspy_extent_search_all=False):
+        self._findings = list(self._get_findings(version=version))
+        if self._findings:
+            self.num_polyps = sum(f.count for f in self._findings)
+        else:
+            self.num_polyps = 0
+        self._indication = self.get_indication()
+        self._prep = self.get_prep()
+        self._extent = self.get_extent(cspy_extent_search_all=cspy_extent_search_all)
 
     @property
     def indication(self):
