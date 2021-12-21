@@ -32,7 +32,7 @@ from precise_nlp.extract.cspy.finding_patterns import apply_finding_patterns, ap
     ('Anorectum - three 3-4 mm sessile polyp', 3, 4, {'anus', 'rectum'}),
     ('Descending:  4 sessile polyps.  The polyps were 6 mm in diameter', 4, 6, {'descending'}),
     ('Sigmoid:   Diverticulosis.  1 pedunculated polyp.  The polyp was 2.0 cm in diameter', 1, 2, {'sigmoid'}),
-    ('Cecum - two 3 mm and 13 mm sessile polyp(s)Cecum - two 3 mm and 13 mm sessile polyp(s)', 2, 13, {'cecum'}),
+    ('Cecum - two 3 mm and 13 mm sessile polyp(s)', 2, 13, {'cecum'}),
     ('Ascending Colon - three 3-5 mm sessile polyp(s)', 3, 5, {'ascending'}),
 ])
 def test_finding_pattern(text, exp_count, exp_size, exp_locations):
@@ -79,3 +79,21 @@ def test_finding_pattern_in_location_on_multiple(text, exp_findings_count, exp_c
     assert len(findings) == exp_findings_count, 'No findings found in text'
     assert sum(finding.count for finding in findings) == exp_count
     assert max(finding.size for finding in findings) == exp_max_size
+
+
+@pytest.mark.parametrize('text, exp, exp_normal', [
+    (
+            '''Terminal ileum: not evaluated  · Cecum:   Normal   · Ascending: 1 sessile polyp.  The polyp was 6 mm in 
+            diameter and removed using removed with jumbo biopsy forceps.  · Transverse:  Normal  · Descending:  Normal
+              · Sigmoid:   Normal  · Rectum:  normal  · Anorectum: normal''',
+            {'ileum', 'cecum', 'ascending', 'sigmoid', 'rectum', 'anus', 'rectum', 'descending', 'transverse'},
+            {'cecum', 'transverse', 'descending', 'sigmoid', 'rectum', 'anus', 'rectum'}
+    ),
+])
+def test_split_by_location(text, exp, exp_normal):
+    cspy = CspyManager(text, test_skip_parse=True)
+    locations_dict = cspy.split_by_location(text)
+    locations = {el for key in locations_dict.keys() for el in key}
+    assert locations == exp
+    normal_locations = {el for key, value in locations_dict.items() for el in key if 'normal' in value.lower()}
+    assert normal_locations == exp_normal

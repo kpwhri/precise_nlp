@@ -130,7 +130,7 @@ class CspyManager:
         if version == FindingVersion.BROAD:
             return self._get_findings_broad()
         elif version == FindingVersion.PRECISE:
-            return list(self._get_findings_precise())
+            return list(self.get_findings_precise())
         else:
             raise ValueError(f'Unrecognized Finding Version: {version}')
 
@@ -155,15 +155,49 @@ class CspyManager:
             if semiheader:
                 yield semiheader
 
-    def _get_findings_precise(self):
+    def get_findings_patterns(self, sect) -> tuple[str, list]:
+        """
+
+        :param sect: section as returned by `get_sections_by_label`
+        :return: tuple with:
+            1. text without the found terms for additional parsing
+            2. list of current findings
+        """
+        return sect, []
+
+    def split_by_location(self, text):
+        """
+        Divide section by location; assumed to have delimiters of '-—:'
+        :param text:
+        :return:
+        """
+        pat = re.compile(
+            rf'({StandardTerminology.LOCATION_PATTERN})\s*(colon|flexure)?\s*[-—:]',
+            re.I
+        )
+        prev_location = None
+        prev_end = None
+        locations = {}
+        for m in pat.finditer(text):
+            location = tuple(StandardTerminology.convert_location(m.group(1)))
+            if prev_location:
+                locations[prev_location] = text[prev_end: m.start()].strip()
+            prev_location = location
+            prev_end = m.end()
+        if prev_location and prev_end:
+            locations[prev_location] = text[prev_end:].strip()
+        return locations
+
+    def get_findings_precise(self):
         findings_by_section = []
         for sect in self.get_sections_by_label(*self.LABELS[self.FINDINGS]):
-            res = [f for f in self._get_findings_precise_section(sect) if f]
+            sect, findings = self.get_findings_patterns(sect)
+            res = [f for f in self.get_findings_precise_section(sect) if f]
             if res:
                 findings_by_section.append(res)
         return self._merge_sections(sorted(findings_by_section, key=lambda x: -len(x)))
 
-    def _get_findings_precise_section(self, sect):
+    def get_findings_precise_section(self, sect):
         fb = FindingBuilder()
         for segment in self._deenumerate(sect):
             fb.fsm(segment)
