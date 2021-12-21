@@ -103,7 +103,7 @@ def split_maybe_counters(data):
 
 
 def process_text(path_text='', cspy_text='',
-                 cspy_finding_version=FindingVersion.BROAD, cspy_extent_search_all=False):
+                 cspy_finding_version=FindingVersion.PRECISE, cspy_extent_search_all=False):
     pm = PathManager(path_text)
     cm = CspyManager(cspy_text, version=cspy_finding_version, cspy_extent_search_all=cspy_extent_search_all)
     data = {}
