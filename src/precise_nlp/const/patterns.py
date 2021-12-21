@@ -32,7 +32,7 @@ SSPLIT = re.compile(r'\.(?=\s)')
 NO_PERIOD_SENT = re.compile(r'\n\W*[A-Z0-9]')  # no ignorecase!
 
 # EXTENT PATTERNS
-visualized = r'(identif|reach|visuali|seen?)\w*'
+visualized = r'(identif|reach|visuali|seen?|normal)\w*'
 
 PROCEDURE_EXTENT_INCOMPLETE_PRE = Pattern(
     rf'(failed to|unable to|not) {visualized} (the )?(cec[ua]|(term\w* )?ileum|ile[oa]|append\w* orifice)'
@@ -40,7 +40,7 @@ PROCEDURE_EXTENT_INCOMPLETE_PRE = Pattern(
 PROCEDURE_EXTENT_COMPLETE = Pattern(
     r'('
     r'extent of (th(e|is) )?procedure (the )?(colon )?(cecum|term\w* ileum)'
-    rf'|(cecal \w+|cecum|(term\w* )?ileum|append\w* orifice) ((was|were|is|are) )?{visualized}'
+    rf'|(cecal \w+|cecum|(term\w* )?ileum|append\w* orifice) ((was|were|is|are|appeared) )?{visualized}'
     r'|to (the )?(\w+ )?cecum'
     r'|advanced into the final \d{1,2} cm of the (term\w* )?ileum'
     rf'|{visualized} (the )?(ileo[\w-]* valve|(terminal )?ileum|append\w+ orifice)'
@@ -49,7 +49,7 @@ PROCEDURE_EXTENT_COMPLETE = Pattern(
 PROCEDURE_EXTENT_INCOMPLETE = Pattern(
     r'('
     r'extent of (the )?procedure'
-    rf'|(cecum|term\w* ileum|ileum|ileal|ile\w+ cecal valve|append\w* orifice) ((was|were|is|are) )?not {visualized}'
+    rf'|(cecum|term\w* ileum|ileum|ileal|ile\w+ cecal valve|append\w* orifice) ((was|were|is|are|appeared) )?not {visualized}'
     r')'
 )
 PROCEDURE_EXTENT_ALL = Pattern(

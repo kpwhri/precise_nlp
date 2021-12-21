@@ -22,6 +22,8 @@ from precise_nlp.extract.utils import Extent
     ('ileocecal valve', Extent.POSSIBLE_COMPLETE),
     ('ileo-cecal valve', Extent.POSSIBLE_COMPLETE),
     ('cecum', Extent.POSSIBLE_COMPLETE),
+    ('theterminal ileum normal', Extent.COMPLETE),
+    ('the terminal ileum appeared normal', Extent.COMPLETE),
 ])
 def test_extent(text, exp):
     assert CspyManager(text, test_skip_parse=True).get_extent() == exp
