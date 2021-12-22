@@ -31,6 +31,12 @@ extra = ['pandas']
 [tool.pytest.ini_options]
 addopts = '--cov=precise_nlp --cov-report=term'
 
+[tool.coverage.report]
+exclude_lines = [
+    'pragma: no cover',
+    "^[A-Z_]+\\s*=\\s*'.*?'$"
+]
+
 [tool.tox]
 legacy_tox_ini = """
 [tox]
