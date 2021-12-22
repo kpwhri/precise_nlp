@@ -1,2 +1,47 @@
+[build-system]
+requires = ['flit_core >=3.2']
+build-backend = 'flit_core.buildapi'
+
+[project]
+name = 'precise_nlp'
+version = '0.1.0'
+module = 'precise_nlp'
+authors = [
+    { name = 'dcronkite', email = 'dcronkite+pypi@gmail.com' },
+]
+readme = 'README.md'
+description = 'Extract colorectal information from colonoscopy and pathology notes.'
+home-page = 'https://github.com/kpwhri/precise_nlp'
+requires = ['regexify', 'loguru', 'jsonschema', 'pyyaml']
+requires-python = '>=3.10'
+keywords = ['nlp', 'information extraction', 'colonoscopy']
+classifiers = [  # https://pypi.org/classifiers/
+    'Development Status :: 5 - Production/Stable',
+    'Intended Audience :: Science/Research',
+    'Programming Language :: Python :: 3 :: Only',
+    'Topic :: Text Processing :: Linguistic',
+    'License :: OSI Approved :: MIT License',
+    'Intended Audience :: Healthcare Industry',
+]
+
+[project.optional-dependencies]
+dev = ['pytest', 'tox', 'coverage', 'pytest-cov']
+extra = ['pandas']
+
 [tool.pytest.ini_options]
-addopts='--cov=precise_nlp --cov-report=term'
+addopts = '--cov=precise_nlp --cov-report=term'
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = py310
+isolated_build = True
+
+[testenv]
+deps =
+    pytest
+    loguru
+    regexify
+    pytest-cov
+commands = pytest
+"""
