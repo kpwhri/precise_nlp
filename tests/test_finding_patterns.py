@@ -1,6 +1,5 @@
 import pytest
 
-from precise_nlp.extract.cspy import CspyManager
 from precise_nlp.extract.cspy.finding_patterns import apply_finding_patterns, apply_finding_patterns_to_location, \
     remove_finding_patterns, regex_strip
 
@@ -93,8 +92,7 @@ def test_finding_pattern_in_location_on_multiple(text, exp_findings_count, exp_c
             {'cecum', 'transverse', 'descending', 'sigmoid', 'rectum', 'anus', 'rectum'}
     ),
 ])
-def test_split_by_location(text, exp, exp_normal):
-    cspy = CspyManager(text, test_skip_parse=True)
+def test_split_by_location(cspy, text, exp, exp_normal):
     locations_dict = cspy.split_by_location(text)
     locations = {el for key in locations_dict.keys() for el in key}
     assert locations == exp
