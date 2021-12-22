@@ -4,53 +4,52 @@ from precise_nlp.const.enums import AssertionStatus
 from precise_nlp.extract.path import JarManager
 
 
+@pytest.fixture
+def jm():
+    return JarManager()
+
+
 @pytest.mark.parametrize('text, exp, exp_maybe', [
     ('C. COLON, ASCENDING MASS, BIOPSY:\n- Adenocarcinoma.', 1, 0),
     ('adenosquamous carcinoma', 1, 0),
 ])
-def test_carcinoma_count(text, exp, exp_maybe):
-    jm = JarManager()
+def test_carcinoma_count(jm, text, exp, exp_maybe):
     jm.cursory_diagnosis_examination(text)
     assert jm.get_carcinoma_maybe_count() == exp_maybe
     assert jm.get_carcinoma_count() == exp
 
 
-def test_carcinoma_maybe_count():
+def test_carcinoma_maybe_count(jm):
     text = 'suspicious for adenosquamous carcinoma'
-    jm = JarManager()
     jm.cursory_diagnosis_examination(text)
     assert jm.get_carcinoma_maybe_count() == 1
     assert jm.get_carcinoma_count() == 0
 
 
-def test_carcinoma_value():
+def test_carcinoma_value(jm):
     text = 'suspicious for adenosquamous carcinoma'
-    jm = JarManager()
     jm.cursory_diagnosis_examination(text)
     jar = jm.get_current_jar()
     assert jar.carcinoma_list[0][0] == 'adenosquamous carcinoma'
     assert jar.carcinoma_list[0][1] == AssertionStatus.PROBABLE
 
 
-def test_carcinoma_count_rectal_melanoma():
+def test_carcinoma_count_rectal_melanoma(jm):
     text = 'rectal, adenoma, melanoma'
-    jm = JarManager()
     jm.cursory_diagnosis_examination(text)
     assert jm.get_carcinoma_maybe_count() == 0
     assert jm.get_carcinoma_count() == 1
 
 
-def test_carcinoma_count_colonic_melanoma():
+def test_carcinoma_count_colonic_melanoma(jm):
     text = 'descending, adenoma, melanoma'
-    jm = JarManager()
     jm.cursory_diagnosis_examination(text)
     assert jm.get_carcinoma_maybe_count() == 0
     assert jm.get_carcinoma_count() == 0
 
 
-def test_carcinoma_count_non_colon():
+def test_carcinoma_count_non_colon(jm):
     text = 'stomach carcinoma'
-    jm = JarManager()
     jm.cursory_diagnosis_examination(text)
     assert jm.get_carcinoma_maybe_count() == 0
     assert jm.get_carcinoma_count() == 0
@@ -67,8 +66,7 @@ def test_carcinoma_count_non_colon():
     ('probable signet ring squamous cell in situ carcinoma', 0, 1, 1),
     ('probable signet ring squamous cell in-situ carcinoma', 0, 1, 1),
 ])
-def test_carcinoma_in_situ(text, situ_count, maybe_situ_count, possible_situ_count):
-    jm = JarManager()
+def test_carcinoma_in_situ(jm, text, situ_count, maybe_situ_count, possible_situ_count):
     jm.cursory_diagnosis_examination(text)
     assert jm.get_carcinoma_in_situ_count() == situ_count
     assert jm.get_carcinoma_in_situ_maybe_count(probable_only=True) == maybe_situ_count
@@ -84,8 +82,7 @@ def test_carcinoma_in_situ(text, situ_count, maybe_situ_count, possible_situ_cou
         marks=pytest.mark.xfail(reason='not going to handle this right now; from other section')
     ),
 ])
-def test_negatives_carcinoma(text):
-    jm = JarManager()
+def test_negatives_carcinoma(jm, text):
     jm.cursory_diagnosis_examination(text)
     assert jm.get_carcinoma_count() == 0
 
@@ -99,8 +96,7 @@ def test_negatives_carcinoma(text):
     ('Negative for diagnostic features of dysplasia, adenoma or invasive malignancy (see comment)', 0),
     ('Negative for diagnostic features of dysplasia, malignancy or adenoma (see comment)', 0),
 ])
-def test_negatives_adenoma(text, exp):
-    jm = JarManager()
+def test_negatives_adenoma(jm, text, exp):
     jm.cursory_diagnosis_examination(text)
     assert jm.get_adenoma_count().count == exp
 
@@ -109,8 +105,7 @@ def test_negatives_adenoma(text, exp):
     ('Negative for diagnostic features of sessile serrated adenoma, dysplasia or invasive malignancy (see comment)', 0),
 
 ])
-def test_negatives_ssp(text, exp):
-    jm = JarManager()
+def test_negatives_ssp(jm, text, exp):
     jm.cursory_diagnosis_examination(text)
     assert jm.get_sessile_serrated_count() == exp
 
@@ -122,8 +117,7 @@ def test_negatives_ssp(text, exp):
         marks=pytest.mark.xfail(reason='chart abstraction has the below as 2, but I\'m not clear anymore')
     ),
 ])
-def test_adenoma_jar_gte(text, count):
-    jm = JarManager()
+def test_adenoma_jar_gte(jm, text, count):
     jm.cursory_diagnosis_examination(text)
     maybe_counter = jm.get_adenoma_count()
     assert maybe_counter.at_least is True
