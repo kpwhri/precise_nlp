@@ -1,17 +1,17 @@
-import collections
-
 import pytest
 
-from precise_nlp.extract.cspy import CspyManager
-from precise_nlp.extract.cspy.cspy import FindingVersion
 from precise_nlp.extract.cspy.finding_builder import FindingBuilder
 from precise_nlp.extract.cspy.naive_finding import NaiveFinding
 
 
-def test_single_polyp():
+@pytest.fixture
+def fb():
+    return FindingBuilder()
+
+
+def test_single_polyp(fb):
     s = 'There was one sessile polyp in the ascending colon.' \
         ' The polyp was 6mm in diameter and removed using cold biopsy.'
-    fb = FindingBuilder()
     fb.fsm(s)
     lst = list(fb.get_findings())
     assert len(lst) == 1
@@ -22,9 +22,8 @@ def test_single_polyp():
     assert f.size == 6
 
 
-def test_two_benign_polyps():
+def test_two_benign_polyps(fb):
     s = 'Two benign sessile polyps were found'
-    fb = FindingBuilder()
     fb.fsm(s)
     lst = list(fb.get_findings())
     assert len(lst) == 1
@@ -35,9 +34,8 @@ def test_two_benign_polyps():
     assert f.size == 0
 
 
-def test_multiple_locations():
+def test_multiple_locations(fb):
     s = 'Removed 3 polyps from ascending, descending, and cecum'
-    fb = FindingBuilder()
     fb.fsm(s)
     lst = [f for finding in fb.get_findings() for f in finding.split()]
     assert len(lst) == 3
@@ -52,8 +50,7 @@ def test_multiple_locations():
       'The polyp was removed with a hot snare.',
       'Resection and retrieval were complete'), 1)
 ])
-def test_merge_findings(sections, expected_count):
-    fb = FindingBuilder()
+def test_merge_findings(fb, sections, expected_count):
     for s in sections:
         fb.fsm(s)
     findings = fb.get_merged_findings()
@@ -65,11 +62,10 @@ def test_merge_findings(sections, expected_count):
     assert f.locations == ('sigmoid',)
 
 
-def test_merge_split_findings():
+def test_merge_split_findings(fb):
     sections = (
         'Removed 7mm, 3mm, and 2mm polyps from transverse, ascending, descending.',
     )
-    fb = FindingBuilder()
     for s in sections:
         fb.fsm(s)
     findings = list(fb.split_findings2(*fb.get_merged_findings()))
@@ -90,8 +86,8 @@ def test_merge_split_findings():
     ('Polyp (10 mm)-in the sigmoid colon. (Polypectomy)', 10, ('sigmoid',)),
     ('Polyp (10 mm) in the sigmoid colon. (Polypectomy)', 10, ('sigmoid',)),
 ])
-def test_finding_builder(text, size, locations):
-    finding = FindingBuilder().fsm(text)
+def test_finding_builder(fb, text, size, locations):
+    finding = fb.fsm(text)
     assert finding.size == size
     assert set(ll for loc in finding.locations for ll in loc.location) == set(locations)
 
