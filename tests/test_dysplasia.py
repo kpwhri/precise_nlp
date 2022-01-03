@@ -18,6 +18,7 @@ def test_dysplasia_negation():
     ('evidence of highgrade dysplasia', 1),
     ('low grade dysplasia', 0),
     ('A. lots of highgrade dysplasia; B. negative for highgrade dysplasia', 1),
+    ('Fragmented adenomatous polyps with focal areas of high-grade dysplasia', 1),
 ])
 def test_get_any_dysplasia(text, exp):
     jm = JarManager()

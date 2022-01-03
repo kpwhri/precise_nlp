@@ -146,6 +146,10 @@ def get_highgrade_dysplasia(specimens):
                    terminate_on_negation=True)
 
 
+def get_dysplasia(pm: PathManager):
+    return pm.get_dysplasia()
+
+
 def has_dysplasia(pm: PathManager):
     """
     Identify mentions of highgrade dysplasia
