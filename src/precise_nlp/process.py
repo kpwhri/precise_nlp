@@ -37,7 +37,7 @@ from precise_nlp.const.enums import Location
 from precise_nlp.doc_parser import parse_file
 from precise_nlp.extract.algorithm import get_adenoma_status, get_adenoma_histology, get_highgrade_dysplasia, \
     get_adenoma_count, has_large_adenoma, get_adenoma_count_advanced, get_adenoma_distal, get_adenoma_proximal, \
-    get_adenoma_rectal, get_adenoma_unknown, get_villous_histology, has_dysplasia, get_sessile_serrated_adenoma, \
+    get_adenoma_rectal, get_adenoma_unknown, get_villous_histology, get_dysplasia, get_sessile_serrated_adenoma, \
     get_carcinomas, get_carcinomas_maybe, get_carcinomas_in_situ, get_carcinomas_in_situ_maybe, \
     get_carcinomas_in_situ_possible, get_carcinomas_possible
 from precise_nlp.extract.cspy.cspy import CspyManager, FindingVersion
@@ -136,7 +136,7 @@ def process_text(path_text='', cspy_text='',
             RECTAL_VILLOUS: get_villous_histology(pm, Location.RECTAL),
             UNKNOWN_VILLOUS: get_villous_histology(pm, Location.UNKNOWN),
             SIMPLE_HIGHGRADE_DYSPLASIA: get_highgrade_dysplasia(specs),
-            HIGHGRADE_DYSPLASIA: has_dysplasia(pm),
+            HIGHGRADE_DYSPLASIA: get_dysplasia(pm),
             ADENOMA_COUNT: get_adenoma_count(specs),
             LARGE_ADENOMA: has_large_adenoma(pm, cm, version=cspy_finding_version),
             ADENOMA_COUNT_ADV: adenoma_count,
