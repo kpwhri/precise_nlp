@@ -109,7 +109,7 @@ def regex_strip(term, remove=r'\W'):
 
 
 def get_size(size, measure, measure2=None):
-    size = regex_strip(size)
+    size = regex_strip(size).lower()
     if size in POLYP_IDENTIFIERS:
         return POLYP_IDENTIFIERS[size]
     size = float(size)
