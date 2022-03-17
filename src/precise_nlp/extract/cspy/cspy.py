@@ -274,7 +274,7 @@ class CspyManager:
     def _deenumerate(self, sect):
         # find first list marker
         sect = sect.strip()
-        if not sect:  # empty string
+        if not sect or len(sect) < 3:  # empty string
             return []
         if sect[:2] == '--':
             return re.compile(r'\W' + sect[:2]).split(sect[2:])
