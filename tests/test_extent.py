@@ -24,6 +24,17 @@ from precise_nlp.extract.utils import Extent
     ('cecum', Extent.POSSIBLE_COMPLETE),
     ('theterminal ileum normal', Extent.COMPLETE),
     ('the terminal ileum appeared normal', Extent.COMPLETE),
+    ('extent of procedure: the cecum', Extent.COMPLETE),
+    ('extent of procedure: the terminal ileum', Extent.COMPLETE),
+    ('extent of procedure: cecum', Extent.COMPLETE),
+    ('extent of procedure: terminal ileum', Extent.COMPLETE),
+    ('extent of this procedure: terminal ileum', Extent.COMPLETE),
+    ('extent of the procedure: terminal ileum', Extent.COMPLETE),
+    ('cecal location was identified', Extent.COMPLETE),
+    ('appendiceal orifice was reached', Extent.COMPLETE),
+    ('cecum were reached', Extent.COMPLETE),
+    ('advanced into the final 2cm of the ileum', Extent.COMPLETE),
+    ('advanced into the final 12 cm of the terminal ileum', Extent.COMPLETE),
 ])
 def test_extent(text, exp):
     assert CspyManager(text, test_skip_parse=True).get_extent() == exp
