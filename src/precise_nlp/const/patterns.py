@@ -86,7 +86,9 @@ colitis = r'colitis'
 divertic = r'divertic'  # removed from diagnostic for internal inconsistency
 perhx = r'(?<!family\W)(?<!family)(((h[ist]+ory|hx)\W*of)|h\/o)'
 personal_history = r'personal history'
-famhx = r'family|famhx|mother|father|parent|sister|brother|\bson\b|daughter|\bFH\b'
+# HACK: should be \bson\b, but this causes 'blood' in 'blood pressure' to be identified as DIAGNOSTIC.
+#   Since 'son' is only SCREENING (lowest priority), it will only absorb some UNKNOWNs.
+famhx = r'family|famhx|mother|father|parent|sister|brother|son|daughter|\bFH\b'
 genetic = r'fap|lynch|hnpcc'
 followup = r'follow\W*up|self\/u'
 polyps = r'polyps'  # for SURVEILLANCE with negation?
