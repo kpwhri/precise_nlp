@@ -144,3 +144,4 @@ INDICATION_SURVEILLANCE = Pattern(f'({ibd}|{perhx}|{genetic}|{followup}'
                                   negates=[r'\bno\b'])
 INDICATION_SCREENING = Pattern(f'({screen}|{famhx})',
                                negates=[r'\bno\b'])
+REMOVE_SCREENING = Pattern(f'lsakdjflaksdjflkasdjf')
