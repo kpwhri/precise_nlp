@@ -259,7 +259,7 @@ def get_adenoma_unknown(pm: PathManager, greater_than=2, jar_count=False):
     return _get_adenoma_count(pm.get_adenoma_unknown_count, greater_than, jar_count)
 
 
-def has_large_adenoma(pm: PathManager, cm: CspyManager, *, min_size=10, version=FindingVersion.BROAD):
+def has_large_adenoma(pm: PathManager, cm: CspyManager, *, min_size=10, version=FindingVersion.PRECISE):
     if version == FindingVersion.BROAD:
         return has_large_adenoma_broad(pm, cm, min_size)
     elif version == FindingVersion.PRECISE:

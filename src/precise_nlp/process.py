@@ -346,7 +346,7 @@ class DataCounter:
 
 
 def process(data, truth=None, errors=None, output=None, outfile=None, preprocessing=None,
-            cspy_precise_finding_version=False, cspy_extent_search_all=False):
+            cspy_precise_finding_version=True, cspy_extent_search_all=False):
     # how to parse cspy document
     cspy_finding_version = FindingVersion.PRECISE if cspy_precise_finding_version else FindingVersion.BROAD
     score = defaultdict(lambda: [0, 0, 0, 0])  # TP, FP, FN, TN
@@ -504,7 +504,7 @@ def process_config():
             'outfile': {
                 'type': 'string'
             },
-            'cspy_precise_finding_version': {'type': 'boolean'},
+            'cspy_precise_finding_version': {'type': 'boolean'},  # defaults to true
             'cspy_extent_search_all': {'type': 'boolean'}
         }
     }
