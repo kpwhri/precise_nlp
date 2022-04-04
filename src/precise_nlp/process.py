@@ -251,7 +251,8 @@ def get_data(filetype, path, identifier=None, path_text=None, cspy_text=None, en
         # ensure no nan
         if cspy_text:
             df[cspy_text].fillna('', inplace=True)
-        df[path_text].fillna('', inplace=True)
+        if path_text:
+            df[path_text].fillna('', inplace=True)
         for row in df.itertuples():
             name = getattr(row, identifier)
             if limit and name not in limit:
@@ -259,7 +260,7 @@ def get_data(filetype, path, identifier=None, path_text=None, cspy_text=None, en
             if cspy_text and requires_cspy_text and not getattr(row, cspy_text):
                 continue  # skip missing records
             yield (name,
-                   getattr(row, path_text),
+                   getattr(row, path_text) if path_text else '',
                    getattr(row, cspy_text) if cspy_text else '',
                    {x: getattr(row, truth[x]) for x in truth} if truth else None)
     else:

@@ -353,7 +353,8 @@ class CspyManager:
         """
         indications = []
         if ind := self._get_indications_from_indications_section():
-            indications.append(ind)
+            # indications.append(ind)  # HACK: this breaks certain internal: causes too many DIAGNOSTIC
+            return ind
         if ind := self._get_indications_from_keys():
             indications.append(ind)
         if indications:

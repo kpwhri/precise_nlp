@@ -63,15 +63,12 @@ COLON_PREP_PRE = Pattern(
 COLON_PREP_POST = Pattern(r'((?P<prep>{})\w*) (\w+ ){{0,2}}prepared colon'.format(ColonPrep.REGEX))
 COLON_PREPARATION = Pattern(r'(?P<prep>{}) preparation'.format(ColonPrep.REGEX))
 
-"""
 # INDICATION PATTERNS
 isayo = r'\Wis\W*a\W*\d{2,3}\W*year\W*old'
 screen = r'(for|cancer)? screening'
-occult = r'positive\W*((hem)?[aeo]{1,2}cc?ult|\bfit\b|g?fobt)'
-occult2 = r'hem[aeo]{1,2}(cc?ult)? positive'
-# occult = r'positive\W*((hem)?[aeo]{1,2}cc?ult|fit\b|g?fobt)'
-# occult2 = r'(hem[aeo]{1,2}(cc?ult)?|\bfit) positive'
-# occult3 = r'\bfit\W*stool\b'  # no mention of positive (might be over-specific)
+occult = r'positive\W*((hem)?[aeo]{1,2}cc?ult|fit\b|g?fobt)'
+occult2 = r'(hem[aeo]{1,2}(cc?ult)?|\bfit) positive'
+occult3 = r'\bfit\W*stool\b'  # no mention of positive (might be over-specific)
 abnormal = r'abnormal'
 blood = r'blood|bleed|brb|hematochezia|melena|tarry'
 anemia = r'anemi(a|c)'
@@ -89,15 +86,13 @@ colitis = r'colitis'
 divertic = r'divertic'  # removed from diagnostic for internal inconsistency
 perhx = r'(?<!family\W)(?<!family)(((h[ist]+ory|hx)\W*of)|h\/o)'
 personal_history = r'personal history'
-# HACK: should be \bson\b, but this causes 'blood' in 'blood pressure' to be identified as DIAGNOSTIC.
-#   Since 'son' is only SCREENING (lowest priority), it will only absorb some UNKNOWNs.
-famhx = r'family|famhx|mother|father|parent|sister|brother|son|daughter|\bFH\b'
+famhx = r'family|famhx|mother|father|parent|sister|brother|\bson\b|daughter|\bFH\b'
 genetic = r'fap|lynch|hnpcc'
 followup = r'follow\W*up|self\/u'
 polyps = r'polyps'  # for SURVEILLANCE with negation?
 ibd = r'(ibd|\buc\b|ulcerative|crohn|inflammatory bowl pan colitis)'
 surveil = r'(surveillance|barrett)'
-INDICATION_DIAGNOSTIC = Pattern(f'({occult}|{occult2}|{abnormal}|{blood}|{anemia}|{diarrhea}'
+INDICATION_DIAGNOSTIC = Pattern(f'({occult}|{occult2}|{occult3}|{abnormal}|{blood}|{anemia}|{diarrhea}'
                                 f'|{constip}|{change1}|{change2}|{ibs}|{mass}'
                                 f'|{pain}|{weight}|{mets}|{suspect})',
                                 negates=[r'\bno\b'])
@@ -107,41 +102,3 @@ INDICATION_SURVEILLANCE = Pattern(f'({ibd}|{perhx}|{genetic}|{followup}'
 INDICATION_SCREENING = Pattern(f'({screen}|{famhx})',
                                negates=[r'\bno\b'])
 REMOVE_SCREENING = Pattern(fr'(({followup}|{suspect}\w*) (\w+ )?{divertic})')
-"""
-isayo = r'\Wis\W*a\W*\d{2,3}\W*year\W*old'
-screen = r'(for|cancer)? screening'
-occult = r'positive\W*((hem)?[aeo]{1,2}cc?ult|\bfit\b|g?fobt)'
-occult2 = r'hem[aeo]{1,2}(cc?ult)? positive'
-abnormal = r'abnormal'
-blood = r'blood|bleed|brb|hematochezia|melena|tarry'
-anemia = r'anemi(a|c)'
-diarrhea = r'diarr?h\w+|loose|watery'
-constip = r'constipat'
-change1 = r'urgency|incontin|muco?us|irregular'
-change2 = r'altered\s*bowel|\bchange(s|d)?\W*(?:\w+\W*){0,2}?bowel\b'
-ibs = r'(\bibs\b|irritable)'
-mass = r'mass'
-pain = r'(?<!chest\s)pain(?!less)'
-weight = r'(weight|wt)\W*loss|anorexi'
-mets = r'metasta'
-suspect = r'suspect'
-colitis = r'colitis'
-# divertic = r'divertic'  # removed from diagnostic for internal inconsistency
-perhx = r'(?<!family\W)(?<!family)(((h[ist]+ory|hx)\W*of)|h\/o)'
-personal_history = r'personal history'
-famhx = r'family|famhx|mother|father|parent|sister|brother|son|daughter|\bFH\b'
-genetic = r'fap|lynch|hnpcc'
-followup = r'follow\W*-?\W*up|self\/u'
-polyps = r'polyps'  # for SURVEILLANCE with negation?
-ibd = r'(ibd|\buc\b|ulcerative|crohn|inflammatory bowl pan colitis)'
-surveil = r'(surveillance|barrett)'
-INDICATION_DIAGNOSTIC = Pattern(f'({occult}|{occult2}|{abnormal}|{blood}|{anemia}|{diarrhea}'
-                                f'|{constip}|{change1}|{change2}|{ibs}|{mass}'
-                                f'|{pain}|{weight}|{mets}|{suspect})',
-                                negates=[r'\bno\b'])
-INDICATION_SURVEILLANCE = Pattern(f'({ibd}|{perhx}|{genetic}|{followup}'
-                                  f'|{surveil}|{personal_history})',
-                                  negates=[r'\bno\b'])
-INDICATION_SCREENING = Pattern(f'({screen}|{famhx})',
-                               negates=[r'\bno\b'])
-REMOVE_SCREENING = Pattern(f'lsakdjflaksdjflkasdjf')
