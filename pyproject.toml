@@ -4,7 +4,7 @@ build-backend = 'flit_core.buildapi'
 
 [project]
 name = 'precise_nlp'
-version = '0.1.0'
+version = '0.1.1'
 module = 'precise_nlp'
 authors = [
     { name = 'dcronkite', email = 'dcronkite+pypi@gmail.com' },
@@ -12,7 +12,7 @@ authors = [
 readme = 'README.md'
 description = 'Extract colorectal information from colonoscopy and pathology notes.'
 home-page = 'https://github.com/kpwhri/precise_nlp'
-requires = ['regexify', 'loguru', 'jsonschema', 'pyyaml']
+requires = ['regexify', 'loguru', 'jsonschema', 'pyyaml', 'pandas']
 requires-python = '>=3.10'
 keywords = ['nlp', 'information extraction', 'colonoscopy']
 classifiers = [  # https://pypi.org/classifiers/
@@ -26,7 +26,6 @@ classifiers = [  # https://pypi.org/classifiers/
 
 [project.optional-dependencies]
 dev = ['pytest', 'tox', 'coverage', 'pytest-cov']
-extra = ['pandas']
 
 [tool.pytest.ini_options]
 addopts = '--cov=precise_nlp --cov-report=term'
@@ -49,5 +48,6 @@ deps =
     loguru
     regexify
     pytest-cov
+    pandas
 commands = pytest
 """
