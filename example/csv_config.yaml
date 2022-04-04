@@ -1,0 +1,8 @@
+# configuration for csv file; need to update paths to fullpaths
+data:
+  filetype: csv
+  path: example_data.csv
+  cspy_text: COLONOSCOPY
+  path_text: PATH
+  identifier: ID
+outfile: example_data_{datetime}.out
