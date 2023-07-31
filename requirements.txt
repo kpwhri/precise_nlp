@@ -2,3 +2,4 @@ loguru
 pyyaml
 jsonschema
 regexify
+pandas
