@@ -18,6 +18,7 @@ import os
 
 try:
     import yaml
+
     YAML = True
 except ModuleNotFoundError:
     YAML = False
@@ -410,7 +411,12 @@ def process(data, truth=None, errors=None, output=None, outfile=None, preprocess
         elif outfile:
             res['row'] = i
             res['identifier'] = identifier
-            outfile.writerow(res)
+            try:
+                outfile.writerow(res)
+            except ValueError as e:
+                logger.error(f'If missing fields in fieldnames, '
+                             f'ensure that the first record contains both PATH and CSPY.')
+                raise e
     output_results(score, truth, fps, fns, **output if output else dict())
     logger.info(c)
     for k, cnt in c:
