@@ -27,7 +27,7 @@ class PathManager:
         self._jars_read = False
 
     def __bool__(self):
-        return bool(self.text.strip())
+        return bool(self.text.strip()) and bool(self.specs)  # ensure specimens were found, even if text non-empty
 
     def _read_jars(self, **kwargs):
         for i, (name, sections) in enumerate(self.specs_dict.items()):
@@ -132,6 +132,8 @@ class PathManager:
                     specimens_dict[x].append(comment)
         # setup variables
         spec_letters = sorted(specimens_dict.keys())
+        if not spec_letters:
+            return None, None, None
         first_letter = spec_letters[0]
         second_letter = spec_letters[1] if len(spec_letters) > 1 else None
         # special cases
