@@ -146,7 +146,7 @@ OTHER_CANCER_TERMS = [
 CANCER_SEER_MAYBE = [
     'suspicious', 'apparent', 'apparently', 'appears',
     'consistent', 'compatible', 'comparable', 'favor',
-    'favors', 'or', 'appearing', 'likely', 'presumed', 'presumptive',
+    'favors', 'appearing', 'likely', 'presumed', 'presumptive',
     'presumably', 'presumedly', 'favored',  'suspecting',
     'probable', 'suspect', 'suspected', 'typical', 'typically',
 ]
@@ -154,7 +154,7 @@ CANCER_SEER_MAYBE = [
 CANCER_NEGATION_TERMS = [
     'no', 'not', 'unlikely', 'improbable', 'improbably',
     'doubt', 'doubtful', 'doubted', 'unclear', 'preclude',
-    'precludes', 'cannot',
+    'precludes', 'cannot', 'or',
 ]
 
 CANCER_MAYBE_TERMS = [  # identified with word embeddings of SEER terms
