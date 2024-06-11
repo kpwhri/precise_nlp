@@ -45,7 +45,7 @@ def column_separated_indications(cspy: CspyManager, cspy_text: str):
                 ind, m = m
                 if not m:
                     break
-                curr_index += m.match.end()
+                curr_index += m.end()
         if curr_index > 0:
             new_text = ' '.join((
                 cspy_text[:indication_match.end()],
