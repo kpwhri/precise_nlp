@@ -48,7 +48,18 @@ Extract colorectal information from colonoscopy and pathology notes.
 ### Prerequisites
 
 * Python 3.10 or later (3.8 or later will probably work, but not tested)
-* Git (optional: you can manually download too): to download/install/update code
+* Download code
+    * With Git: `git clone https://github.com/kpwhri/precise_nlp`
+    * To manually download the latest release:
+        1. Go to: https://github.com/kpwhri/precise_nlp/releases/latest
+        2. Choose preferred archive to download
+        3. Unarchive/unzip the downloaded file
+        4. Follow instructions in [Installation](#installation)
+    * To download the latest version:
+        1. Find the green 'Code' button
+        2. Download zip
+        3. Unzip the downloaded file
+        4. Follow instructions in [Installation](#installation)
 
 ### Installation
 
