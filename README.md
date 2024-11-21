@@ -181,6 +181,10 @@ Please use the [issue tracker](https://github.com/kpwhri/precise_nlp/issues).
 
 Under MIT license, see: https://kpwhri.mit-license.org/
 
+## Acknowledgements:
+
+* Grant/funding: UM1CA222035 funded by the National Cancer Institute
+
 
 [contributors-shield]: https://img.shields.io/github/contributors/kpwhri/precise_nlp.svg?style=flat-square
 
